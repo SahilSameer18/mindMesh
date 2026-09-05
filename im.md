@@ -29,9 +29,17 @@
 - **2.1 `CanvasDocument` Single Source of Truth (`server/src/canvas/canvasDocument.js`)**:
   - In-memory authoritative state container managing nodes and edges for each active room.
   - Action validation for `CREATE_NODE`, `UPDATE_NODE`, `DELETE_NODE`, `CREATE_EDGE`, `DELETE_EDGE`, `MOVE_NODE`.
+  - **Invariants & Edge Cases**:
+    - *Persist-then-commit ordering*: Non-debounced actions persist to Postgres before mutating in-memory state to prevent silent memory drift on database write failure.
+    - *Debounced `MOVE_NODE`*: Optimistic in-memory update with 100ms throttled database write queue; flushed immediately on teardown or conflicting actions.
+    - *Dual cascade on `DELETE_NODE`*: In-memory map removes connected edges in `CanvasDocument`; database cascades via `prisma.canvasEdge.deleteMany` in `canvasPersistence.js`.
+    - *Idempotent edge creation*: `CREATE_EDGE` uses `upsert()` to prevent duplicate key errors on client retry/dropped-ACK.
+    - *Update field whitelist*: `updateNodeAction()` enforces strict whitelist (`text`, `type`, `semanticKey`, `x`, `y`, `metadata`) to block `id` or `roomId` mutations.
 - **2.2 Socket.io Collaboration Relay (`server/src/realtime/socket.js` & `canvas.socket.js`)**:
   - Client emits `canvas:action` → Server validates → Updates `CanvasDocument` → Persists to Prisma → Broadcasts to all peers in the room.
-  - Throttled debounce on `MOVE_NODE` (50–100ms during dragging; final commit on drag end).
+  - **Invariants & Edge Cases**:
+    - *Room authorization enforcement*: Handlers strictly use authoritative `socket.roomId` set during `canvas:join`, ignoring client-supplied room IDs to prevent cross-room write bypass.
+    - *Consolidated `canvas:join`*: Single event handles room joining, emits `canvas:init` with full state to caller, and broadcasts `presence:peer-joined` to room peers (no separate redundant `room:join`).
 - **2.3 Frontend Canvas Engine (`client/src/components/canvas/InfiniteCanvas.jsx` & `useCanvas.js`)**:
   - Infinite hardware-accelerated 2D canvas with smooth pan, zoom (wheel/touch), and coordinate transformation math.
   - Optimistic local updates for snappy 60fps interaction.

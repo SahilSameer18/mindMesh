@@ -41,7 +41,20 @@
 ---
 
 ## Phase 2: Real-time Canvas Engine & Collaboration Relay (Current)
-*(Files will be recorded here as they are created and modified)*
+
+### Backend (Completed & Verified):
+1. `server/src/canvas/canvasActions.js` — Action definitions, action creators, and deterministic UUID generation.
+2. `server/src/canvas/canvasValidation.js` — Payload validation for all node & edge operations.
+3. `server/src/canvas/canvasDocument.js` — Authoritative in-memory room canvas document with debounced writes.
+4. `server/src/realtime/canvas.socket.js` — Socket event handlers for `canvas:join`, `canvas:action`, `canvas:batch_action`, `cursor:move`.
+5. `server/src/realtime/socket.js` — Mounted canvas real-time collaboration listeners.
+6. `server/test-canvas-backend.js` — Verification test suite (in-memory state, debouncing, Neon DB persistence, edge cascading).
+
+### Frontend (Pending):
+- `client/src/hooks/useCanvas.js`
+- `client/src/components/canvas/InfiniteCanvas.jsx`
+- `client/src/components/canvas/CanvasNode.jsx`
+- `client/src/components/canvas/CanvasEdge.jsx`
 
 ---
 

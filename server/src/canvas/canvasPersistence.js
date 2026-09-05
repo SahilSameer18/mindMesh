@@ -88,8 +88,15 @@ export async function persistCanvasAction(roomId, action) {
         });
 
       case "CREATE_EDGE":
-        return await prisma.canvasEdge.create({
-          data: {
+        return await prisma.canvasEdge.upsert({
+          where: { id: payload.id },
+          update: {
+            fromId: payload.fromId,
+            toId: payload.toId,
+            label: payload.label || null,
+            type: payload.type || "related_to",
+          },
+          create: {
             id: payload.id,
             roomId,
             fromId: payload.fromId,
