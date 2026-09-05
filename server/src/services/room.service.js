@@ -1,142 +1,101 @@
 import prisma from "../lib/prisma.js";
-import { loadCanvasState, saveLocalSnapshot, loadLocalSnapshot } from "../canvas/canvasPersistence.js";
+import { loadCanvasState } from "../canvas/canvasPersistence.js";
 
 const DEFAULT_WORKSPACE_ID = "default-workspace";
 
 async function ensureDefaultWorkspace() {
   try {
-    if (prisma) {
-      await prisma.workspace.upsert({
-        where: { id: DEFAULT_WORKSPACE_ID },
-        update: {},
-        create: {
-          id: DEFAULT_WORKSPACE_ID,
-          name: "mindMesh Studio",
-        },
-      });
-    }
+    await prisma.workspace.upsert({
+      where: { id: DEFAULT_WORKSPACE_ID },
+      update: {},
+      create: {
+        id: DEFAULT_WORKSPACE_ID,
+        name: "mindMesh Studio",
+      },
+    });
   } catch (err) {
-    console.warn("[RoomService] Ensure workspace warning:", err.message);
+    console.error("[RoomService] Error ensuring default workspace:", err.message);
+    throw err;
   }
 }
 
 export async function getOrCreateRoom(roomId, { name, mode = "operational", systemContext = null } = {}) {
-  await ensureDefaultWorkspace();
-
   try {
-    if (prisma) {
-      let room = await prisma.room.findUnique({
-        where: { id: roomId },
+    await ensureDefaultWorkspace();
+
+    let room = await prisma.room.findUnique({
+      where: { id: roomId },
+      include: {
+        members: { include: { user: true } },
+        integrations: true,
+      },
+    });
+
+    if (!room) {
+      room = await prisma.room.create({
+        data: {
+          id: roomId,
+          workspaceId: DEFAULT_WORKSPACE_ID,
+          name: name || `Room ${roomId.slice(0, 8)}`,
+          mode,
+          systemContext,
+        },
         include: {
           members: { include: { user: true } },
-          zones: true,
           integrations: true,
         },
       });
-
-      if (!room) {
-        room = await prisma.room.create({
-          data: {
-            id: roomId,
-            workspaceId: DEFAULT_WORKSPACE_ID,
-            name: name || `Room ${roomId.slice(0, 8)}`,
-            mode,
-            systemContext,
-          },
-          include: {
-            members: { include: { user: true } },
-            zones: true,
-            integrations: true,
-          },
-        });
-      }
-
-      const canvas = await loadCanvasState(roomId);
-      return { ...room, canvas };
     }
+
+    const canvas = await loadCanvasState(roomId);
+    return { ...room, canvas };
   } catch (err) {
-    console.warn(`[RoomService] Prisma getOrCreateRoom failed, using local:`, err.message);
+    console.error(`[RoomService] Error in getOrCreateRoom for ${roomId}:`, err.message);
+    throw err;
   }
-
-  // Fallback
-  let localRoom = loadLocalSnapshot(`room-meta-${roomId}`);
-  if (!localRoom) {
-    localRoom = {
-      id: roomId,
-      workspaceId: DEFAULT_WORKSPACE_ID,
-      name: name || `Room ${roomId.slice(0, 8)}`,
-      mode,
-      systemContext,
-      members: [],
-      zones: [],
-      integrations: [],
-      createdAt: new Date().toISOString(),
-    };
-    saveLocalSnapshot(`room-meta-${roomId}`, localRoom);
-  }
-
-  const canvas = await loadCanvasState(roomId);
-  return { ...localRoom, canvas };
 }
 
 export async function getRoom(roomId) {
   try {
-    if (prisma) {
-      const room = await prisma.room.findUnique({
-        where: { id: roomId },
-        include: {
-          members: { include: { user: true } },
-          zones: true,
-          integrations: true,
-        },
-      });
-      if (room) {
-        const canvas = await loadCanvasState(roomId);
-        return { ...room, canvas };
-      }
-    }
-  } catch (err) {
-    console.warn("[RoomService] DB getRoom failed:", err.message);
-  }
+    const room = await prisma.room.findUnique({
+      where: { id: roomId },
+      include: {
+        members: { include: { user: true } },
+        integrations: true,
+      },
+    });
 
-  const local = loadLocalSnapshot(`room-meta-${roomId}`);
-  if (local) {
+    if (!room) return null;
+
     const canvas = await loadCanvasState(roomId);
-    return { ...local, canvas };
+    return { ...room, canvas };
+  } catch (err) {
+    console.error(`[RoomService] Error fetching room ${roomId}:`, err.message);
+    throw err;
   }
-  return null;
 }
 
 export async function updateRoom(roomId, updates) {
   try {
-    if (prisma) {
-      const updated = await prisma.room.update({
-        where: { id: roomId },
-        data: updates,
-      });
-      return updated;
-    }
+    return await prisma.room.update({
+      where: { id: roomId },
+      data: updates,
+    });
   } catch (err) {
-    console.warn("[RoomService] DB updateRoom failed:", err.message);
+    console.error(`[RoomService] Error updating room ${roomId}:`, err.message);
+    throw err;
   }
-
-  const local = loadLocalSnapshot(`room-meta-${roomId}`) || { id: roomId };
-  const updated = { ...local, ...updates, updatedAt: new Date().toISOString() };
-  saveLocalSnapshot(`room-meta-${roomId}`, updated);
-  return updated;
 }
 
 export async function addContextZone(roomId, { name, x, y, zoom = 1.0 }) {
   try {
-    if (prisma) {
-      return await prisma.contextZone.create({
-        data: { roomId, name, x, y, zoom },
-      });
-    }
+    return await prisma.contextZone.create({
+      data: { roomId, name, x, y, zoom },
+    });
   } catch (err) {
-    console.warn("[RoomService] DB addContextZone failed:", err.message);
+    console.error(`[RoomService] Error adding context zone to room ${roomId}:`, err.message);
+    throw err;
   }
-
-  const zone = { id: `zone-${Date.now()}`, roomId, name, x, y, zoom };
-  return zone;
 }
+
+

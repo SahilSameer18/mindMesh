@@ -34,7 +34,9 @@
 17. `server/src/integrations/email.js`
 18. `server/src/integrations/imageGen.js`
 19. `server/src/integrations/index.js`
-20. `client/package.json`
+20. `server/prisma/seed.js`
+21. `server/prisma.config.ts`
+22. `client/package.json`
 
 ---
 

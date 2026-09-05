@@ -1,6 +1,6 @@
 # mindMesh
 
-> **the conversation becomes the canvas.**
+> *The conversation becomes the canvas.*
 
 mindMesh is an AI-powered collaborative visual workspace where teams meet, communicate, and think together on a shared infinite canvas. As participants talk or type, the AI agent understands their ideas, decisions, questions, tasks, and relationships in real time, transforming dialogue into an interactive visual knowledge graph and generative concept visuals.
 
@@ -109,5 +109,12 @@ mindMesh/
 
 ---
 
+## Author
+
+Designed and engineered by **Sahil Sameer** ([@SahilSameer18](https://github.com/SahilSameer18)).
+
+---
+
 ## License
 ISC
+
