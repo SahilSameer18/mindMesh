@@ -11,6 +11,21 @@
 
 ---
 
+## Development Roadmap & Status
+
+| Phase | Description | Status | Key Deliverables |
+| :---: | :--- | :---: | :--- |
+| **Phase 1** | Foundation & Neon DB Persistence | ✅ Complete | 11 PostgreSQL Prisma models, Neon serverless adapter, demo seed data |
+| **Phase 2** | Real-Time Authoritative Canvas Engine | ✅ Complete | In-memory `CanvasDocument`, 60fps pan/zoom, debounced batch writes, edge cascade |
+| **Phase 3** | Dual-Provider AI Intelligence Engine | ✅ Complete | Groq + Gemini failover, candidate model resilience, Jaccard in-place mutation, confidence routing |
+| **Phase 4** | Active Command Bar & AI Activity Stream | ✅ Complete | `Cmd+K` command bar, geometric layouts, live activity drawer, truthful Evidence cards (`sourceId`), query highlights |
+| **Phase 5** | Speech Intelligence & Transcript Simulator | ⏳ Next | Stepped transcript playback, single-flight throttled queue ($\le 17$ RPM), custom JWT auth |
+| **Phase 6** | Real-Time Audio & Video Collaboration | 📋 Planned | Daily.co / LiveKit room integration, active speaker detection, dynamic audio visualizer |
+| **Phase 7** | Context Zones & Workspace Clustering | 📋 Planned | Spatial context zones, perimeter tagging, isolated cluster operations |
+| **Phase 8** | Export, Polish & Production Hardening | 📋 Planned | High-res SVG/PNG export, end-to-end load testing, security audit |
+
+---
+
 ## System Architecture
 
 ```mermaid
@@ -200,6 +215,8 @@ flowchart LR
    - `confidence < 0.50` $\to$ `"clarify"` (surfaced with amber review warning).
    - **Destructive Gating**: `DELETE_NODE` and `DELETE_EDGE` are permanently gated to `"proposed"`.
 6. **Candidate Model Resilience**: The primary provider automatically falls back across available models (`config.groqModel`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `llama-3.3-70b-versatile`) on HTTP 404, gracefully surviving per-organization deprecations.
+7. **End-to-End Data Lineage (`sourceId` Join Key)**: Both `CREATE_NODE` and `UPDATE_NODE` actions inject the authoritative `AIAction.id` into `CanvasNode.sourceId` and persist it to PostgreSQL, ensuring that Evidence Cards display true conversational rationale and verbatim `metadata.sourceQuote` across creation and live corrections.
+8. **Chronological Stream Integrity**: Self-approval and live WebSocket action updates match by ID/fingerprint and update records in-place rather than unshifting, preventing approved actions from jumping to the top of the feed.
 
 ---
 
@@ -303,7 +320,7 @@ mindMesh/
 │   │   │   ├── activity/             # ActivityStream & EvidenceCard
 │   │   │   └── meeting/              # SpeechIntelligence & VideoConference
 │   │   ├── context/                  # RoomContext (WebSockets & presence)
-│   │   ├── hooks/                    # useCanvas, useSpeechRecognition
+│   │   ├── hooks/                    # useCanvas, useAIActions, useSpeechRecognition
 │   │   └── utils/                    # canvasConstants, color tokens
 │   └── package.json
 │
