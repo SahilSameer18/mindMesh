@@ -2,7 +2,7 @@
 
 ## Status Dashboard
 - **Phase 1**: Foundation & Data Architecture — ✅ Completed
-- **Phase 2**: Real-time Canvas Engine & Collaboration Relay — ⏳ In Progress
+- **Phase 2**: Real-time Canvas Engine & Collaboration Relay — ✅ Completed
 - **Phase 3**: AI Intelligence Engine & Confidence Routing — ⏹ Queued
 - **Phase 4**: The Active Command Bar & AI Activity Stream — ⏹ Queued
 - **Phase 5**: Passive Extraction & Custom Authentication — ⏹ Queued
@@ -40,9 +40,9 @@
 
 ---
 
-## Phase 2: Real-time Canvas Engine & Collaboration Relay (Current)
+## Phase 2: Real-time Canvas Engine & Collaboration Relay (Completed)
 
-### Backend (Completed & Verified):
+### Backend:
 1. `server/src/canvas/canvasActions.js` — Action definitions, action creators, and deterministic UUID generation.
 2. `server/src/canvas/canvasValidation.js` — Payload validation for all node & edge operations.
 3. `server/src/canvas/canvasDocument.js` — Authoritative in-memory room canvas document with debounced writes.
@@ -50,11 +50,19 @@
 5. `server/src/realtime/socket.js` — Mounted canvas real-time collaboration listeners.
 6. `server/test-canvas-backend.js` — Verification test suite (in-memory state, debouncing, Neon DB persistence, edge cascading).
 
-### Frontend (Pending):
-- `client/src/hooks/useCanvas.js`
-- `client/src/components/canvas/InfiniteCanvas.jsx`
-- `client/src/components/canvas/CanvasNode.jsx`
-- `client/src/components/canvas/CanvasEdge.jsx`
+### Frontend:
+7. `client/index.html` — Google Fonts (`Outfit`, `Inter`) and page metadata.
+8. `client/src/index.css` — Design system tokens, dot-grid canvas pattern, glassmorphism utilities, glow tokens.
+9. `client/src/utils/canvasConstants.js` — Action types, node types, edge types, visual configs, and tokens.
+10. `client/src/context/roomContextInstance.js` — Isolated RoomContext instance for clean HMR.
+11. `client/src/context/RoomContext.jsx` — RoomProvider with auto-reconnect, identity resolution (`?as=marcus`), and peer presence.
+12. `client/src/hooks/useRoom.js` — Consumer hook for RoomContext.
+13. `client/src/hooks/useCanvas.js` — Authoritative canvas hook with client-side UUIDs, optimistic 60fps moves, and ack-based rollback.
+14. `client/src/components/canvas/CanvasNode.jsx` — 8 specialized node types with inline editing, task checkboxes, and link handles.
+15. `client/src/components/canvas/CanvasEdge.jsx` — Cubic Bezier curves with relationship styling, centered badges, and delete trigger.
+16. `client/src/components/canvas/InfiniteCanvas.jsx` — Infinite hardware-accelerated canvas with pan, zoom, SVG layer, and toolbar.
+17. `client/src/components/ui/WorkspaceHeader.jsx` — Room status, multi-tab identity switcher (`?as=marcus`), and peer avatars.
+18. `client/src/App.jsx` — Ultra-clean declarative workspace shell.
 
 ---
 

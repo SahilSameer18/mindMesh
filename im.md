@@ -40,12 +40,14 @@
   - **Invariants & Edge Cases**:
     - *Room authorization enforcement*: Handlers strictly use authoritative `socket.roomId` set during `canvas:join`, ignoring client-supplied room IDs to prevent cross-room write bypass.
     - *Consolidated `canvas:join`*: Single event handles room joining, emits `canvas:init` with full state to caller, and broadcasts `presence:peer-joined` to room peers (no separate redundant `room:join`).
+    - *Dynamic room verification (Phase 5)*: In Phase 2, `demo-room` existence is guaranteed by `seed.js`. When custom rooms and invite links arrive in Phase 5, `canvas:join` must verify room existence via `getOrCreateRoom` upfront so non-existent room IDs fail with a clean error rather than throwing a foreign-key constraint violation on node/edge creation.
 - **2.3 Frontend Canvas Engine (`client/src/components/canvas/InfiniteCanvas.jsx` & `useCanvas.js`)**:
   - Infinite hardware-accelerated 2D canvas with smooth pan, zoom (wheel/touch), and coordinate transformation math.
   - Optimistic local updates for snappy 60fps interaction.
 - **2.4 Rich Visual Node Components (`client/src/components/canvas/CanvasNode.jsx` & `CanvasEdge.jsx`)**:
   - Render 8 specialized node types: 🎯 Goal, 💡 Idea, 🟢 Task (assignee + checkbox), 🔵 Decision, 🟣 Question, 🔴 Risk, 👤 Person, 🖼️ Generated Visual.
   - Render smooth Bezier curve connection lines with relationship tags (`blocks`, `depends_on`, `leads_to`, `supports`, `part_of`).
+  - *Connecting click gating*: Node clicks must only trigger connection completion when an active connection drag (`connectingNodeId`) is in progress, preventing redundant no-op calls during regular card clicks.
 
 ---
 
@@ -103,6 +105,7 @@
   - Endpoints: `POST /auth/signup`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`.
   - Protect Socket.io handshake (`io.use`) to ensure cursors display verified user identities.
   - Update `getOrCreateRoom({ roomId, userId })` to automatically insert a `RoomMember` record with `role: "owner"` for the room creator upon initial room creation.
+  - Wire `canvas:join` to verify room existence / call `getOrCreateRoom` upfront so dynamic/invite room IDs are checked before loading canvas state, preventing foreign-key violations.
 
 ---
 
@@ -164,3 +167,4 @@
   - Mobile-first responsive viewports with collapsable tool drawers.
 - **8.5 End-to-End Demo Script Dry Run**:
   - Validate the 13-point master demo script (*"We don't take notes for you. We think with you."*).
+
