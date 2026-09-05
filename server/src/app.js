@@ -5,6 +5,7 @@ import { config } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
 import { sendSuccess } from "./utils/response.js";
 import roomRoutes from "./routes/room.routes.js";
+import aiRoutes from "./routes/ai.routes.js";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.get("/api/health", (_req, res) => {
 
 // Mount Routes
 app.use("/api/rooms", roomRoutes);
+app.use("/api/rooms", aiRoutes);
 
 // 404 and Global Error Handlers
 app.use(notFoundHandler);

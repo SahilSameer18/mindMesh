@@ -73,12 +73,25 @@
 - **3.3 In-Place Correction via `semanticKey` (`server/src/canvas/canvasDeduplication.js`)**:
   - Match entities against active canvas nodes by stable `semanticKey`.
   - In-place update test: When user says *"Actually, Mike is busy, Sam will take the dashboard"*, update the existing Task node's assignee in place rather than creating a duplicate.
+- **3.4 Invariants & Edge Cases**:
+  - *Deterministic UUID Assignment*: `validateAIAction()` assigns `crypto.randomUUID()` to all `CREATE_NODE` and `CREATE_EDGE` payloads upfront. Prevents validation rejection by `validateCanvasAction()` in `CanvasDocument` and ensures in-batch edge references resolve to true UUIDs instead of slugs.
+  - *Token Headroom Guard (`max_tokens: 2500`)*: Raised from 1000 to prevent LLM response truncation on multi-entity extraction batches, eliminating silent `SyntaxError` throws on `JSON.parse()`.
+  - *SyntaxError Transparent Failover*: `shouldFallback()` in `withFallback` catches truncated JSON / `SyntaxError` alongside HTTP 429/500, ensuring malformed LLM outputs fail over to Gemini Flash seamlessly rather than erroring out.
+  - *Candidate Model Resilience*: `groq.js` loops through candidate models (`config.groqModel`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `llama-3.3-70b-versatile`) on HTTP 404, gracefully surviving per-organization model deprecations.
+  - *Comprehensive Metadata Mutation Detection*: `deduplicateAndLinkActions()` checks all keys in `metadata` (not just `assignee` and `text`), ensuring task status changes (`"mark as done"`) and priority shifts generate in-place `UPDATE_NODE` actions.
+  - *Multi-Key Round-Robin Pooling*: `GROQ_API_KEYS=key1,key2` automatically rotates between pooled keys, doubling the free tier ceiling to 2,000 requests/day.
 
 ---
 
 # Phase 4: The Active Command Bar & AI Activity Stream
-*Goal: Build the headline conversational control bar and "Why this exists" evidence system.*
+*Goal: Build the headline conversational control bar, shared effector bridge, and "Why this exists" evidence system.*
 
+- **4.0 AI Action Effector & Activity Stream Persistence Bridge (`server/src/ai/applyAIActions.js` & `server/src/utils/hash.js`)**:
+  - Deterministic SHA-256 fingerprinting with normalized sorted JSON payloads (`hash(roomId + sourceId + type + normalizedPayload)`) to enforce the `@unique` constraint on `AIAction.fingerprint`.
+  - Authoritative status routing:
+    - `"auto"` actions: written to `CanvasDocument.applyAction()`, broadcasted via `canvas:action` and `ai:activity` over Socket.io, and updated in DB to `status: "applied"`.
+    - `"proposed"` & `"clarify"` actions: persisted to Neon Postgres with `status: "proposed"` and emitted via `ai:proposed` to surface user approval badges in the UI.
+  - Resolution lifecycle: `approveAIAction()` and `rejectAIAction()` with HTTP (`/api/rooms/:roomId/ai-actions`) and Socket.io handlers for interactive review.
 - **4.1 Active Command Bar UI (`client/src/components/command/ActiveCommandBar.jsx`)**:
   - Permanent floating input at canvas bottom: `✨ Ask your workspace...`
   - Rotating prompt pills (*"Turn this into a roadmap"*, *"What did we decide?"*, *"Show all dependencies"*, *"Move risks to the right"*).
@@ -103,10 +116,10 @@
     - Each client emits attributed speech chunks `{ speaker, userId, text, timestamp }` from its isolated microphone.
     - Server formats context as a structured dialogue script: `[10:14:02] Elena Vance: "..." \n [10:14:05] Marcus Sterling: "..."`.
     - Enables accurate entity and task attribution (e.g., resolving "I will take..." to the active speaker).
-  - **Adaptive Triggering (Replacing Blind 10s Timer)**:
-    - *Speaker Switch*: When speaker turns change (Elena $\to$ Marcus), trigger extraction immediately.
-    - *Natural Pause*: 1.5s silence triggers thought extraction.
-    - *Ceiling Window*: 8–10s max window for continuous monologues.
+  - **Adaptive Triggering with Single-Flight Coalescing (Replacing Blind 10s Timer)**:
+    - *Trigger Conditions*: Speaker turn switch (Elena $\to$ Marcus), 1.5s natural pause, or 8–10s ceiling monologue window.
+    - *Single-Flight Lock & Cooldown (3.5s)*: Enforces that only one LLM extraction can be in-flight at any time. If a speaker switch or pause fires while a request is in-flight or within the 3.5s cooldown window, incoming dialogue chunks are buffered into an accumulator queue. When the lock/cooldown clears, all accumulated dialogue flushes in one single batch.
+    - *Rate Limit Ceiling Enforcement*: Hard-caps call frequency to $\le 17\text{ RPM}$, guaranteeing full compliance with Groq's 30 RPM and Gemini's 15 RPM free quotas, while eliminating out-of-order response race conditions.
   - **Conversational Filler Filter**:
     - Discards chunks under 4 words of conversational fluff (*"yeah"*, *"uh-huh"*, *"okay"*), saving 30–40% of API call budget.
   - Mode-aware ontology prompt extracting multi-node graphs and dependency edges.

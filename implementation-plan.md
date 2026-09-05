@@ -372,10 +372,10 @@ export const ai = {
   `[10:14:02] Elena Vance: "..." \n [10:14:05] Marcus Sterling: "..."`.
 - Enables precise entity and task attribution (e.g., resolving pronouns like "I will take..." to the active speaker).
 
-**Adaptive Ingestion Triggering (Replacing Blind 10s Timer)**:
-1. *Speaker Switch*: When speaker turns change (Elena → Marcus), trigger extraction immediately.
-2. *Natural Pause*: 1.5s of silence marks thought completion.
-3. *Ceiling Window*: 8–10s max window for continuous monologues.
+**Adaptive Ingestion Triggering with Single-Flight Coalescing (Replacing Blind 10s Timer)**:
+1. *Trigger Conditions*: Speaker turn switch (Elena → Marcus), 1.5s natural pause, or 8–10s ceiling monologue window.
+2. *Single-Flight Lock & Cooldown (3.5s)*: Enforces that only one LLM extraction can be in-flight at any time. If a speaker switch or pause fires while a request is in-flight or within the 3.5s cooldown window, incoming dialogue chunks are buffered into an accumulator queue. When the lock/cooldown clears, all accumulated dialogue flushes in one single batch.
+3. *Rate Limit Ceiling Enforcement*: Hard-caps call frequency to $\le 17\text{ RPM}$, guaranteeing full compliance with Groq's 30 RPM and Gemini's 15 RPM free quotas, while eliminating out-of-order response race conditions.
 4. *Conversational Filler Filter*: Discards chunks under 4 words of conversational fluff (*"yeah"*, *"uh-huh"*, *"okay"*), saving 30–40% of API call budget.
 
 **Context manager** — roll up recent transcript, existing nodes (with `semanticKey`),
@@ -632,11 +632,19 @@ integrations, or video. Phased sequence matching `ROADMAP.md`:
 - **3.3 In-Place Correction via `semanticKey` (`server/src/canvas/canvasDeduplication.js`)**:
   - Match entities against active canvas nodes by stable `semanticKey`.
   - In-place update test: When user says *"Actually, Mike is busy, Sam will take the dashboard"*, update existing Task node's assignee in place rather than creating a duplicate.
+- **3.4 Invariants & Edge Cases**:
+  - *Deterministic UUID Assignment*: `validateAIAction()` assigns `crypto.randomUUID()` to all `CREATE_NODE` and `CREATE_EDGE` payloads upfront. Prevents validation rejection by `validateCanvasAction()` in `CanvasDocument` and ensures in-batch edge references resolve to true UUIDs instead of slugs.
+  - *Token Headroom Guard (`max_tokens: 2500`)*: Raised from 1000 to prevent LLM response truncation on multi-entity extraction batches, eliminating silent `SyntaxError` throws on `JSON.parse()`.
+  - *SyntaxError Transparent Failover*: `shouldFallback()` in `withFallback` catches truncated JSON / `SyntaxError` alongside HTTP 429/500, ensuring malformed LLM outputs fail over to Gemini Flash seamlessly rather than erroring out.
+  - *Candidate Model Resilience*: `groq.js` loops through candidate models (`config.groqModel`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `llama-3.3-70b-versatile`) on HTTP 404, gracefully surviving per-organization model deprecations.
+  - *Comprehensive Metadata Mutation Detection*: `deduplicateAndLinkActions()` checks all keys in `metadata` (not just `assignee` and `text`), ensuring task status changes (`"mark as done"`) and priority shifts generate in-place `UPDATE_NODE` actions.
+  - *Multi-Key Round-Robin Pooling*: `GROQ_API_KEYS=key1,key2` automatically rotates between pooled keys, doubling the free tier ceiling to 2,000 requests/day.
 
 ### Phase 4: The Active Command Bar & AI Activity Stream
-*Goal: Build the headline conversational control bar and "Why this exists" evidence system.*
+*Goal: Build the headline conversational control bar, shared effector bridge, and "Why this exists" evidence system.*
+- **4.0 AI Action Effector & Activity Stream Persistence Bridge (`server/src/ai/applyAIActions.js` & `server/src/utils/hash.js`)**: Deterministic SHA-256 fingerprinting with normalized sorted JSON payloads enforcing `@unique` on `AIAction.fingerprint`; authoritative status routing (`"auto"` applies to `CanvasDocument` and broadcasts `canvas:action` + `ai:activity`; `"proposed"` persists and emits `ai:proposed`); lifecycle resolution (`approveAIAction`, `rejectAIAction`).
 - **4.1 Active Command Bar UI (`client/src/components/command/ActiveCommandBar.jsx`)**: Permanent floating input (`✨ Ask your workspace...`) with rotating prompt pills.
-- **4.2 Action Vocabulary Expansion (`server/src/ai/commands.js`)**: `REORGANIZE_LAYOUT` (hierarchical roadmap, cluster by theme, move risks) and `ANSWER_QUERY` (read-only node highlighting & recap).
+- **4.2 Action Vocabulary Expansion (`server/src/ai/commands.js` & `canvasLayout.js`)**: `REORGANIZE_LAYOUT` (hierarchical roadmap, cluster by theme, move risks) and `ANSWER_QUERY` (read-only node highlighting & recap).
 - **4.3 AI Activity Stream (`client/src/components/activity/ActivityStream.jsx`)**: Live feed of chronological AI actions with timestamps, confidence badges, and status.
 - **4.4 "Why This Exists" Evidence Card (`client/src/components/activity/EvidenceCard.jsx`)**: Inspection card showing transcript quote, speaker, timestamp, and AI reasoning.
 
@@ -645,7 +653,7 @@ integrations, or video. Phased sequence matching `ROADMAP.md`:
 - **5.1 Stepped Transcript Playback Simulator (`client/src/components/meeting/SpeechIntelligenceController.jsx`)**: Pre-loaded transcript scenarios with stepped/continuous playback for testing.
 - **5.2 Passive Streaming Extraction (`server/src/ai/extraction.js` & `ai.service.js`)**:
   - Speaker attribution pipeline: Structured dialogue script `[Timestamp] Speaker: Utterance`.
-  - Adaptive triggering: Speaker turn switch, 1.5s silence pause, 8–10s ceiling monologue window.
+  - Adaptive triggering with single-flight lock & 3.5s cooldown: Hard-caps frequency to $\le 17\text{ RPM}$, eliminating out-of-order race conditions and guaranteeing rate limit compliance.
   - Conversational filler filter: Discards chunks under 4 words of fluff (*"yeah"*, *"uh-huh"*), saving 30–40% API quota.
 - **5.3 Canonical Test Paragraph Verification**: Validate multi-node + dependency graph extraction against *"We need to improve onboarding. Mike will redesign the dashboard, but analytics needs to be ready first."*
 - **5.4 Real Custom Authentication (`server/src/routes/auth.routes.js` & `client/src/context/AuthContext.jsx`)**: bcrypt password hashing, JWT in httpOnly cookie, Socket.io handshake auth (`io.use`), room membership (`RoomMember`), dynamic room verification via `getOrCreateRoom` on `canvas:join`.

@@ -55,16 +55,34 @@ export async function extractMeetingElements({
   };
 }
 
+import { executeWorkspaceCommand } from "./commands.js";
+import {
+  applyAIActions,
+  approveAIAction,
+  rejectAIAction,
+  getRoomAIActions,
+} from "./applyAIActions.js";
+
 export {
   routeAction,
   processAIActions,
   withFallback,
   groq,
   gemini,
+  executeWorkspaceCommand,
+  applyAIActions,
+  approveAIAction,
+  rejectAIAction,
+  getRoomAIActions,
 };
 
 export const ai = {
   extractMeetingElements,
+  executeWorkspaceCommand,
+  applyAIActions,
+  approveAIAction,
+  rejectAIAction,
+  getRoomAIActions,
   withFallback,
   groq,
   gemini,

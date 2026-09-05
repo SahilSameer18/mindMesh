@@ -171,7 +171,11 @@ export class CanvasDocument {
       }
 
       case ACTION_TYPES.MOVE_NODE: {
-        const existingNode = this.nodes.get(payload.id) || { id: payload.id, roomId: this.roomId };
+        const existingNode = this.nodes.get(payload.id);
+        if (!existingNode) {
+          // Node was deleted; ignore move to prevent phantom resurrection
+          break;
+        }
         existingNode.x = payload.x;
         existingNode.y = payload.y;
         existingNode.updatedAt = new Date();

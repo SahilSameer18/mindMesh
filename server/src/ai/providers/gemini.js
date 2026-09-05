@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { config } from "../../config/env.js";
 import { buildExtractionSystemPrompt } from "../prompts/extraction.prompt.js";
+import { buildCommandSystemPrompt } from "../prompts/command.prompt.js";
 
 let client = null;
 
@@ -67,6 +68,64 @@ export async function extractMeetingElements({ transcript, existingNodes = [], r
   };
 }
 
+/**
+ * Execute a workspace command or query via Gemini
+ */
+export async function executeCanvasCommand({ prompt, nodes = [], edges = [], participants = [], workspaceContext = "" } = {}) {
+  const ai = getClient();
+  const systemPrompt = buildCommandSystemPrompt({ nodes, edges, participants, workspaceContext });
+  const fullPrompt = `${systemPrompt}\n\nUser Workspace Command: "${prompt}"`;
+
+  const candidateModels = [
+    config.geminiModel,
+    "gemini-flash-lite-latest",
+    "gemini-2.5-flash",
+  ].filter(Boolean);
+
+  let response = null;
+  let usedModel = config.geminiModel;
+
+  for (const model of candidateModels) {
+    try {
+      response = await ai.models.generateContent({
+        model,
+        contents: fullPrompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      });
+      usedModel = model;
+      break;
+    } catch (mErr) {
+      if (mErr.message && mErr.message.includes("404")) {
+        continue;
+      }
+      throw mErr;
+    }
+  }
+
+  if (!response) {
+    throw new Error("All Gemini model candidates failed for executeCanvasCommand.");
+  }
+
+  const rawText = response.text || "{}";
+  const parsed = JSON.parse(rawText);
+
+  return {
+    intent: parsed.intent || "ANSWER_QUERY",
+    summary: parsed.summary || `Processed command: "${prompt}"`,
+    answer: parsed.answer || null,
+    highlightedNodeIds: Array.isArray(parsed.highlightedNodeIds) ? parsed.highlightedNodeIds : [],
+    highlightedEdgeIds: Array.isArray(parsed.highlightedEdgeIds) ? parsed.highlightedEdgeIds : [],
+    layoutType: parsed.layoutType || null,
+    actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+    provider: "gemini",
+    model: usedModel,
+  };
+}
+
 export const gemini = {
   extractMeetingElements,
+  executeCanvasCommand,
 };

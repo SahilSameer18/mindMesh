@@ -1,4 +1,6 @@
 import { getCanvasDocument } from "../canvas/canvasDocument.js";
+import { executeWorkspaceCommand } from "../ai/commands.js";
+import { approveAIAction, rejectAIAction } from "../ai/applyAIActions.js";
 
 /**
  * Initializes real-time canvas socket event handlers for a connected client
@@ -154,4 +156,90 @@ export function initCanvasSocket(io, socket) {
       timestamp: Date.now(),
     });
   });
+
+  /**
+   * Client executes a natural language command via the Active Command Bar
+   */
+  socket.on("canvas:command", async ({ prompt, workspaceContext }, callback) => {
+    const targetRoomId = socket.roomId;
+    if (!targetRoomId) {
+      if (typeof callback === "function") callback({ success: false, error: "Not joined to a room" });
+      return;
+    }
+
+    try {
+      // Dynamically query connected socket peers in this room for active participant roster
+      const roomSockets = await io.in(targetRoomId).fetchSockets();
+      const participants = roomSockets
+        .map((s) => s.user)
+        .filter(Boolean);
+
+      const result = await executeWorkspaceCommand({
+        roomId: targetRoomId,
+        prompt,
+        userId: socket.user?.id,
+        participants,
+        workspaceContext,
+        io,
+      });
+
+      socket.emit("canvas:command:result", result);
+
+      if (typeof callback === "function") {
+        callback({ success: true, result });
+      }
+    } catch (err) {
+      console.error(`[CanvasSocket] Error in canvas:command:`, err.message);
+      if (typeof callback === "function") {
+        callback({ success: false, error: err.message });
+      }
+    }
+  });
+
+  /**
+   * Client approves a proposed AI action from the Activity Stream
+   */
+  socket.on("ai:action:approve", async ({ actionId }, callback) => {
+    const targetRoomId = socket.roomId;
+    if (!targetRoomId) {
+      if (typeof callback === "function") callback({ success: false, error: "Not joined to a room" });
+      return;
+    }
+
+    try {
+      const updated = await approveAIAction(targetRoomId, actionId, { io });
+      if (typeof callback === "function") {
+        callback({ success: true, action: updated });
+      }
+    } catch (err) {
+      console.error(`[CanvasSocket] Error in ai:action:approve:`, err.message);
+      if (typeof callback === "function") {
+        callback({ success: false, error: err.message });
+      }
+    }
+  });
+
+  /**
+   * Client rejects a proposed AI action from the Activity Stream
+   */
+  socket.on("ai:action:reject", async ({ actionId }, callback) => {
+    const targetRoomId = socket.roomId;
+    if (!targetRoomId) {
+      if (typeof callback === "function") callback({ success: false, error: "Not joined to a room" });
+      return;
+    }
+
+    try {
+      const updated = await rejectAIAction(targetRoomId, actionId, { io });
+      if (typeof callback === "function") {
+        callback({ success: true, action: updated });
+      }
+    } catch (err) {
+      console.error(`[CanvasSocket] Error in ai:action:reject:`, err.message);
+      if (typeof callback === "function") {
+        callback({ success: false, error: err.message });
+      }
+    }
+  });
 }
+

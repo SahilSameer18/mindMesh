@@ -59,4 +59,9 @@ export async function withFallback(methodName, ...args) {
   }
 }
 
+export async function executeCanvasCommand(args) {
+  return await withFallback("executeCanvasCommand", args);
+}
+
 export { groq, gemini };
+
