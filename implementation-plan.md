@@ -60,19 +60,19 @@ operational meeting assistant, track owners and blockers"). Store this as a
 
 | Layer | Choice | Notes |
 |---|---|---|
-| Frontend | React + Tailwind + React Flow | canvas for structured modes |
-| Live collaborative state | **Socket.io broadcast + React state** | server relays CREATE/UPDATE/DELETE/MOVE events, no CRDT — see §10 for why this is enough for now; add Yjs later only if you have spare time |
-| Durable state | Neon Postgres + Prisma | |
-| Application events | Socket.io (same connection) | canvas events + presence (cursors/minimap/follow-me) + app events |
-| Video | LiveKit | optional scope — add last, only once everything else works; canvas + AI is the demo, video isn't what's being judged |
-| Speech-to-text | Web Speech API → optional Groq Whisper upgrade | |
-| AI — primary | Groq (Llama 3.3 70B) | free, fastest, no card |
-| AI — fallback | Gemini 2.5/3 Flash | free, stronger structured output, no card |
-| Generative visuals (brainstorm mode) | **Pollinations.ai** (`image.pollinations.ai/prompt/{text}`) | completely free, zero API key, single GET request — right fit for a no-budget MVP; swap to a paid provider later if quality demands it |
-| Slack integration | Incoming Webhooks | free, no OAuth needed for posting a commit summary; upgrade to full OAuth + Web API later if you need to read channels |
-| Notion integration | Notion API (free integration token) | user supplies a database ID + token in room settings; backend creates a page per commit |
-| Email report | **Resend** (free tier, no card, generous monthly quota) | simplest transactional email API for a Node backend |
-| Auth | **Custom** (bcrypt + JWT in httpOnly cookies) | see §5 — full design below, no third-party auth provider |
+| Frontend | **React + Tailwind v4 + Custom Hardware-Accelerated 2D Canvas** | Infinite hardware-accelerated viewport with SVG edge curves and DOM nodes (custom 60fps canvas engine — no React Flow bloat) |
+| Live collaborative state | **Socket.io broadcast + In-Memory `CanvasDocument`** | Authoritative in-memory state container, 100ms throttled debounced persistence for drag events, client-side UUID generation with ack-based rollback |
+| Durable state | **Neon Postgres + Prisma** | Single source of truth via `@prisma/adapter-neon` WebSocket connection |
+| Application events | **Socket.io (consolidated connection)** | Canvas actions + presence (peer-joined/left, cursors, minimap, follow-me) + app events |
+| Video | **LiveKit** | Optional scope — add in Phase 8; canvas + AI is the demo |
+| Speech-to-text | **Dual-Tier: Web Speech API + Groq Whisper Large v3 Turbo** | Web Speech API for zero-latency local captions; Groq Whisper Large v3 Turbo (`whisper-large-v3-turbo` with 7,200 audio sec/hr free) for technical jargon and accents |
+| AI — primary | **Groq (Llama 3.3 70B Versatile)** | Free, ultra-fast (~300 t/s, <400ms TTFT), 30 RPM, 12,000 TPM, 1,000 RPD (~2.75 hrs meetings/day) |
+| AI — fallback | **Gemini 2.0 / 1.5 Flash** | Free, high reliability, 15 RPM, 1,000,000 TPM, 1,500 RPD (~4.15 hrs meetings/day) |
+| Generative visuals (brainstorm mode) | **Pollinations.ai** (`image.pollinations.ai/prompt/{text}`) | Completely free, zero API key, single GET request — right fit for a no-budget MVP |
+| Slack integration | **Incoming Webhooks** | Free, formatted Block Kit summary posted to incoming webhook |
+| Notion integration | **Notion API (Integration Token)** | Creates structured meeting page with summary & tasks in user database |
+| Email report | **Resend** | Free tier transactional email API for HTML meeting reports + markdown export |
+| Auth | **Custom (bcrypt + JWT in httpOnly cookies)** | See §5 — custom secure auth, room member roles, verified session cookies |
 
 ---
 
@@ -231,8 +231,8 @@ model MeetingReport {
 ## 5. Authentication (custom build)
 
 Own this end-to-end. Design is documented here early since it touches the data model,
-but implementation is deliberately **not** the first thing you build — see §13, Phase 0
-step 8. Prove the AI → canvas loop with a temporary demo user first; add this once the
+but implementation is deliberately **not** the first thing you build — see §13, Phase 5
+(Step 5.4). Prove the AI → canvas loop with a temporary demo user first; add this once the
 product itself works, provided the "current user" lookup was abstracted from day one so
 the swap is cheap.
 
@@ -295,7 +295,7 @@ prevents an unauthenticated connection from ever joining a room's Socket.io chan
 
 **What to skip for now**: email verification, password reset flows, and OAuth
 (Google/GitHub login) are all reasonable v2 additions but not blockers for a working
-demo — don't let them delay Phase 0.
+demo — don't let them delay the core AI loop (Phases 1–4).
 
 ---
 
@@ -324,6 +324,15 @@ function routeAction(action) {
 ---
 
 ## 7. AI provider abstraction (error-aware fallback)
+
+- **Primary Provider**: Groq (`llama-3.3-70b-versatile` — free, ~300 tokens/sec, structured JSON mode).
+  - Rate limits: 30 Requests/min (RPM), 12,000 Tokens/min (TPM), 1,000 Requests/day (RPD) (~2.75 hours of meetings/day).
+- **Secondary Fallback**: Google Gemini 2.0 / 1.5 Flash (`gemini-2.0-flash` — free, high reliability, massive 1M TPM headroom).
+  - Rate limits: 15 Requests/min (RPM), 1,000,000 Tokens/min (TPM), 1,500 Requests/day (RPD) (~4.15 hours of meetings/day).
+- **Combined Meeting Capacity**: ~7 hours of active team meetings every day for $0.00.
+- **Failover Behavior**: Seamless failover on HTTP `429` (Rate Limit Exceeded) or `500` server spikes. If Groq hits a limit, `withFallback` instantly routes the exact request to Gemini Flash in < 100ms with zero user disruption.
+- **Context Priming (Phonetic Auto-Correction)**:
+  - System prompt injects room participant roster (`[Elena Vance (Product Lead), Marcus Sterling (Tech Lead)]`) and active canvas entity keys so the LLM automatically deduces and corrects speech-to-text phonetic mishears (e.g. *"off flow"* → *"auth flow"*, *"prism a"* → *"Prisma"*).
 
 ```js
 // ai/index.js
@@ -356,6 +365,18 @@ export const ai = {
 ---
 
 ## 8. AI extraction pipeline
+
+**Speaker Attribution Pipeline**:
+- Each client microphone emits attributed speech chunks `{ speaker, userId, text, timestamp }`.
+- The server dialogue buffer formats incoming chunks as a structured script:
+  `[10:14:02] Elena Vance: "..." \n [10:14:05] Marcus Sterling: "..."`.
+- Enables precise entity and task attribution (e.g., resolving pronouns like "I will take..." to the active speaker).
+
+**Adaptive Ingestion Triggering (Replacing Blind 10s Timer)**:
+1. *Speaker Switch*: When speaker turns change (Elena → Marcus), trigger extraction immediately.
+2. *Natural Pause*: 1.5s of silence marks thought completion.
+3. *Ceiling Window*: 8–10s max window for continuous monologues.
+4. *Conversational Filler Filter*: Discards chunks under 4 words of conversational fluff (*"yeah"*, *"uh-huh"*, *"okay"*), saving 30–40% of API call budget.
 
 **Context manager** — roll up recent transcript, existing nodes (with `semanticKey`),
 existing relationships, participants, plus the room's `mode` and `systemContext`. The
@@ -392,7 +413,7 @@ edge — all validated, deduplicated, visible in the Activity stream with eviden
 
 ## 9. AI Activity stream + evidence ("why this exists")
 
-Build this right after your first working AI command (see build order, §12) — it's
+Build this right after your first working AI command (see build order, §13, Phase 4) — it's
 cheap once `AI → AIAction → Canvas` exists, and doubles as your debugging tool while you
 build the harder passive extraction pipeline.
 
@@ -459,6 +480,18 @@ not a rewrite.
 **Debounce drag events** specifically — during a node drag, throttle `MOVE_NODE`
 broadcasts to roughly every 50-100ms rather than every pixel of movement, and persist
 the final position once on drag-end.
+
+**Key Invariants & Field-Tested Guardrails (Phase 2)**:
+- *Persist-then-commit ordering*: In `CanvasDocument.applyAction()`, all non-debounced actions commit to Neon PostgreSQL before updating in-memory state, preventing canonical memory drift on DB write failure.
+- *Debounced `MOVE_NODE`*: In-memory position updates immediately at 60fps; DB writes are queued in a 100ms debounce throttle, flushed immediately on unmount or conflicting actions.
+- *Dual cascade on `DELETE_NODE`*: Connected edges are cleaned up in memory in `CanvasDocument` and in database in `canvasPersistence.js` via `deleteMany`.
+- *Idempotent edge creation*: `CREATE_EDGE` uses `upsert()` to survive retry drops without unique constraint crashes.
+- *Update field whitelist*: `updateNodeAction()` enforces strict field whitelisting (`text`, `type`, `semanticKey`, `x`, `y`, `metadata`) to block `id` or `roomId` mutation.
+- *Room authorization enforcement*: Socket handlers strictly use authoritative `socket.roomId` set during `canvas:join`, ignoring client-supplied room IDs to prevent cross-room write bypass.
+- *Consolidated `canvas:join`*: Single event handles room joining, emits `canvas:init` with full state to caller, and broadcasts `presence:peer-joined` to room peers.
+- *Client-side UUID timing & ack rollback*: Client generates `crypto.randomUUID()` before local insert and socket emission; snapshots state and rolls back if server returns `{ success: false }`.
+- *Dynamic room verification (Phase 5)*: In Phase 2, `demo-room` existence is guaranteed by `seed.js`. When custom rooms and invite links arrive in Phase 5, `canvas:join` must verify room existence via `getOrCreateRoom` upfront so non-existent room IDs fail with a clean error rather than throwing a foreign-key constraint violation on node/edge creation.
+- *Connecting click gating*: Node clicks only trigger connection completion when an active connection drag (`connectingNodeId`) is in progress.
 
 **Cursors, minimap, follow-me**: all three are just more event types on the same
 Socket.io channel, no separate system needed:
@@ -567,65 +600,77 @@ Mapping the example commands to actions:
 
 ---
 
-## 13. Build order
+## 13. Build order (Streamlined 8 Phases)
 
 De-risk by proving the AI → canvas loop — the actual differentiator — before auth,
-integrations, or video. Sequence still matters solo, even building everything.
+integrations, or video. Phased sequence matching `ROADMAP.md`:
 
-**Phase 0 — Core loop (prove the product, not the plumbing)**
-1. Canvas with a temporary demo user: React + React Flow + Express + Prisma + Neon,
-   create/edit/delete/connect, persist, reload. Hardcode a single demo `userId` for now
-   — but wrap "who is the current user" behind one `getCurrentUser(req)` function from
-   the start, so swapping in real auth later (step 8) is a one-line change, not a
-   scattered refactor.
-2. Collaboration: plain Socket.io broadcast + React state (§10). Two tabs, two demo
-   identities, see the same drag live — no Yjs yet.
-3. AI commands, text-only, single action: one typed sentence → validated `CREATE_NODE`
-   → canvas updates. Proves the whole pipeline (provider abstraction, validation,
-   ontology prompt) before anything else.
-4. AI Activity stream + evidence (§9) — build this immediately after step 3, it's cheap
-   here and pays for itself as a debugging tool for everything that follows.
-5. **Active Command Bar, full vocabulary** (§12) — this is the #1 feature, prove it
-   before passive extraction: `REORGANIZE_LAYOUT` ("turn this into a roadmap," "group
-   these ideas," "move risks to the right") and `ANSWER_QUERY` ("what are we missing,"
-   "show dependencies," "what did we decide"). This is the differentiator a judge
-   remembers — give it real build time here, not a rushed pass later.
-6. Conversation: chat → transcript → passive multi-node extraction, proven against the
-   canonical test paragraph in §8.
-7. Canvas polish pass: node-creation animations, hover states, clean typography and
-   spacing, smooth pan/zoom. Do this now, not deferred to Phase 5 — visual quality is
-   competing directly with feature count for attention, and it's cheap to get right
-   while the canvas is still simple.
-8. Real auth: signup/login/logout, session cookie, `requireAuth`/`requireRoomAccess`
-   middleware, room creation seeding an `owner`. Swap `getCurrentUser(req)` from the
-   step-1 stub to a real session lookup — everything built above keeps working
-   unchanged if step 1's abstraction was honored.
+### Phase 1: Foundation & Data Architecture (Complete & Verified)
+*Goal: Establish database models, seed demo identities, server foundation, and API contracts.*
+- **1.1 Prisma Schema & Data Models (`server/prisma/schema.prisma`)**: 11 models (`User`, `RoomMember`, `InviteLink`, `Workspace`, `Room`, `ContextZone`, `CanvasNode`, `CanvasEdge`, `TranscriptChunk`, `AIAction`, `RoomIntegration`, `MeetingReport`) with compound indexes.
+- **1.2 Single-Source-of-Truth Persistence with Neon PostgreSQL (`server/src/lib/prisma.js` & `server/src/canvas/canvasPersistence.js`)**: Direct Neon PostgreSQL persistence via `@prisma/adapter-neon` WebSocket connection.
+- **1.3 Unified API Response & Middleware (`server/src/utils/response.js` & `server/src/middlewares/error.middleware.js`)**: `sendSuccess` and `sendError` strictly adhering to `{ success, message, data }` format.
+- **1.4 User Identity Abstraction & Database Seeding (`server/prisma/seed.js` & `auth.middleware.js`)**: `getCurrentUser(req)` returning demo identity (*Elena Vance*); seeded `demo-user-1`, `demo-user-2`, `default-workspace`, and `demo-room`.
+- **1.5 Server Bootstrap (`server/server.js` & `server/src/app.js`)**: Express + HTTP server + Socket.io bootstrap with CORS, cookie-parser, and health check.
 
-**Phase 1 — Presence & modes**
-9. Cursors, minimap, follow-me (§10).
-10. Mode switching (`Room.mode`) and mode-aware prompting (§8) — start with operational
-    and brainstorm; solo can reuse either.
-11. Contextual zones (§10).
+### Phase 2: Real-time Canvas Engine & Collaboration Relay (Complete & Verified)
+*Goal: Build the interactive infinite canvas and WebSocket synchronization.*
+- **2.1 `CanvasDocument` Single Source of Truth (`server/src/canvas/canvasDocument.js`)**: Authoritative in-memory state container managing nodes and edges for active rooms with schema validators. Enforces persist-then-commit ordering, 100ms debounced `MOVE_NODE` persistence queue, dual in-memory/DB edge cascade on `DELETE_NODE`, idempotent `CREATE_EDGE` upserts, and field whitelisting on `UPDATE_NODE`.
+- **2.2 Socket.io Collaboration Relay (`server/src/realtime/socket.js` & `canvas.socket.js`)**: Room authorization enforcement via `socket.roomId`, consolidated `canvas:join` event delivering full state snapshot and peer broadcast.
+- **2.3 Frontend Canvas Engine (`client/src/components/canvas/InfiniteCanvas.jsx` & `useCanvas.js`)**: Infinite hardware-accelerated 2D canvas with smooth pan, zoom, coordinate math, optimistic local updates, client-side UUID generation upfront, and ack-based rollback.
+- **2.4 Rich Visual Node Components (`client/src/components/canvas/CanvasNode.jsx` & `CanvasEdge.jsx`)**: 8 specialized node cards (Goal, Idea, Task with checkbox, Decision, Question, Risk, Person, Generated Visual) and Cubic Bezier edge connectors with relationship tags and click-gating.
 
-**Phase 2 — Generative visuals**
-12. Brainstorm mode's image generation via Pollinations — attach as node metadata,
-    render as image nodes on canvas.
+### Phase 3: AI Intelligence Engine & Confidence Routing (Complete & Verified)
+*Goal: Build the multi-provider LLM abstraction, confidence routing, and in-place correction.*
+- **3.1 Dual-Provider LLM Abstraction (`server/src/ai/providers/`)**:
+  - `groq.js`: Primary provider (Llama 3.3 70B — free, ultra-fast ~300 t/s, structured JSON). Rate limits: 30 RPM, 12,000 TPM, 1,000 RPD (~2.75 hrs meetings/day).
+  - `gemini.js`: Secondary fallback (Gemini 2.0 / 1.5 Flash — free, high reliability, 1M TPM). Rate limits: 15 RPM, 1,000,000 TPM, 1,500 RPD (~4.15 hrs meetings/day).
+  - `index.js`: Fallback wrapper (`withFallback`) with seamless HTTP 429 failover. Combined free quota provides ~7 hours of active meetings/day for $0.00.
+  - Context priming (phonetic auto-correction): injects room participant roster and active canvas entity keys into system prompt to automatically deduce and correct speech-to-text mishears (*"off flow"* → *"auth flow"*).
+- **3.2 Confidence Routing Engine (`server/src/ai/validation.js`)**:
+  - Implement `routeAction(action)`: `confidence >= 0.85` → `"auto"`, `0.5 <= confidence < 0.85` → `"proposed"`, `< 0.5` → `"clarify"`. Destructive actions (`DELETE_NODE`, `DELETE_EDGE`) are never auto-applied.
+- **3.3 In-Place Correction via `semanticKey` (`server/src/canvas/canvasDeduplication.js`)**:
+  - Match entities against active canvas nodes by stable `semanticKey`.
+  - In-place update test: When user says *"Actually, Mike is busy, Sam will take the dashboard"*, update existing Task node's assignee in place rather than creating a duplicate.
 
-**Phase 3 — Commit & integrations**
-13. Commit flow: summary generation + `MeetingReport` + email via Resend.
-14. Slack webhook integration.
-15. Notion integration.
+### Phase 4: The Active Command Bar & AI Activity Stream
+*Goal: Build the headline conversational control bar and "Why this exists" evidence system.*
+- **4.1 Active Command Bar UI (`client/src/components/command/ActiveCommandBar.jsx`)**: Permanent floating input (`✨ Ask your workspace...`) with rotating prompt pills.
+- **4.2 Action Vocabulary Expansion (`server/src/ai/commands.js`)**: `REORGANIZE_LAYOUT` (hierarchical roadmap, cluster by theme, move risks) and `ANSWER_QUERY` (read-only node highlighting & recap).
+- **4.3 AI Activity Stream (`client/src/components/activity/ActivityStream.jsx`)**: Live feed of chronological AI actions with timestamps, confidence badges, and status.
+- **4.4 "Why This Exists" Evidence Card (`client/src/components/activity/EvidenceCard.jsx`)**: Inspection card showing transcript quote, speaker, timestamp, and AI reasoning.
 
-**Phase 4 — Voice & video (video is optional, not a milestone to protect)**
-16. Web Speech API (mic → transcript → canvas).
-17. LiveKit video, only once everything above works — treat it as optional scope, not
-    a required milestone. If time runs out before this step, the product still stands
-    on its own: canvas + AI is the demo, video is not what's being judged.
+### Phase 5: Stepped Transcript Simulator, Passive Extraction & Real Custom Auth
+*Goal: Deterministic meeting simulator, continuous conversation-to-canvas extraction, and session auth.*
+- **5.1 Stepped Transcript Playback Simulator (`client/src/components/meeting/SpeechIntelligenceController.jsx`)**: Pre-loaded transcript scenarios with stepped/continuous playback for testing.
+- **5.2 Passive Streaming Extraction (`server/src/ai/extraction.js` & `ai.service.js`)**:
+  - Speaker attribution pipeline: Structured dialogue script `[Timestamp] Speaker: Utterance`.
+  - Adaptive triggering: Speaker turn switch, 1.5s silence pause, 8–10s ceiling monologue window.
+  - Conversational filler filter: Discards chunks under 4 words of fluff (*"yeah"*, *"uh-huh"*), saving 30–40% API quota.
+- **5.3 Canonical Test Paragraph Verification**: Validate multi-node + dependency graph extraction against *"We need to improve onboarding. Mike will redesign the dashboard, but analytics needs to be ready first."*
+- **5.4 Real Custom Authentication (`server/src/routes/auth.routes.js` & `client/src/context/AuthContext.jsx`)**: bcrypt password hashing, JWT in httpOnly cookie, Socket.io handshake auth (`io.use`), room membership (`RoomMember`), dynamic room verification via `getOrCreateRoom` on `canvas:join`.
 
-**Phase 5 — Further polish**
-18. Auto-layout upgrade (dagre), meeting timeline, landing page, room invite links,
-    keyboard shortcuts, pre-meeting document upload for operational mode's topic
-    outline.
+### Phase 6: Live Presence, Minimap & Meeting Modes
+*Goal: Implement multiplayer live presence and adaptive meeting formats.*
+- **6.1 Multiplayer Live Cursors (`client/src/components/canvas/MultiplayerCursors.jsx`)**: Throttled cursor emission with smooth lerp movement and user color tags.
+- **6.2 Radar Minimap with Viewports (`client/src/components/canvas/Minimap.jsx`)**: Fixed radar thumbnail displaying canvas nodes, user viewports, and cursor dots with click-to-pan navigation.
+- **6.3 "Follow Me" Presenter Broadcast (`server/src/realtime/presence.socket.js`)**: Presenter broadcasts viewport coordinates; followers' screens smoothly track leader with "Stop Following" banner.
+- **6.4 Adaptive Meeting Modes & Steerability (`Room.mode`)**: Operational Mode (topic columns + unresolved questions), Brainstorm Mode (organic clustering + visual concepts), Solo Mode, and pre-meeting context prompt (`Room.systemContext`).
+- **6.5 Contextual Zones (`ContextZone`)**: Saved and jumped camera regions (*"Roadmap Area"*, *"Risks Matrix"*).
+
+### Phase 7: Generative Visuals, Commit Flow & External Integrations
+*Goal: Connect canvas brainstorms to Pollinations.ai and package meetings for Notion, Slack, and Resend.*
+- **7.1 Pollinations.ai Generative Visuals (`server/src/integrations/imageGen.js`)**: Free, zero-key image generation via `https://image.pollinations.ai/prompt/{encodedPrompt}` attached to brainstorm nodes.
+- **7.2 Meeting Commit Flow (`server/src/services/ai.service.js` & `CommitCallModal.jsx`)**: "Commit Call" button triggering `ai.summarizeMeeting()` with summary, decisions log, tasks, and celebratory confetti.
+- **7.3 External Integrations (`server/src/integrations/`)**: Slack incoming webhook (Block Kit), Notion database page creation, and transactional HTML email via Resend API (+ markdown download).
+
+### Phase 8: Voice Dictation, Video Bar, Dagre Layout, & Demo Script Dry Run
+*Goal: Integrate voice dictation, video communication bar, auto-layout, and demo script validation.*
+- **8.1 Dual-Tier Speech-to-Text Audio Engine (`client/src/hooks/useSpeechRecognition.js` & `server/src/ai/transcription.js`)**: Web Speech API for zero-latency local captions; Groq Whisper Large v3 Turbo (`whisper-large-v3-turbo`, 7,200 audio sec/hr free) for technical jargon and accents.
+- **8.2 Video Conference Bar (`client/src/components/meeting/VideoConferenceBar.jsx`)**: Dockable bottom bar with webcam tiles, mic/camera toggles, and live captions.
+- **8.3 Dagre Hierarchical Auto-Layout Engine (`client/src/utils/layout.js`)**: Automated algorithm arranging nodes into clean hierarchical trees.
+- **8.4 Skeleton Loaders, Mobile Responsiveness & Polish**: Dark-mode glassmorphic aesthetics, skeleton loaders for AI thinking states (no raw spinners), mobile-first responsive viewports.
+- **8.5 End-to-End Demo Script Dry Run**: Validate the 13-point master demo script (*"We don't take notes for you. We think with you."*).
 
 ---
 
@@ -674,9 +719,9 @@ comparison to come up, and let the product demo be the answer to it.
 
 ## 16. Risks to watch for (solo build, full scope)
 
-- **Scope creep is now the primary risk**, not architecture. Phase 0 must be solid
-  before Phase 1 starts — resist building modes or integrations against a shaky core
-  loop.
+- **Scope creep is now the primary risk**, not architecture. Phase 1 & Phase 2 must be
+  solid and verified before advancing to subsequent phases — resist building modes or
+  integrations against a shaky core loop.
 - **Rate limits mid-demo**: batch transcript chunks, keep the fallback provider tested,
   cap fallback attempts at 1.
 - **Duplicate node spam**: the context manager (§8) and semanticKey reuse are what

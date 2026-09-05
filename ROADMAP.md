@@ -51,13 +51,19 @@
 
 ---
 
-# Phase 3: AI Intelligence Engine & Confidence Routing
+# Phase 3: AI Intelligence Engine & Confidence Routing (Complete & Verified)
 *Goal: Build the multi-provider LLM abstraction, confidence routing, and in-place correction.*
 
 - **3.1 Dual-Provider LLM Abstraction (`server/src/ai/providers/`)**:
-  - `groq.js`: Primary provider (Llama 3.3 70B — free, ultra-fast, structured JSON).
-  - `gemini.js`: Secondary fallback (Gemini Flash — free, high reliability).
-  - `index.js`: Clean fallback wrapper (`withFallback`). If both fail, return `{ actions: [], status: "failed" }` with an unobtrusive "AI unavailable, try again" state (no complex hand-rolled NLP engine).
+  - `groq.js`: Primary provider (Llama 3.3 70B — free, ultra-fast ~300 t/s, structured JSON).
+    - Rate Limits: 30 RPM, 12,000 TPM, 1,000 RPD (~2.75 hours of meetings/day).
+  - `gemini.js`: Secondary fallback (Gemini 2.0 / 1.5 Flash — free, high reliability, 1M TPM).
+    - Rate Limits: 15 RPM, 1,000,000 TPM, 1,500 RPD (~4.15 hours of meetings/day).
+  - `index.js`: Clean fallback wrapper (`withFallback`).
+    - Seamless HTTP 429 failover: If Groq hits rate limits or server spikes, automatically routes to Gemini Flash with zero interruption.
+    - If both fail, return `{ actions: [], status: "failed" }` with an unobtrusive "AI unavailable, try again" state (no complex hand-rolled NLP engine).
+  - **Context Priming (Phonetic Auto-Correction)**:
+    - Injects room participant roster and active canvas entity keys into system prompt so the LLM automatically deduces and corrects phonetic STT mishears (e.g. *"off flow"* $\to$ *"auth flow"*, *"prism a"* $\to$ *"Prisma"*).
 - **3.2 Confidence Routing Engine (`server/src/ai/validation.js`)**:
   - Implement `routeAction(action)`:
     - `confidence >= 0.85` → `"auto"` (applied directly to canvas).
@@ -93,7 +99,16 @@
   - Pre-loaded transcript scenarios (including Founder Studio Brainstorm and Onboarding/Analytics Sprint).
   - One-click stepped or continuous playback feeding `ingestTranscriptChunk()` — provides a rock-solid, ambient-noise-free testing and rehearsal environment.
 - **5.2 Passive Streaming Extraction (`server/src/ai/extraction.js` & `ai.service.js`)**:
-  - Ingestion buffer chunking incoming speech into cohesive thoughts.
+  - **Speaker Attribution Pipeline**:
+    - Each client emits attributed speech chunks `{ speaker, userId, text, timestamp }` from its isolated microphone.
+    - Server formats context as a structured dialogue script: `[10:14:02] Elena Vance: "..." \n [10:14:05] Marcus Sterling: "..."`.
+    - Enables accurate entity and task attribution (e.g., resolving "I will take..." to the active speaker).
+  - **Adaptive Triggering (Replacing Blind 10s Timer)**:
+    - *Speaker Switch*: When speaker turns change (Elena $\to$ Marcus), trigger extraction immediately.
+    - *Natural Pause*: 1.5s silence triggers thought extraction.
+    - *Ceiling Window*: 8–10s max window for continuous monologues.
+  - **Conversational Filler Filter**:
+    - Discards chunks under 4 words of conversational fluff (*"yeah"*, *"uh-huh"*, *"okay"*), saving 30–40% of API call budget.
   - Mode-aware ontology prompt extracting multi-node graphs and dependency edges.
 - **5.3 Canonical Test Paragraph Verification**:
   - Verify against:
@@ -155,8 +170,12 @@
 # Phase 8: Voice, Video Meeting Suite & Final Polish
 *Goal: Integrate voice dictation, video communication bar, auto-layout, and demo script validation.*
 
-- **8.1 Web Speech API Microphone Dictation (`client/src/hooks/useSpeechRecognition.js`)**:
-  - Real-time speech-to-text directly from user's microphone with live audio level visualization.
+- **8.1 Dual-Tier Speech-to-Text Audio Engine (`client/src/hooks/useSpeechRecognition.js` & `server/src/ai/transcription.js`)**:
+  - **Zero-Latency Local Captions**: Web Speech API directly from user's microphone for real-time live captions.
+  - **High-Accuracy Cloud Transcription (Groq Whisper Large v3 Turbo)**:
+    - Model: `whisper-large-v3-turbo` hosted on Groq LPUs.
+    - Quota: 7,200 audio seconds per hour (2 hours of audio processed per hour for $0.00).
+    - Accurately captures heavy accents, technical engineering jargon, and noisy room environments.
 - **8.2 Video Conference Bar (`client/src/components/meeting/VideoConferenceBar.jsx`)**:
   - Dockable bottom bar with webcam tiles, mic/camera/screenshare toggles, and live captions.
 - **8.3 Dagre Hierarchical Auto-Layout Engine (`client/src/utils/layout.js`)**:
@@ -167,4 +186,5 @@
   - Mobile-first responsive viewports with collapsable tool drawers.
 - **8.5 End-to-End Demo Script Dry Run**:
   - Validate the 13-point master demo script (*"We don't take notes for you. We think with you."*).
+
 
