@@ -1,0 +1,171 @@
+// mindMesh Prisma Schema (v4)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+
+  memberships RoomMember[]
+}
+
+model RoomMember {
+  id       String   @id @default(cuid())
+  roomId   String
+  userId   String
+  role     String   @default("member") // owner | member
+  joinedAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+}
+
+model InviteLink {
+  id        String    @id @default(cuid())
+  roomId    String
+  token     String    @unique
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  rooms     Room[]
+}
+
+model Room {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  name          String
+  mode          String   @default("operational") // brainstorm | operational | solo
+  systemContext String?  // pre-meeting instruction to the AI, set by the room owner
+  createdAt     DateTime @default(now())
+
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members          RoomMember[]
+  invites          InviteLink[]
+  nodes            CanvasNode[]
+  edges            CanvasEdge[]
+  zones            ContextZone[]
+  transcriptChunks TranscriptChunk[]
+  aiActions        AIAction[]
+  integrations     RoomIntegration[]
+  reports          MeetingReport[]
+}
+
+model ContextZone {
+  id     String @id @default(cuid())
+  roomId String
+  name   String // a named sub-area of the canvas people can navigate to independently
+  x      Float
+  y      Float
+  zoom   Float  @default(1.0)
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+}
+
+model CanvasNode {
+  id          String  @id @default(cuid())
+  roomId      String
+  type        String  // goal | idea | task | decision | question | risk | person | image
+  text        String
+  semanticKey String? // stable target for UPDATE_NODE
+  x           Float
+  y           Float
+  metadata    Json?   // { assignee, status, priority, sourceQuote, imageUrl, ... }
+
+  sourceType String? // manual | transcript | ai_command
+  sourceId   String? // TranscriptChunk or AIAction id
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([roomId, semanticKey])
+}
+
+model CanvasEdge {
+  id     String  @id @default(cuid())
+  roomId String
+  fromId String
+  toId   String
+  label  String?
+  type   String? // blocks | depends_on | leads_to | supports | contradicts | related_to | assigned_to | part_of
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([roomId, fromId])
+  @@index([roomId, toId])
+}
+
+model TranscriptChunk {
+  id        String   @id @default(cuid())
+  roomId    String
+  speaker   String
+  text      String
+  createdAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+}
+
+model AIAction {
+  id          String   @id @default(cuid())
+  roomId      String
+  type        String   // CREATE_NODE | UPDATE_NODE | DELETE_NODE | CREATE_EDGE | DELETE_EDGE | MOVE_NODE
+  payload     Json
+  confidence  Float?
+  reason      String?
+  status      String   // proposed | applied | rejected | failed
+  fingerprint String   @unique // hash(roomId + sourceTranscriptId + type + normalizedPayload)
+
+  createdAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+}
+
+model RoomIntegration {
+  id       String @id @default(cuid())
+  roomId   String
+  provider String // slack | notion
+  config   Json   // { webhookUrl } for Slack, { token, databaseId } for Notion
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+}
+
+model MeetingReport {
+  id        String   @id @default(cuid())
+  roomId    String
+  summary   String
+  tasks     Json     // extracted action items at commit time
+  emailedTo String?
+  createdAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+}

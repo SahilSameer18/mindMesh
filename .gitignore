@@ -1,0 +1,57 @@
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Environment and Secret credential files (STRICT: NEVER COMMIT)
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+*.pem
+*.key
+id_rsa
+credentials.json
+
+# Local runtime data & room snapshots
+server/data/rooms/*.json
+!server/data/rooms/.gitkeep
+
+# Build and distribution outputs
+dist/
+dist-ssr/
+client/dist/
+build/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor and IDE metadata
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Agent and AI IDE caches
+.agents/
+.claude/
+.windsurf/
+**/skills-lock.json
+
+# Temporary / Scratch test scripts
+server/test-*.js
+server/test/
+scratch/
+
