@@ -11,6 +11,7 @@ import {
   Image as ImageIcon,
   Trash2,
   Link2,
+  Sparkles,
 } from "lucide-react";
 import { NODE_CONFIGS, NODE_TYPES } from "../../utils/canvasConstants.js";
 
@@ -28,6 +29,7 @@ const ICON_MAP = {
 function CanvasNodeComponent({
   node,
   isSelected,
+  isHighlighted = false,
   isConnectingSource,
   isConnecting,
   onSelect,
@@ -37,6 +39,7 @@ function CanvasNodeComponent({
   onDelete,
   onStartConnect,
   onEndConnect,
+  onInspectEvidence,
   zoom = 1,
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -146,7 +149,9 @@ function CanvasNodeComponent({
       className={`absolute select-none cursor-grab active:cursor-grabbing transition-shadow duration-150 rounded-2xl glass-panel group ${
         config.borderClass
       } ${
-        isSelected
+        isHighlighted
+          ? "ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_35px_rgba(6,182,212,0.6)] animate-pulse z-40"
+          : isSelected
           ? `ring-2 ring-sky-400/80 shadow-2xl z-30 ${config.glowClass}`
           : isConnectingSource
           ? "ring-2 ring-amber-400 ring-dashed z-30"
@@ -171,8 +176,22 @@ function CanvasNodeComponent({
             )}
           </div>
 
-          {/* Action buttons (Delete & Quick Link) */}
+          {/* Action buttons (Evidence, Connect, Delete) */}
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Gate Evidence button: only show on nodes with real AI lineage or transcript evidence */}
+            {node.sourceType !== "manual" &&
+              (node.sourceId || node.metadata?.sourceQuote || node.metadata?.evidence) && (
+                <button
+                  title="Why this exists (Evidence)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onInspectEvidence?.(node);
+                  }}
+                  className="p-1 text-slate-400 hover:text-violet-300 hover:bg-slate-800/90 rounded transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                </button>
+              )}
             <button
               title="Connect to node"
               onClick={(e) => {

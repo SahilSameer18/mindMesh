@@ -10,6 +10,7 @@ function CanvasEdgeComponent({
   fromNode,
   toNode,
   isSelected,
+  isHighlighted = false,
   onSelect,
   onDelete,
 }) {
@@ -76,10 +77,10 @@ function CanvasEdgeComponent({
       <path
         d={pathD}
         fill="none"
-        stroke={strokeColor}
-        strokeWidth={isSelected ? 3.5 : config.strokeWidth || 2}
-        strokeDasharray={config.strokeDasharray}
-        className="transition-all duration-150 group-hover:stroke-sky-300"
+        stroke={isHighlighted ? "#06b6d4" : strokeColor}
+        strokeWidth={isHighlighted ? 4 : isSelected ? 3.5 : config.strokeWidth || 2}
+        strokeDasharray={isHighlighted ? "6 3" : config.strokeDasharray}
+        className={`transition-all duration-150 ${isHighlighted ? "animate-pulse drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" : "group-hover:stroke-sky-300"}`}
         strokeLinecap="round"
       />
 

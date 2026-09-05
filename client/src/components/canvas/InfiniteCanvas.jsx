@@ -214,6 +214,7 @@ export default function InfiniteCanvas({ canvas }) {
               fromNode={nodesMap.get(edge.fromId)}
               toNode={nodesMap.get(edge.toId)}
               isSelected={selectedEdgeId === edge.id}
+              isHighlighted={canvas.highlightedEdgeIds?.has(edge.id)}
               onSelect={setSelectedEdgeId}
               onDelete={deleteEdge}
             />
@@ -250,6 +251,7 @@ export default function InfiniteCanvas({ canvas }) {
               node={node}
               zoom={viewport.zoom}
               isSelected={selectedNodeId === node.id}
+              isHighlighted={canvas.highlightedNodeIds?.has(node.id)}
               isConnectingSource={connectingNodeId === node.id}
               isConnecting={Boolean(connectingNodeId)}
               onSelect={setSelectedNodeId}
@@ -259,6 +261,7 @@ export default function InfiniteCanvas({ canvas }) {
               onDelete={deleteNode}
               onStartConnect={handleStartConnect}
               onEndConnect={handleEndConnect}
+              onInspectEvidence={(n) => canvas.setInspectingNode?.(n)}
             />
           ))}
         </div>
@@ -280,8 +283,8 @@ export default function InfiniteCanvas({ canvas }) {
         </div>
       )}
 
-      {/* Floating Canvas Action Toolbar */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 p-1.5 bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-2xl shadow-2xl">
+      {/* Floating Canvas Action Toolbar (Docked Bottom-Left to avoid Command Bar collision) */}
+      <div className="absolute bottom-6 left-6 z-30 flex items-center gap-1.5 p-1.5 bg-slate-900/85 backdrop-blur-xl border border-slate-700/70 rounded-2xl shadow-2xl">
         <button
           type="button"
           title="Add Goal (Target)"

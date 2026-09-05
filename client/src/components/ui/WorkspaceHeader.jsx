@@ -8,7 +8,11 @@ import {
   Layers,
 } from "lucide-react";
 
-export default function WorkspaceHeader() {
+export default function WorkspaceHeader({
+  isActivityStreamOpen,
+  onToggleActivityStream,
+  proposedCount = 0,
+}) {
   const { roomId, currentUser, isConnected, peers } = useRoom();
   const [showHelp, setShowHelp] = useState(false);
 
@@ -80,8 +84,29 @@ export default function WorkspaceHeader() {
           ))}
         </div>
 
+        {/* Activity Stream Drawer Button */}
+        <button
+          type="button"
+          onClick={onToggleActivityStream}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+            isActivityStreamOpen
+              ? "bg-violet-600/30 text-violet-200 border-violet-500/60 shadow-sm shadow-violet-500/20"
+              : "text-slate-400 hover:text-slate-100 bg-slate-900/80 hover:bg-slate-800/80 border-slate-800"
+          }`}
+          title="Toggle AI Activity Stream"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+          <span className="hidden sm:inline">AI Activity</span>
+          {proposedCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-cyan-500 text-slate-950 ml-0.5">
+              {proposedCount}
+            </span>
+          )}
+        </button>
+
         {/* Help shortcuts button */}
         <button
+          type="button"
           onClick={() => setShowHelp(!showHelp)}
           className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
           title="Canvas navigation tips"

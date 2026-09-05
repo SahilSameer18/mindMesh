@@ -17,6 +17,12 @@ export function useCanvas() {
   const [connectingNodeId, setConnectingNodeId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Phase 4: Query Highlighting & Evidence Inspector State
+  const [highlightedNodeIds, setHighlightedNodeIds] = useState(new Set());
+  const [highlightedEdgeIds, setHighlightedEdgeIds] = useState(new Set());
+  const [inspectingNode, setInspectingNode] = useState(null);
+  const highlightTimerRef = useRef(null);
+
   // Throttled movement timers & pending position map
   const moveThrottleTimers = useRef(new Map());
   const pendingMoveCoordinates = useRef(new Map());
@@ -134,14 +140,24 @@ export function useCanvas() {
       }
     };
 
+    const handleCommandResult = (result) => {
+      if (!result) return;
+      if (result.highlightedNodeIds?.length || result.highlightedEdgeIds?.length) {
+        highlightElements(result.highlightedNodeIds || [], result.highlightedEdgeIds || []);
+      }
+    };
+
     socket.on("canvas:init", handleCanvasInit);
     socket.on("canvas:action", handleRemoteAction);
     socket.on("canvas:batch_action", handleBatchAction);
+    socket.on("canvas:command:result", handleCommandResult);
 
     return () => {
       socket.off("canvas:init", handleCanvasInit);
       socket.off("canvas:action", handleRemoteAction);
       socket.off("canvas:batch_action", handleBatchAction);
+      socket.off("canvas:command:result", handleCommandResult);
+      if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
     };
   }, [socket]);
 
@@ -530,6 +546,35 @@ export function useCanvas() {
     setViewport({ x: 0, y: 0, zoom: 1 });
   }, []);
 
+  const panToNode = useCallback((nodeId) => {
+    const node = nodes.get(nodeId);
+    if (!node) return;
+    setViewport((prev) => ({
+      ...prev,
+      x: (typeof window !== "undefined" ? window.innerWidth / 2 : 500) - (Number(node.x) || 0) * prev.zoom - 140 * prev.zoom,
+      y: (typeof window !== "undefined" ? window.innerHeight / 2 : 400) - (Number(node.y) || 0) * prev.zoom - 70 * prev.zoom,
+    }));
+  }, [nodes]);
+
+  const highlightElements = useCallback((nodeIds = [], edgeIds = [], duration = 7000) => {
+    if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+    const nodeSet = new Set(nodeIds);
+    const edgeSet = new Set(edgeIds);
+    setHighlightedNodeIds(nodeSet);
+    setHighlightedEdgeIds(edgeSet);
+
+    if (nodeIds.length > 0) {
+      panToNode(nodeIds[0]);
+    }
+
+    if (duration > 0) {
+      highlightTimerRef.current = setTimeout(() => {
+        setHighlightedNodeIds(new Set());
+        setHighlightedEdgeIds(new Set());
+      }, duration);
+    }
+  }, [panToNode]);
+
   return {
     nodes: useMemo(() => Array.from(nodes.values()), [nodes]),
     edges: useMemo(() => Array.from(edges.values()), [edges]),
@@ -540,6 +585,12 @@ export function useCanvas() {
     selectedEdgeId,
     connectingNodeId,
     isLoading,
+    highlightedNodeIds,
+    highlightedEdgeIds,
+    inspectingNode,
+    setInspectingNode,
+    highlightElements,
+    panToNode,
     setSelectedNodeId,
     setSelectedEdgeId,
     setConnectingNodeId,
