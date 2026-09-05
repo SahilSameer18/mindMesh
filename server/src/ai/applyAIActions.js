@@ -41,8 +41,10 @@ export async function applyAIActions(roomId, actions = [], { sourceId = null, io
   for (const action of actions) {
     if (!action || !action.type) continue;
 
-    const payload = action.payload || {};
-    const fingerprint = computeFingerprint(roomId, sourceId, action.type, payload);
+    // Clone payload to avoid mutating caller's arguments
+    const payload = { ...(action.payload || {}) };
+    const { sourceId: _sId, sourceType: _sType, ...intrinsicPayload } = payload;
+    const fingerprint = computeFingerprint(roomId, sourceId, action.type, intrinsicPayload);
 
     // 1. Idempotency check: drop if this exact action was already recorded
     const existing = await prisma.aIAction.findUnique({
@@ -69,6 +71,17 @@ export async function applyAIActions(roomId, actions = [], { sourceId = null, io
       },
     });
 
+    // Wire join key: link CanvasNode back to the AIAction that created or updated it
+    const executionPayload = { ...payload };
+    if (["CREATE_NODE", "UPDATE_NODE"].includes(action.type)) {
+      executionPayload.sourceId = record.id;
+      executionPayload.sourceType = executionPayload.sourceType || "ai_action";
+      await prisma.aIAction.update({
+        where: { id: record.id },
+        data: { payload: executionPayload },
+      });
+    }
+
     // 3. Status Routing
     if (initialStatus === "auto") {
       // Execute mutating actions against authoritative CanvasDocument
@@ -77,7 +90,7 @@ export async function applyAIActions(roomId, actions = [], { sourceId = null, io
         await doc.applyAction({
           type: action.type,
           roomId,
-          payload,
+          payload: executionPayload,
         });
       }
 
@@ -93,7 +106,7 @@ export async function applyAIActions(roomId, actions = [], { sourceId = null, io
           socketIO.to(roomId).emit("canvas:action", {
             type: action.type,
             roomId,
-            payload,
+            payload: executionPayload,
           });
         }
         socketIO.to(roomId).emit("ai:activity", appliedRecord);
@@ -131,13 +144,18 @@ export async function approveAIAction(roomId, actionId, { io = null } = {}) {
 
   const socketIO = resolveSocketIO(io);
 
+  const finalPayload =
+    ["CREATE_NODE", "UPDATE_NODE"].includes(action.type) && !action.payload?.sourceId
+      ? { ...action.payload, sourceId: action.id, sourceType: action.payload?.sourceType || "ai_action" }
+      : action.payload;
+
   // Apply to authoritative CanvasDocument
   if (action.type !== "ANSWER_QUERY") {
     const doc = await getCanvasDocument(roomId);
     await doc.applyAction({
       type: action.type,
       roomId,
-      payload: action.payload,
+      payload: finalPayload,
     });
   }
 
@@ -153,7 +171,7 @@ export async function approveAIAction(roomId, actionId, { io = null } = {}) {
       socketIO.to(roomId).emit("canvas:action", {
         type: action.type,
         roomId,
-        payload: action.payload,
+        payload: finalPayload,
       });
     }
     socketIO.to(roomId).emit("ai:activity", updated);

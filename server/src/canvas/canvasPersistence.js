@@ -41,6 +41,8 @@ export async function persistCanvasAction(roomId, action) {
             x: payload.x ?? 0,
             y: payload.y ?? 0,
             metadata: payload.metadata || null,
+            ...(payload.sourceType ? { sourceType: payload.sourceType } : {}),
+            ...(payload.sourceId ? { sourceId: payload.sourceId } : {}),
           },
           create: {
             id: payload.id,
@@ -66,6 +68,8 @@ export async function persistCanvasAction(roomId, action) {
             x: payload.x,
             y: payload.y,
             metadata: payload.metadata,
+            ...(payload.sourceType ? { sourceType: payload.sourceType } : {}),
+            ...(payload.sourceId ? { sourceId: payload.sourceId } : {}),
           },
         });
 
