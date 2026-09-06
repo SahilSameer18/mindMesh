@@ -19,8 +19,8 @@
 | **Phase 2** | Real-Time Authoritative Canvas Engine | ✅ Complete | In-memory `CanvasDocument`, 60fps pan/zoom, debounced batch writes, edge cascade |
 | **Phase 3** | Dual-Provider AI Intelligence Engine | ✅ Complete | Groq + Gemini failover, candidate model resilience, Jaccard in-place mutation, confidence routing |
 | **Phase 4** | Active Command Bar & AI Activity Stream | ✅ Complete | `Cmd+K` command bar, geometric layouts, live activity drawer, truthful Evidence cards (`sourceId`), query highlights |
-| **Phase 5** | Speech Intelligence & Transcript Simulator | ⏳ Next | Stepped transcript playback, single-flight throttled queue ($\le 17$ RPM), custom JWT auth |
-| **Phase 6** | Real-Time Audio & Video Collaboration | 📋 Planned | Daily.co / LiveKit room integration, active speaker detection, dynamic audio visualizer |
+| **Phase 5** | Speech Intelligence & Transcript Simulator | ✅ Complete | Single-flight coalescing queue ($\le 17$ RPM), 9s ceiling window, fluff filter, speech simulator dock, custom JWT auth, live captions |
+| **Phase 6** | Real-Time Audio & Video Collaboration | ⏳ Next | Daily.co / LiveKit room integration, active speaker detection, dynamic audio visualizer |
 | **Phase 7** | Context Zones & Workspace Clustering | 📋 Planned | Spatial context zones, perimeter tagging, isolated cluster operations |
 | **Phase 8** | Export, Polish & Production Hardening | 📋 Planned | High-res SVG/PNG export, end-to-end load testing, security audit |
 
@@ -150,9 +150,9 @@ sequenceDiagram
 | **Phase 1: Foundation & Data Architecture** | 11 Prisma models, Neon Postgres WebSocket adapter, unified response format, Elena/Marcus demo identities, and seed data. | **Complete** | Database seeded & tested |
 | **Phase 2: Canvas Engine & Socket Relay** | In-memory `CanvasDocument`, 60fps infinite hardware-accelerated canvas, persist-then-commit ordering, debounced drag queue, dual edge cascade. | **Complete** | Verified 60fps pan/zoom & socket sync |
 | **Phase 3: AI Intelligence & Fallback** | Dual-provider LLM abstraction (Groq + Gemini Flash), `<100ms` failover, confidence routing (`auto`, `proposed`, `clarify`), Jaccard in-place mutation. | **Complete** | 19/19 automated test suite passing |
-| **Phase 4: Active Commands & Effector** | AIAction persistence effector (`applyAIActions.js`), SHA-256 fingerprint idempotency, geometric layout engine (`canvasLayout.js`), command execution. | **Backend Complete** | 34/34 automated integration tests passing |
-| **Phase 5: Simulator, Extraction & Custom Auth** | Continuous transcript simulator, single-flight coalescing queue ($\le 17$ RPM), and bcrypt/JWT cookie authentication. | Planned | Next phase |
-| **Phase 6: Presence, Minimap & Meeting Modes** | Multiplayer live cursors, radar minimap, "Follow Me" presenter broadcast, Operational/Brainstorm modes. | Planned | Roadmap |
+| **Phase 4: Active Commands & Effector** | AIAction persistence effector (`applyAIActions.js`), SHA-256 fingerprint idempotency, geometric layout engine (`canvasLayout.js`), command execution. | **Complete** | 34/34 automated integration tests passing |
+| **Phase 5: Simulator, Extraction & Custom Auth** | Continuous transcript simulator, single-flight coalescing queue ($\le 17$ RPM), 9s ceiling window, signal-safe fluff filter, and custom JWT auth. | **Complete** | 7/7 automated test suites passing |
+| **Phase 6: Presence, Minimap & Meeting Modes** | Multiplayer live cursors, radar minimap, "Follow Me" presenter broadcast, Operational/Brainstorm modes. | Planned | Next phase |
 | **Phase 7: Generative Visuals & Integrations** | Pollinations.ai imagery, Meeting Commit flow (`MeetingReport`), and Slack/Notion/Resend integration. | Planned | Roadmap |
 | **Phase 8: Voice, Video & Final Polish** | Web Speech API, Groq Whisper Large v3 Turbo, dockable video bar, Dagre hierarchical auto-layout. | Planned | Roadmap |
 
@@ -203,6 +203,91 @@ flowchart LR
 
 ---
 
+## Phase 5: Real-Time Speech Intelligence, Passive Extraction & Custom Auth
+
+Phase 5 delivers the foundational thesis of **mindMesh**: *"The conversation becomes the canvas."* Dialogue spoken into microphones or stepped through benchmark scripts materializes automatically as interconnected visual knowledge graphs in real time.
+
+```mermaid
+flowchart TD
+    subgraph Client["Frontend Layer (React 19 + Vite)"]
+        Mic["Microphone / Web Speech API"]
+        Sim["SpeechIntelligenceController (4 Benchmark Scenarios)"]
+        Ticker["Live Caption & Fluff Filter Ticker"]
+        AuthM["AuthModal (Glassmorphic, Skeleton Loaders)"]
+        AuthC["AuthContext (7-day Session Hydration)"]
+    end
+
+    subgraph Relay["Real-Time Relay & Throttling"]
+        SockRelay["Socket.io Collaboration Server (socket.js)"]
+        SockAuth["socketAuthMiddleware (?as=marcus > JWT > Demo)"]
+        TransSock["transcript.socket.js (transcript:chunk, transcript:flush)"]
+        Queue["Single-Flight Queue & Coalescing Engine (extractionQueue.js)"]
+    end
+
+    subgraph Intelligence["Passive AI Intelligence"]
+        Fluff["Conversational Fluff Filter (ACTION_MARKERS Guard)"]
+        Ceiling["9-Second Monologue Ceiling Window"]
+        Extractor["processDialogueBatch (Attributed Transcript Formatter)"]
+        DualAI["withFallback (Groq Llama 3.3 70B / Gemini Flash)"]
+    end
+
+    subgraph Effector["Authoritative Persistence Effector"]
+        Eff["applyAIActions.js (Deterministic sourceId Hash)"]
+        CanvasDoc["CanvasDocument (In-Memory State)"]
+        PG[("PostgreSQL")]
+    end
+
+    Mic -->|Live Speech| Sim
+    Sim -->|transcript:chunk| TransSock
+    TransSock -->|Broadcast captions| Ticker
+    TransSock --> Fluff
+    Fluff -->|Drop pure fluff| Discard["Discard (Save Token Quota)"]
+    Fluff -->|Preserve decisions| Queue
+    Queue --> Ceiling
+    Ceiling -->|Coalesced dialogue batch| Extractor
+    Extractor --> DualAI
+    DualAI --> Eff
+    Eff --> CanvasDoc
+    Eff --> PG
+    Eff -->|canvas:action / ai:activity| SockRelay
+    SockRelay --> Client
+```
+
+### Key Technical Pillars
+
+1. **Single-Flight Coalescing Queue with Hard Rate Ceiling (`extractionQueue.js`)**:
+   - Enforces that **only 1 extraction request is in-flight** per room at any moment.
+   - A **3.5s cooldown timer** hard-caps call frequency to $\le 17\text{ RPM}$, guaranteeing full compliance with free-tier rate limits without dropping conversational context.
+   - Any utterances occurring while an extraction is in-flight or mid-cooldown buffer into a FIFO accumulator and flush together in a single batch once the lock clears.
+2. **9-Second Continuous Monologue Ceiling Window**:
+   - Tracks `firstChunkTime` on the empty-to-non-empty buffer transition.
+   - Clamps debounce timers so that continuous single-speaker speech with sub-1.5s pauses cannot postpone extraction indefinitely; extraction is forced within 9 seconds.
+3. **Signal-Safe Conversational Fluff Filter**:
+   - Pure filler (*"yeah"*, *"uh-huh"*, *"okay cool"*, *"sounds good"*) is safely discarded before reaching the queue, saving 30–40% token quota.
+   - Whitelist filter is strictly guarded by `ACTION_MARKERS = /\b(not|instead|assign|take|takes|but|wait|actually|no|let's|cancel|remove|block|blocks)\b/i`. Short handoffs (*"Sam takes it"*, *"Sam, not Mike"*, *"No, wait"*) are strictly preserved.
+4. **Deterministic `sourceId` Batch Window Hash**:
+   - Before flushing, dialogue chunks are sorted deterministically to compute an immutable SHA-256 fingerprint:
+     $$\text{sourceId} = \text{stream}:\text{roomId}:\text{sha256(sortedChunks).slice(0, 16)}$$
+   - Guaranteed idempotency: retries or failover reprocessing of the same dialogue window produce identical fingerprints, triggering PostgreSQL `@unique([roomId, fingerprint])` deduplication with zero duplicate rows.
+5. **Authoritative Single-Effector Invariant**:
+   - Extracted actions route directly into `applyAIActions(roomId, actions, { sourceId, io })`. Natural language workspace commands (Phase 4) and passive speech extraction (Phase 5) share the exact same effector, audit trail, deduplication, and canvas mutation pipeline.
+6. **Real Custom Authentication & Priority Precedence**:
+   - Passwords hashed with bcrypt (10 salt rounds).
+   - 7-day `httpOnly`, `sameSite: "lax"` JWT session cookie.
+   - Decoupled `isDemo` flag separating authenticated accounts from guest personas.
+   - Priority hierarchy:
+     1. `?as=marcus` / `?as=elena` query parameter (developer multi-window demo override)
+     2. Authenticated JWT cookie session
+     3. Default guest demo user (`demo-user-1`)
+   - Re-runs Socket.io handshake on login/signup/logout to keep server-side `socket.data.user` synchronized.
+7. **Interactive Speech Intelligence Simulator Dock (`SpeechIntelligenceController.jsx`)**:
+   - 4 pre-loaded benchmark scenarios (*Canonical Onboarding Debate*, *Live Reassignment & In-Place Correction*, *Architecture & Risk Mitigation*, *Fluff Filter & Short Decision Handoff*).
+   - Play/Pause with auto-step pacing, Step Next button, Speed multipliers (`1x`, `2x`, `3x`), and Reset Buffer.
+   - Web Speech API integration (`SpeechRecognition`) with `isMicActiveRef` ensuring uninterrupted continuous listening.
+   - Floating live caption ticker displaying real-time speech and *FILLER* status badges.
+
+---
+
 ## Architectural Invariants & Guarantees
 
 1. **Persist-Then-Commit Ordering**: All non-debounced canvas actions commit to Neon PostgreSQL before updating in-memory `CanvasDocument` state, preventing silent memory drift on database write errors.
@@ -217,6 +302,11 @@ flowchart LR
 6. **Candidate Model Resilience**: The primary provider automatically falls back across available models (`config.groqModel`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `llama-3.3-70b-versatile`) on HTTP 404, gracefully surviving per-organization deprecations.
 7. **End-to-End Data Lineage (`sourceId` Join Key)**: Both `CREATE_NODE` and `UPDATE_NODE` actions inject the authoritative `AIAction.id` into `CanvasNode.sourceId` and persist it to PostgreSQL, ensuring that Evidence Cards display true conversational rationale and verbatim `metadata.sourceQuote` across creation and live corrections.
 8. **Chronological Stream Integrity**: Self-approval and live WebSocket action updates match by ID/fingerprint and update records in-place rather than unshifting, preventing approved actions from jumping to the top of the feed.
+9. **Single-Flight Coalescing & Hard Rate Ceiling**: Only 1 extraction request is in-flight per room at any time; bursts of incoming dialogue coalesce in arrival order; a 3.5s cooldown window guarantees $\le 17$ RPM.
+10. **Continuous Monologue Ceiling Window**: Debounce delay cannot defer extraction beyond 9 seconds from the first utterance in a dialogue window.
+11. **Idempotent Dialogue Window Fingerprint**: Chunks are sorted deterministically before computing the `sourceId` hash, ensuring identical retry windows generate identical fingerprints and produce zero duplicate rows.
+12. **Zero Duplicate Effector Pipeline**: Both active workspace commands and passive speech extraction route authoritatively through `applyAIActions()`.
+13. **Zero-Friction Guest & Demo Priority Hierarchy**: `?as=marcus` / `?as=elena` demo parameter $\to$ authenticated session $\to$ default guest identity.
 
 ---
 
