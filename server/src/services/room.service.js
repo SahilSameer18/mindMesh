@@ -108,4 +108,52 @@ export async function addContextZone(roomId, { name, x, y, zoom = 1.0 }) {
   }
 }
 
+export async function getContextZones(roomId) {
+  try {
+    return await prisma.contextZone.findMany({
+      where: { roomId },
+      orderBy: { name: "asc" },
+    });
+  } catch (err) {
+    console.error(`[RoomService] Error fetching context zones for room ${roomId}:`, err.message);
+    throw err;
+  }
+}
+
+export async function deleteContextZone(roomId, zoneId) {
+  try {
+    const existing = await prisma.contextZone.findUnique({
+      where: { id: zoneId },
+    });
+
+    if (!existing || existing.roomId !== roomId) {
+      return null;
+    }
+
+    return await prisma.contextZone.delete({
+      where: { id: zoneId },
+    });
+  } catch (err) {
+    console.error(`[RoomService] Error deleting context zone ${zoneId}:`, err.message);
+    throw err;
+  }
+}
+
+export async function updateRoomMode(roomId, { mode, systemContext }) {
+  try {
+    const data = {};
+    if (mode !== undefined) data.mode = mode;
+    if (systemContext !== undefined) data.systemContext = systemContext;
+
+    return await prisma.room.update({
+      where: { id: roomId },
+      data,
+    });
+  } catch (err) {
+    console.error(`[RoomService] Error updating mode for room ${roomId}:`, err.message);
+    throw err;
+  }
+}
+
+
 

@@ -2,6 +2,7 @@ import { getCanvasDocument } from "../canvas/canvasDocument.js";
 import { executeWorkspaceCommand } from "../ai/commands.js";
 import { approveAIAction, rejectAIAction } from "../ai/applyAIActions.js";
 import { getOrCreateRoom } from "../services/room.service.js";
+import { addPeer, getActivePresenter, handleSocketDisconnect } from "../services/presence.service.js";
 
 /**
  * Initializes real-time canvas socket event handlers for a connected client
@@ -13,7 +14,7 @@ export function initCanvasSocket(io, socket) {
    * Client joins a canvas room:
    * 1. Joins Socket.io room and sets authoritative socket.roomId
    * 2. Loads and sends authoritative canvas state (canvas:init)
-   * 3. Broadcasts presence to peers (presence:peer-joined)
+   * 3. Registers in presence service and broadcasts presence to peers
    */
   socket.on("canvas:join", async ({ roomId, user }, callback) => {
     if (!roomId) {
@@ -35,8 +36,12 @@ export function initCanvasSocket(io, socket) {
       const doc = await getCanvasDocument(roomId);
       const state = doc.getState();
 
-      // Emit canvas state to joining client
-      socket.emit("canvas:init", { roomId, state });
+      // Register peer in presence service
+      addPeer(roomId, socket.id, socket.user);
+      const activePresenter = getActivePresenter(roomId);
+
+      // Emit canvas state and active presenter to joining client
+      socket.emit("canvas:init", { roomId, state, activePresenter });
 
       // Notify other peers in room of presence
       socket.to(roomId).emit("presence:peer-joined", {
@@ -45,7 +50,7 @@ export function initCanvasSocket(io, socket) {
       });
 
       if (typeof callback === "function") {
-        callback({ success: true, state });
+        callback({ success: true, state, activePresenter });
       }
     } catch (err) {
       console.error(`[CanvasSocket] Error in canvas:join for room ${roomId}:`, err.message);
@@ -57,17 +62,14 @@ export function initCanvasSocket(io, socket) {
 
   /**
    * Client leaves the currently joined canvas room
+   * Delegates to the consolidated presence cleanup handler (releases presenter lock, purges peer, notifies room)
    */
   socket.on("canvas:leave", () => {
     if (!socket.roomId) return;
     const roomId = socket.roomId;
 
+    handleSocketDisconnect(io, socket, "left_room");
     socket.leave(roomId);
-    socket.to(roomId).emit("presence:peer-left", {
-      socketId: socket.id,
-      user: socket.user,
-    });
-    socket.roomId = null;
   });
 
   /**
@@ -147,22 +149,6 @@ export function initCanvasSocket(io, socket) {
     }
   });
 
-  /**
-   * Real-time cursor movement relay.
-   * Strictly uses socket.roomId.
-   */
-  socket.on("cursor:move", ({ x, y, user }) => {
-    const targetRoomId = socket.roomId;
-    if (!targetRoomId) return;
-
-    socket.to(targetRoomId).emit("cursor:moved", {
-      socketId: socket.id,
-      user: user || socket.user,
-      x,
-      y,
-      timestamp: Date.now(),
-    });
-  });
 
   /**
    * Client executes a natural language command via the Active Command Bar

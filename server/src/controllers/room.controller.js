@@ -38,9 +38,64 @@ export async function updateRoom(req, res, next) {
 export async function addContextZone(req, res, next) {
   try {
     const { roomId } = req.params;
-    const zone = await roomService.addContextZone(roomId, req.body);
+    const { name, x, y, zoom } = req.body || {};
+    if (!name || x === undefined || y === undefined) {
+      return sendError(res, "Missing zone properties", ["name, x, and y are required"], 400);
+    }
+    const zone = await roomService.addContextZone(roomId, { name, x: Number(x), y: Number(y), zoom: zoom ? Number(zoom) : 1.0 });
     return sendSuccess(res, "Context zone added", zone, 201);
   } catch (err) {
     next(err);
   }
 }
+
+export async function getContextZones(req, res, next) {
+  try {
+    const { roomId } = req.params;
+    const zones = await roomService.getContextZones(roomId);
+    return sendSuccess(res, "Context zones retrieved", zones);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteContextZone(req, res, next) {
+  try {
+    const { roomId, zoneId } = req.params;
+    const deleted = await roomService.deleteContextZone(roomId, zoneId);
+    if (!deleted) {
+      return sendError(
+        res,
+        "Context zone not found",
+        ["Context zone does not exist or does not belong to this room"],
+        404
+      );
+    }
+    return sendSuccess(res, "Context zone deleted", { zoneId });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateRoomMode(req, res, next) {
+  try {
+    const { roomId } = req.params;
+    const { mode, systemContext } = req.body || {};
+
+    const VALID_MODES = ["operational", "brainstorm", "solo"];
+    if (mode && !VALID_MODES.includes(mode)) {
+      return sendError(
+        res,
+        "Invalid room mode",
+        [`Mode must be one of: ${VALID_MODES.join(", ")}`],
+        400
+      );
+    }
+
+    const updated = await roomService.updateRoomMode(roomId, { mode, systemContext });
+    return sendSuccess(res, "Room mode updated successfully", updated);
+  } catch (err) {
+    next(err);
+  }
+}
+

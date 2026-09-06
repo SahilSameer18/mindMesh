@@ -1,6 +1,8 @@
 import { Server } from "socket.io";
 import { initCanvasSocket } from "./canvas.socket.js";
 import { setupTranscriptSocketHandlers } from "./transcript.socket.js";
+import { setupPresenceSocketHandlers } from "./presence.socket.js";
+import { handleSocketDisconnect } from "../services/presence.service.js";
 import { socketAuthMiddleware } from "../middlewares/auth.middleware.js";
 
 let io = null;
@@ -22,20 +24,19 @@ export function initSocketServer(httpServer) {
   io.on("connection", (socket) => {
     console.log(`[Socket] Client connected: ${socket.id} (user: ${socket.data?.user?.name || socket.user?.name || "Guest"})`);
 
-    // Register canvas real-time collaboration handlers (handles canvas:join, presence, actions)
+    // Register canvas real-time collaboration handlers (handles canvas:join, actions)
     initCanvasSocket(io, socket);
 
     // Register real-time speech and transcript stream handlers
     setupTranscriptSocketHandlers(io, socket);
 
+    // Register real-time presence, cursor, viewport, and presenter handlers
+    setupPresenceSocketHandlers(io, socket);
+
+    // Consolidated single disconnect handler: releases presenter lock and cleans up presence
     socket.on("disconnect", () => {
       console.log(`[Socket] Client disconnected: ${socket.id}`);
-      if (socket.roomId) {
-        socket.to(socket.roomId).emit("presence:peer-left", {
-          socketId: socket.id,
-          user: socket.user,
-        });
-      }
+      handleSocketDisconnect(io, socket);
     });
   });
 
