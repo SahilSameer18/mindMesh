@@ -1,6 +1,7 @@
 import { getCanvasDocument } from "../canvas/canvasDocument.js";
 import { executeWorkspaceCommand } from "../ai/commands.js";
 import { approveAIAction, rejectAIAction } from "../ai/applyAIActions.js";
+import { getOrCreateRoom } from "../services/room.service.js";
 
 /**
  * Initializes real-time canvas socket event handlers for a connected client
@@ -23,7 +24,13 @@ export function initCanvasSocket(io, socket) {
     try {
       socket.join(roomId);
       socket.roomId = roomId;
-      socket.user = user || { id: socket.id, name: "Collaborator" };
+      socket.user = user || socket.user || { id: socket.id, name: "Collaborator" };
+      if (!socket.data) socket.data = {};
+      socket.data.roomId = roomId;
+      socket.data.user = socket.user;
+
+      // Ensure room and membership records exist upfront in PostgreSQL
+      await getOrCreateRoom(roomId, { userId: socket.user?.id });
 
       const doc = await getCanvasDocument(roomId);
       const state = doc.getState();

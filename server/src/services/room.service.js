@@ -19,7 +19,7 @@ async function ensureDefaultWorkspace() {
   }
 }
 
-export async function getOrCreateRoom(roomId, { name, mode = "operational", systemContext = null } = {}) {
+export async function getOrCreateRoom(roomId, { name, mode = "operational", systemContext = null, userId = null } = {}) {
   try {
     await ensureDefaultWorkspace();
 
@@ -39,6 +39,16 @@ export async function getOrCreateRoom(roomId, { name, mode = "operational", syst
           name: name || `Room ${roomId.slice(0, 8)}`,
           mode,
           systemContext,
+          ...(userId
+            ? {
+                members: {
+                  create: {
+                    userId,
+                    role: "owner",
+                  },
+                },
+              }
+            : {}),
         },
         include: {
           members: { include: { user: true } },

@@ -1,5 +1,7 @@
 import { Server } from "socket.io";
 import { initCanvasSocket } from "./canvas.socket.js";
+import { setupTranscriptSocketHandlers } from "./transcript.socket.js";
+import { socketAuthMiddleware } from "../middlewares/auth.middleware.js";
 
 let io = null;
 
@@ -14,11 +16,17 @@ export function initSocketServer(httpServer) {
     pingTimeout: 5000,
   });
 
+  // Socket authentication and identity attachment
+  io.use(socketAuthMiddleware);
+
   io.on("connection", (socket) => {
-    console.log(`[Socket] Client connected: ${socket.id}`);
+    console.log(`[Socket] Client connected: ${socket.id} (user: ${socket.data?.user?.name || socket.user?.name || "Guest"})`);
 
     // Register canvas real-time collaboration handlers (handles canvas:join, presence, actions)
     initCanvasSocket(io, socket);
+
+    // Register real-time speech and transcript stream handlers
+    setupTranscriptSocketHandlers(io, socket);
 
     socket.on("disconnect", () => {
       console.log(`[Socket] Client disconnected: ${socket.id}`);
@@ -40,3 +48,4 @@ export function getIO() {
   }
   return io;
 }
+

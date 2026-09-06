@@ -94,9 +94,12 @@ export function validateAIAction(raw) {
       : slugifyText(payload.text);
 
     // Ensure stable string ID for CanvasDocument validation
-    payload.id = payload.id && typeof payload.id === "string"
-      ? payload.id
-      : crypto.randomUUID();
+    payload.id =
+      payload.id && typeof payload.id === "string"
+        ? payload.id
+        : payload.semanticKey
+        ? `node-${payload.semanticKey}`
+        : crypto.randomUUID();
 
     payload.x = typeof payload.x === "number" ? payload.x : 0;
     payload.y = typeof payload.y === "number" ? payload.y : 0;
