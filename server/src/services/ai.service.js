@@ -275,7 +275,7 @@ export async function exportMeetingReport(roomId, reportId, { provider, config: 
     }
 
     case "email": {
-      const targetEmail = recipient || userConfig.toEmail || storedConfig.toEmail || reportRecord.emailedTo;
+      const targetEmail = recipient || userConfig.toEmail || storedConfig.toEmail || reportRecord.emailedTo || "team@mindmesh.local";
       dispatchResult = await sendMeetingEmail(targetEmail, report, {
         roomName,
         roomId,
