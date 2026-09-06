@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRoom } from "../../hooks/useRoom.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 import {
   Sparkles,
   ExternalLink,
@@ -12,16 +13,21 @@ export default function WorkspaceHeader({
   isActivityStreamOpen,
   onToggleActivityStream,
   proposedCount = 0,
+  isSpeechSimOpen = false,
+  onToggleSpeechSim,
+  onOpenAuth,
 }) {
   const { roomId, currentUser, isConnected, peers } = useRoom();
+  const { logout } = useAuth();
   const [showHelp, setShowHelp] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const isMarcus = currentUser.id === "demo-user-2";
   const alternateUrl = isMarcus ? window.location.pathname : `${window.location.pathname}?as=marcus`;
   const alternateLabel = isMarcus ? "Switch to Elena (Lead)" : "Open Marcus in 2nd Tab";
 
   return (
-    <header className="h-14 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-4 flex items-center justify-between z-30 shrink-0 select-none">
+    <header className="h-14 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-3 sm:px-4 flex items-center justify-between z-30 shrink-0 select-none">
       {/* Brand & Room Info */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
@@ -46,15 +52,33 @@ export default function WorkspaceHeader({
         </div>
       </div>
 
-      {/* Center / Right: Presence Avatars & Current User */}
-      <div className="flex items-center gap-3">
+      {/* Center / Right Controls */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Phase 5 Speech Simulator Toggle Button */}
+        <button
+          type="button"
+          onClick={onToggleSpeechSim}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
+            isSpeechSimOpen
+              ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-violet-400/60 shadow-md shadow-violet-500/20"
+              : "text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border-slate-800"
+          }`}
+          title="Toggle Real-Time Speech Intelligence Simulator"
+        >
+          <span className="text-sm">🎙️</span>
+          <span className="hidden md:inline">Dialogue Sim</span>
+          {isSpeechSimOpen && (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+          )}
+        </button>
+
         {/* Identity & Multi-tab switch */}
         <a
           href={alternateUrl}
           target="_blank"
           rel="noreferrer"
           title="Open second identity in new tab to test real-time collaboration"
-          className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-sky-300 bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 transition-colors"
+          className="hidden lg:flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-sky-300 bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 transition-colors"
         >
           <ExternalLink className="w-3 h-3" />
           <span>{alternateLabel}</span>
@@ -83,6 +107,52 @@ export default function WorkspaceHeader({
             </div>
           ))}
         </div>
+
+        {/* Auth / Account Trigger */}
+        {currentUser.isDemo ? (
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition-colors"
+            title="Sign in or register an account"
+          >
+            <span className="hidden sm:inline">Sign In</span>
+            <span className="sm:hidden">Login</span>
+          </button>
+        ) : (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowUserMenu((prev) => !prev)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-200 bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="max-w-[80px] sm:max-w-[120px] truncate">{currentUser.name}</span>
+            </button>
+
+            {showUserMenu && (
+              <div className="absolute right-0 top-9 w-48 rounded-xl bg-slate-900 border border-slate-800 shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
+                <div className="px-2 py-1.5 border-b border-slate-800 mb-1">
+                  <div className="font-semibold text-slate-200 truncate">{currentUser.name}</div>
+                  <div className="text-[10px] text-slate-400 truncate">{currentUser.email}</div>
+                  <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono">
+                    {currentUser.role || "Member"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    logout();
+                  }}
+                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors font-medium"
+                >
+                  Log Out
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Activity Stream Drawer Button */}
         <button
