@@ -21,6 +21,7 @@ export function useCanvas() {
   const [highlightedNodeIds, setHighlightedNodeIds] = useState(new Set());
   const [highlightedEdgeIds, setHighlightedEdgeIds] = useState(new Set());
   const [inspectingNode, setInspectingNode] = useState(null);
+  const [inspectingVisualNode, setInspectingVisualNode] = useState(null);
   const highlightTimerRef = useRef(null);
 
   // Throttled movement timers & pending position map
@@ -645,6 +646,8 @@ export function useCanvas() {
     highlightedEdgeIds,
     inspectingNode,
     setInspectingNode,
+    inspectingVisualNode,
+    setInspectingVisualNode,
     highlightElements,
     panToNode,
     setSelectedNodeId,

@@ -35,6 +35,10 @@ export default function WorkspaceHeader({
     stopPresenting,
     setFollowing,
     presenterContestError,
+    latestMeetingReport,
+    setIsCommitModalOpen,
+    isCommitting,
+    commitError,
   } = useRoom();
 
   const { logout } = useAuth();
@@ -170,6 +174,26 @@ export default function WorkspaceHeader({
           {isSpeechSimOpen && (
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
           )}
+        </button>
+
+        {/* Phase 7 Commit Call Button */}
+        <button
+          type="button"
+          onClick={() => setIsCommitModalOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500 via-rose-500 to-violet-600 hover:from-amber-400 hover:via-rose-400 hover:to-violet-500 text-white shadow-md shadow-violet-500/25 border border-white/20 transition-all duration-200 active:scale-95 group relative"
+          title="Commit meeting synthesis, review decisions, and export to Slack / Notion / Email"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-200 group-hover:rotate-12 transition-transform" />
+          <span className="font-medium tracking-tight">
+            {latestMeetingReport ? "Meeting Report" : "Commit Call"}
+          </span>
+          {latestMeetingReport ? (
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          ) : isCommitting ? (
+            <span className="w-2 h-2 rounded-full bg-amber-300 animate-ping" />
+          ) : commitError ? (
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" title={`Synthesis error: ${commitError}`} />
+          ) : null}
         </button>
 
         {/* Identity & Multi-tab switch */}

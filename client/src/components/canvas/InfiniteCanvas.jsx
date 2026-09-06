@@ -338,6 +338,7 @@ export default function InfiniteCanvas({ canvas }) {
               onStartConnect={handleStartConnect}
               onEndConnect={handleEndConnect}
               onInspectEvidence={(n) => canvas.setInspectingNode?.(n)}
+              onInspectVisual={(n) => canvas.setInspectingVisualNode?.(n)}
             />
           ))}
         </div>

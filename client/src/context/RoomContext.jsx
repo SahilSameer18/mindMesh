@@ -81,6 +81,12 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const [presenterContestError, setPresenterContestError] = useState(null);
   const [roomMode, setRoomMode] = useState("operational");
 
+  // Phase 7: Meeting Commit & Report State
+  const [latestMeetingReport, setLatestMeetingReport] = useState(null);
+  const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
+  const [isCommitting, setIsCommitting] = useState(false);
+  const [commitError, setCommitError] = useState(null);
+
   // Synchronous socket initialization eliminates setState inside useEffect
   const [socket] = useState(() =>
     io(SOCKET_SERVER_URL, {
@@ -207,6 +213,11 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
     socket.on("presenter:started", handlePresenterStarted);
     socket.on("presenter:stopped", handlePresenterStopped);
 
+    const handleMeetingCommitted = (report) => {
+      setLatestMeetingReport(report);
+    };
+    socket.on("meeting:committed", handleMeetingCommitted);
+
     // If socket is already connected when effect mounts
     if (socket.connected) {
       handleConnect();
@@ -223,6 +234,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       socket.off("presence:viewport-updated", handleViewportUpdated);
       socket.off("presenter:started", handlePresenterStarted);
       socket.off("presenter:stopped", handlePresenterStopped);
+      socket.off("meeting:committed", handleMeetingCommitted);
       socket.emit("canvas:leave");
     };
   }, [socket, roomId, currentUser]);
@@ -297,6 +309,95 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
     };
   }, [socket]);
 
+  const commitMeeting = useCallback(
+    async ({ title } = {}) => {
+      setIsCommitting(true);
+      setCommitError(null);
+      try {
+        const res = await fetch(`${SOCKET_SERVER_URL}/api/rooms/${roomId}/commit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title }),
+        });
+        const json = await res.json();
+        if (json?.success && json?.data) {
+          setLatestMeetingReport(json.data);
+          setCommitError(null);
+          return json.data;
+        } else {
+          const errMsg = json?.message || "Failed to commit meeting";
+          setCommitError(errMsg);
+          throw new Error(errMsg);
+        }
+      } catch (err) {
+        console.error("[RoomContext] Commit meeting error:", err);
+        setCommitError(err.message || "Failed to commit meeting");
+        throw err;
+      } finally {
+        setIsCommitting(false);
+      }
+    },
+    [roomId]
+  );
+
+  const exportReport = useCallback(
+    async (reportId, payload) => {
+      try {
+        const res = await fetch(
+          `${SOCKET_SERVER_URL}/api/rooms/${roomId}/reports/${reportId}/export`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(payload),
+          }
+        );
+        return await res.json();
+      } catch (err) {
+        console.error("[RoomContext] Export report error:", err);
+        return {
+          success: false,
+          message: err.message || "Failed to export report",
+        };
+      }
+    },
+    [roomId]
+  );
+
+  const fetchLatestReport = useCallback(async () => {
+    try {
+      const res = await fetch(`${SOCKET_SERVER_URL}/api/rooms/${roomId}/reports/latest`, {
+        credentials: "include",
+      });
+      const json = await res.json();
+      if (json?.success && json?.data) {
+        setLatestMeetingReport(json.data);
+        return json.data;
+      }
+      return null;
+    } catch (err) {
+      console.error("[RoomContext] Fetch latest report error:", err);
+      return null;
+    }
+  }, [roomId]);
+
+  const fetchRoomIntegrations = useCallback(async () => {
+    try {
+      const res = await fetch(`${SOCKET_SERVER_URL}/api/rooms/${roomId}/integrations`, {
+        credentials: "include",
+      });
+      const json = await res.json();
+      if (json?.success && Array.isArray(json.data)) {
+        return json.data;
+      }
+      return [];
+    } catch (err) {
+      console.error("[RoomContext] Fetch room integrations error:", err);
+      return [];
+    }
+  }, [roomId]);
+
   const value = useMemo(
     () => ({
       roomId,
@@ -310,6 +411,17 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       isFollowing,
       presenterContestError,
       roomMode,
+      latestMeetingReport,
+      setLatestMeetingReport,
+      isCommitModalOpen,
+      setIsCommitModalOpen,
+      isCommitting,
+      commitError,
+      setCommitError,
+      commitMeeting,
+      exportReport,
+      fetchLatestReport,
+      fetchRoomIntegrations,
       startPresenting,
       stopPresenting,
       setFollowing,
@@ -328,6 +440,14 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       isFollowing,
       presenterContestError,
       roomMode,
+      latestMeetingReport,
+      isCommitModalOpen,
+      isCommitting,
+      commitError,
+      commitMeeting,
+      exportReport,
+      fetchLatestReport,
+      fetchRoomIntegrations,
       startPresenting,
       stopPresenting,
       setFollowing,

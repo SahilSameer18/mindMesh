@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { RoomProvider } from "./context/RoomContext.jsx";
+import { useRoom } from "./hooks/useRoom.js";
 import { useCanvas } from "./hooks/useCanvas.js";
 import { useAIActions } from "./hooks/useAIActions.js";
 import InfiniteCanvas from "./components/canvas/InfiniteCanvas.jsx";
@@ -10,8 +11,11 @@ import ActivityStream from "./components/activity/ActivityStream.jsx";
 import EvidenceCard from "./components/activity/EvidenceCard.jsx";
 import SpeechIntelligenceController from "./components/meeting/SpeechIntelligenceController.jsx";
 import AuthModal from "./components/auth/AuthModal.jsx";
+import CommitCallModal from "./components/meeting/CommitCallModal.jsx";
+import VisualLightboxModal from "./components/canvas/VisualLightboxModal.jsx";
 
 function Workspace() {
+  const { isCommitModalOpen, setIsCommitModalOpen } = useRoom();
   const canvas = useCanvas();
   const aiActivity = useAIActions();
   const [isActivityStreamOpen, setIsActivityStreamOpen] = useState(false);
@@ -64,6 +68,21 @@ function Workspace() {
         <AuthModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
+        />
+
+        {/* Phase 7.1: Generative Visual Lightbox Inspection Modal */}
+        {canvas.inspectingVisualNode && (
+          <VisualLightboxModal
+            node={canvas.inspectingVisualNode}
+            onClose={() => canvas.setInspectingVisualNode(null)}
+          />
+        )}
+
+        {/* Phase 7.2: Celebratory Dual-Source Commit Call Modal */}
+        <CommitCallModal
+          isOpen={isCommitModalOpen}
+          onClose={() => setIsCommitModalOpen(false)}
+          canvas={canvas}
         />
       </main>
     </div>
