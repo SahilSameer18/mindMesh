@@ -63,6 +63,8 @@ import {
   getRoomAIActions,
 } from "./applyAIActions.js";
 
+import { generateMeetingSummary, generateDeterministicSummary, reportToMarkdown } from "./summarization.js";
+
 export {
   routeAction,
   processAIActions,
@@ -74,6 +76,9 @@ export {
   approveAIAction,
   rejectAIAction,
   getRoomAIActions,
+  generateMeetingSummary,
+  generateDeterministicSummary,
+  reportToMarkdown,
 };
 
 export const ai = {
@@ -83,6 +88,9 @@ export const ai = {
   approveAIAction,
   rejectAIAction,
   getRoomAIActions,
+  generateMeetingSummary,
+  generateDeterministicSummary,
+  reportToMarkdown,
   withFallback,
   groq,
   gemini,

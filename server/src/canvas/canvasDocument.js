@@ -155,7 +155,11 @@ export class CanvasDocument {
 
       case ACTION_TYPES.UPDATE_NODE: {
         await this._cancelPendingWrite(payload.id, false);
-        const existingNode = this.nodes.get(payload.id) || {};
+        const existingNode = this.nodes.get(payload.id);
+        if (!existingNode) {
+          // Node was deleted; ignore update to prevent phantom resurrection
+          break;
+        }
         const updatedNode = {
           ...existingNode,
           ...payload,

@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { config } from "../../config/env.js";
 import { buildExtractionSystemPrompt } from "../prompts/extraction.prompt.js";
 import { buildCommandSystemPrompt } from "../prompts/command.prompt.js";
+import { buildMeetingCommitPrompt } from "../prompts/summary.prompt.js";
 
 let client = null;
 
@@ -125,7 +126,62 @@ export async function executeCanvasCommand({ prompt, nodes = [], edges = [], par
   };
 }
 
+/**
+ * Synthesize meeting commitments and canvas state into an executive report using Gemini Flash
+ */
+export async function summarizeMeeting({ transcripts = [], nodes = [], edges = [], roomMode = "operational" } = {}) {
+  const ai = getClient();
+  const fullPrompt = buildMeetingCommitPrompt({ transcripts, nodes, edges, roomMode });
+
+  const candidateModels = [
+    config.geminiModel,
+    "gemini-flash-lite-latest",
+    "gemini-2.5-flash",
+  ].filter(Boolean);
+
+  let response = null;
+  let usedModel = config.geminiModel;
+
+  for (const model of candidateModels) {
+    try {
+      response = await ai.models.generateContent({
+        model,
+        contents: fullPrompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.15,
+        },
+      });
+      usedModel = model;
+      break;
+    } catch (mErr) {
+      if (mErr.message && mErr.message.includes("404")) {
+        continue;
+      }
+      throw mErr;
+    }
+  }
+
+  if (!response) {
+    throw new Error("All Gemini model candidates failed for summarizeMeeting.");
+  }
+
+  const rawText = response.text || "{}";
+  const parsed = JSON.parse(rawText);
+
+  return {
+    executiveSummary: parsed.executiveSummary || "Summary of discussion and active canvas entities.",
+    keyDecisions: Array.isArray(parsed.keyDecisions) ? parsed.keyDecisions : [],
+    actionItems: Array.isArray(parsed.actionItems) ? parsed.actionItems : [],
+    unresolvedQuestions: Array.isArray(parsed.unresolvedQuestions) ? parsed.unresolvedQuestions : [],
+    tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+    provider: "gemini",
+    model: usedModel,
+  };
+}
+
 export const gemini = {
   extractMeetingElements,
   executeCanvasCommand,
+  summarizeMeeting,
 };

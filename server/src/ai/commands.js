@@ -11,6 +11,8 @@ import { deduplicateAndLinkActions } from "../canvas/canvasDeduplication.js";
 import { computeLayout, createMoveActionsFromLayout } from "../canvas/canvasLayout.js";
 import { applyAIActions } from "./applyAIActions.js";
 import { getCanvasDocument } from "../canvas/canvasDocument.js";
+import { generateImageUrl, formatConceptPrompt } from "../integrations/imageGen.js";
+import crypto from "crypto";
 
 /**
  * Execute a workspace command or semantic query against a canvas room
@@ -46,6 +48,130 @@ export async function executeWorkspaceCommand({
       highlightedEdgeIds: [],
       actions: [],
       status: "idle",
+    };
+  }
+
+  const trimmedPrompt = prompt.trim();
+  const isImageCommand =
+    trimmedPrompt.startsWith("/image ") ||
+    trimmedPrompt.startsWith("/visual ");
+
+  // Phase 7.1: Two-Phase /image Command Flow
+  if (isImageCommand) {
+    const rawConcept = trimmedPrompt.replace(/^(\/image|\/visual)\s+/i, "").trim();
+    if (!rawConcept) {
+      return {
+        intent: "GENERATE_VISUAL",
+        summary: "Please provide a prompt after /image, e.g. `/image system architecture`",
+        answer: "Please provide a prompt after `/image`.",
+        highlightedNodeIds: [],
+        highlightedEdgeIds: [],
+        actions: [],
+        status: "idle",
+      };
+    }
+
+    const doc = canvasDoc || (await getCanvasDocument(roomId));
+    const state = doc.getState();
+    const nodes = state.nodes || [];
+
+    // Calculate placement offset
+    let targetX = 100;
+    let targetY = 100;
+    if (nodes.length > 0) {
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      for (const n of nodes) {
+        if (n.x > maxX) maxX = n.x;
+        if (n.y > maxY) maxY = n.y;
+      }
+      targetX = maxX + 320;
+      targetY = maxY;
+      if (targetX > 1400) {
+        targetX = 100;
+        targetY = maxY + 240;
+      }
+    }
+
+    const nodeId = crypto.randomUUID();
+    const commandSourceId = `cmd:img:${Date.now()}:${(userId || "user").slice(0, 8)}`;
+
+    // Phase 1: Immediate CREATE_NODE with status: "generating"
+    const createAction = {
+      type: "CREATE_NODE",
+      roomId,
+      payload: {
+        id: nodeId,
+        type: "image",
+        text: rawConcept,
+        semanticKey: `image-${rawConcept.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 30)}`,
+        x: targetX,
+        y: targetY,
+        metadata: {
+          prompt: rawConcept,
+          status: "generating",
+          imageUrl: null,
+          width: 320,
+          height: 240,
+        },
+      },
+      confidence: 1.0,
+      reason: `Generating visual concept for: "${rawConcept}"`,
+    };
+
+    // Pipe through applyAIActions for idempotency, DB persistence, and socket broadcast
+    const appliedActions = await applyAIActions(roomId, [createAction], {
+      sourceId: commandSourceId,
+      io,
+    });
+
+    // Phase 2: Asynchronous worker resolution
+    setTimeout(async () => {
+      try {
+        const currentDoc = await getCanvasDocument(roomId);
+        // Guard: check if node was deleted while generating (phantom node guard)
+        if (!currentDoc.nodes.has(nodeId)) {
+          console.info(`[commands:image] Node ${nodeId} deleted before visual resolved; aborting update.`);
+          return;
+        }
+
+        const formatted = formatConceptPrompt(rawConcept);
+        const imageUrl = generateImageUrl(formatted);
+
+        const updateAction = {
+          type: "UPDATE_NODE",
+          roomId,
+          payload: {
+            id: nodeId,
+            metadata: {
+              prompt: rawConcept,
+              status: "ready",
+              imageUrl,
+              width: 320,
+              height: 240,
+            },
+          },
+          confidence: 1.0,
+          reason: `Resolved Pollinations.ai visual concept for: "${rawConcept}"`,
+        };
+
+        await applyAIActions(roomId, [updateAction], {
+          sourceId: `${commandSourceId}:resolved`,
+          io,
+        });
+      } catch (err) {
+        console.error(`[commands:image] Failed to resolve visual for node ${nodeId}:`, err.message);
+      }
+    }, 50);
+
+    return {
+      intent: "GENERATE_VISUAL",
+      summary: `Generating visual concept: "${rawConcept}"`,
+      answer: `Visual concept initiated for: "${rawConcept}". Rendering on canvas.`,
+      highlightedNodeIds: [nodeId],
+      highlightedEdgeIds: [],
+      actions: appliedActions,
+      status: "success",
     };
   }
 

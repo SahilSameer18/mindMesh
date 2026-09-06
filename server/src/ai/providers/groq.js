@@ -2,6 +2,7 @@ import Groq from "groq-sdk";
 import { config } from "../../config/env.js";
 import { buildExtractionSystemPrompt } from "../prompts/extraction.prompt.js";
 import { buildCommandSystemPrompt } from "../prompts/command.prompt.js";
+import { buildMeetingCommitPrompt } from "../prompts/summary.prompt.js";
 
 // Cache Groq client instances per API key
 const clientCache = new Map();
@@ -174,7 +175,85 @@ export async function executeCanvasCommand({ prompt, nodes = [], edges = [], par
   throw lastError;
 }
 
+/**
+ * Synthesize meeting commitments and canvas state into an executive report using Groq Llama 3.3 70B
+ */
+export async function summarizeMeeting({ transcripts = [], nodes = [], edges = [], roomMode = "operational" } = {}) {
+  const keys = config.groqApiKeys;
+  const attempts = Math.max(1, keys.length);
+  let lastError = null;
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const { client, keyMask } = getClient();
+    try {
+      const fullPrompt = buildMeetingCommitPrompt({ transcripts, nodes, edges, roomMode });
+
+      const candidateModels = [
+        config.groqModel,
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "llama-3.3-70b-versatile",
+      ].filter(Boolean);
+
+      let completion = null;
+      let usedModel = config.groqModel;
+
+      for (const model of candidateModels) {
+        try {
+          completion = await client.chat.completions.create({
+            model,
+            messages: [
+              {
+                role: "system",
+                content: "You are the mindMesh AI Synthesis Engine. Return only valid JSON adhering to the requested schema.",
+              },
+              { role: "user", content: fullPrompt },
+            ],
+            response_format: { type: "json_object" },
+            max_tokens: 3500,
+            temperature: 0.15,
+          });
+          usedModel = model;
+          break;
+        } catch (mErr) {
+          if (mErr.status === 404) continue;
+          throw mErr;
+        }
+      }
+
+      if (!completion) {
+        throw new Error("All Groq model candidates failed for summarizeMeeting.");
+      }
+
+      const rawContent = completion.choices[0]?.message?.content || "{}";
+      const parsed = JSON.parse(rawContent);
+
+      return {
+        executiveSummary: parsed.executiveSummary || "Summary of discussion and active canvas entities.",
+        keyDecisions: Array.isArray(parsed.keyDecisions) ? parsed.keyDecisions : [],
+        actionItems: Array.isArray(parsed.actionItems) ? parsed.actionItems : [],
+        unresolvedQuestions: Array.isArray(parsed.unresolvedQuestions) ? parsed.unresolvedQuestions : [],
+        tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+        provider: "groq",
+        model: usedModel,
+        key: keyMask,
+      };
+    } catch (err) {
+      lastError = err;
+      const isRateLimit = err.status === 429 || (err.message && err.message.includes("429"));
+      if (isRateLimit && attempts > 1) {
+        console.warn(`[Groq] Key ${keyMask} rate limited (429) during summarize. Rotating key (attempt ${attempt + 1}/${attempts})...`);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw lastError;
+}
+
 export const groq = {
   extractMeetingElements,
   executeCanvasCommand,
+  summarizeMeeting,
 };
