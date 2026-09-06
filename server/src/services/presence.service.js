@@ -195,6 +195,7 @@ export function handleSocketDisconnect(io, socket, reason = "disconnected") {
   const releaseRes = releasePresenter(roomId, socket.id);
   if (releaseRes.released) {
     io.to(roomId).emit("presenter:stopped", {
+      socketId: socket.id,
       presenterId: socket.id,
       user: socket.user || socket.data?.user,
       reason,

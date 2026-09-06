@@ -13,6 +13,10 @@ import {
 } from "lucide-react";
 import { CanvasNode } from "./CanvasNode.jsx";
 import { CanvasEdge } from "./CanvasEdge.jsx";
+import { MultiplayerCursors } from "./MultiplayerCursors.jsx";
+import { Minimap } from "./Minimap.jsx";
+import { PresenterFollowBanner } from "../presence/PresenterFollowBanner.jsx";
+import { useRoom } from "../../hooks/useRoom.js";
 import { NODE_TYPES, EDGE_TYPES } from "../../utils/canvasConstants.js";
 
 export default function InfiniteCanvas({ canvas }) {
@@ -39,13 +43,30 @@ export default function InfiniteCanvas({ canvas }) {
     pan,
     zoomAt,
     resetViewport,
+    setViewportDirect,
+    flyTo,
+    cancelFlyTo,
   } = canvas;
+
+  const {
+    socket,
+    currentUser,
+    peerCursors,
+    peerViewports,
+    activePresenter,
+    isFollowing,
+    setFollowing,
+    presenterContestError,
+    clearPresenterContestError,
+  } = useRoom();
 
   const containerRef = useRef(null);
   const [isPanning, setIsPanning] = useState(false);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [mouseCanvasPos, setMouseCanvasPos] = useState({ x: 0, y: 0 });
   const panStartRef = useRef({ x: 0, y: 0 });
+  const lastCursorEmitRef = useRef(0);
+  const lastViewportEmitRef = useRef(0);
 
   // Handle Space key for canvas panning
   useEffect(() => {
@@ -74,22 +95,28 @@ export default function InfiniteCanvas({ canvas }) {
     };
   }, [isSpacePressed, setConnectingNodeId, setSelectedNodeId, setSelectedEdgeId]);
 
-  // Wheel Zoom centered around mouse pointer
+  // Wheel Zoom centered around mouse pointer (breaks follow mode on manual interaction)
   const handleWheel = useCallback(
     (e) => {
       e.preventDefault();
+      if (isFollowing) {
+        setFollowing(false);
+      }
       if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
       const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
       zoomAt(zoomFactor, e.clientX, e.clientY, rect);
     },
-    [zoomAt]
+    [zoomAt, isFollowing, setFollowing]
   );
 
-  // Pointer Down for background pan
+  // Pointer Down for background pan (breaks follow mode on manual interaction)
   const handlePointerDown = useCallback(
     (e) => {
+      if (isFollowing) {
+        setFollowing(false);
+      }
       // Middle-click (button 1) or Left-click with Space pressed or clicking empty canvas background
       if (e.button === 1 || isSpacePressed || e.target === containerRef.current || e.target.classList.contains("canvas-bg")) {
         e.preventDefault();
@@ -99,7 +126,7 @@ export default function InfiniteCanvas({ canvas }) {
         setSelectedEdgeId(null);
       }
     },
-    [isSpacePressed, setSelectedNodeId, setSelectedEdgeId]
+    [isSpacePressed, setSelectedNodeId, setSelectedEdgeId, isFollowing, setFollowing]
   );
 
   const handlePointerMove = useCallback(
@@ -111,15 +138,64 @@ export default function InfiniteCanvas({ canvas }) {
       const canvasCoords = screenToCanvas(e.clientX, e.clientY, rect);
       setMouseCanvasPos(canvasCoords);
 
+      // Throttled cursor emission (35ms / ~28 Hz)
+      const now = performance.now();
+      if (socket && now - lastCursorEmitRef.current >= 35) {
+        lastCursorEmitRef.current = now;
+        socket.emit("cursor:move", {
+          x: Math.round(canvasCoords.x),
+          y: Math.round(canvasCoords.y),
+          user: currentUser,
+        });
+      }
+
       if (isPanning) {
+        if (isFollowing) {
+          setFollowing(false);
+        }
         const dx = e.clientX - panStartRef.current.x;
         const dy = e.clientY - panStartRef.current.y;
         panStartRef.current = { x: e.clientX, y: e.clientY };
         pan(dx, dy);
       }
     },
-    [isPanning, pan, screenToCanvas]
+    [isPanning, pan, screenToCanvas, socket, currentUser, isFollowing, setFollowing]
   );
+
+  // Throttled viewport broadcast for peer radar minimaps
+  useEffect(() => {
+    if (!socket || !containerRef.current) return;
+    const now = performance.now();
+    if (now - lastViewportEmitRef.current >= 80) {
+      lastViewportEmitRef.current = now;
+      const rect = containerRef.current.getBoundingClientRect();
+      socket.emit("presence:viewport", {
+        viewport: {
+          x: viewport.x,
+          y: viewport.y,
+          zoom: viewport.zoom,
+          width: rect.width,
+          height: rect.height,
+        },
+      });
+    }
+  }, [socket, viewport.x, viewport.y, viewport.zoom]);
+
+  // Follow-Me camera tracking: smoothly update local viewport when following active presenter
+  useEffect(() => {
+    if (!socket || !isFollowing || !activePresenter || activePresenter.socketId === socket.id) return;
+
+    const handlePresenterSynced = ({ x, y, zoom }) => {
+      if (setViewportDirect) {
+        setViewportDirect(x, y, zoom);
+      }
+    };
+
+    socket.on("presenter:synced", handlePresenterSynced);
+    return () => {
+      socket.off("presenter:synced", handlePresenterSynced);
+    };
+  }, [socket, isFollowing, activePresenter, setViewportDirect]);
 
   const handlePointerUp = useCallback(() => {
     setIsPanning(false);
@@ -265,6 +341,9 @@ export default function InfiniteCanvas({ canvas }) {
             />
           ))}
         </div>
+
+        {/* Real-time Multiplayer Cursors in Canvas Space */}
+        <MultiplayerCursors cursors={peerCursors} />
       </div>
 
       {/* Connecting Mode Banner */}
@@ -385,6 +464,25 @@ export default function InfiniteCanvas({ canvas }) {
           <RotateCcw className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Floating Presenter Follow Banner & Contested Alerts */}
+      <PresenterFollowBanner
+        activePresenter={activePresenter}
+        isFollowing={isFollowing}
+        onStopFollowing={() => setFollowing(false)}
+        contestError={presenterContestError}
+        onClearContestError={clearPresenterContestError}
+      />
+
+      {/* Interactive Radar Minimap */}
+      <Minimap
+        nodes={nodes}
+        viewport={viewport}
+        peerViewports={peerViewports}
+        containerRef={containerRef}
+        flyTo={flyTo}
+        setViewportDirect={setViewportDirect}
+      />
     </div>
   );
 }

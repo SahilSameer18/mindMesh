@@ -20,9 +20,9 @@
 | **Phase 3** | Dual-Provider AI Intelligence Engine | ✅ Complete | Groq + Gemini failover, candidate model resilience, Jaccard in-place mutation, confidence routing |
 | **Phase 4** | Active Command Bar & AI Activity Stream | ✅ Complete | `Cmd+K` command bar, geometric layouts, live activity drawer, truthful Evidence cards (`sourceId`), query highlights |
 | **Phase 5** | Speech Intelligence & Transcript Simulator | ✅ Complete | Single-flight coalescing queue ($\le 17$ RPM), 9s ceiling window, fluff filter, speech simulator dock, custom JWT auth, live captions |
-| **Phase 6** | Real-Time Audio & Video Collaboration | ⏳ Next | Daily.co / LiveKit room integration, active speaker detection, dynamic audio visualizer |
-| **Phase 7** | Context Zones & Workspace Clustering | 📋 Planned | Spatial context zones, perimeter tagging, isolated cluster operations |
-| **Phase 8** | Export, Polish & Production Hardening | 📋 Planned | High-res SVG/PNG export, end-to-end load testing, security audit |
+| **Phase 6** | Presence, Radar Minimap & Meeting Modes | ✅ Complete | Multiplayer canvas-space cursors (35ms throttle, 60fps CSS glide), radar minimap with viewports & click/drag jump, atomic single-presenter lock with trailing-edge sync flush, meeting modes (Operational/Brainstorm), context zones |
+| **Phase 7** | Generative Visuals, Commit Flow & External Integrations | ⏳ Next | Pollinations.ai generative imagery, Meeting Commit summary report & confetti, Slack Block Kit, Notion database sync, Resend email dispatch |
+| **Phase 8** | Voice, Video Meeting Suite & Final Polish | 📋 Planned | Dual-tier Web Speech + Groq Whisper Large v3 Turbo, dockable video conference bar, Dagre hierarchical auto-layout, mobile responsiveness |
 
 ---
 

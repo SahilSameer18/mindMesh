@@ -74,6 +74,12 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   }, [authUser]);
   const [isConnected, setIsConnected] = useState(false);
   const [peers, setPeers] = useState(new Map());
+  const [peerCursors, setPeerCursors] = useState(new Map());
+  const [peerViewports, setPeerViewports] = useState(new Map());
+  const [activePresenter, setActivePresenter] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [presenterContestError, setPresenterContestError] = useState(null);
+  const [roomMode, setRoomMode] = useState("operational");
 
   // Synchronous socket initialization eliminates setState inside useEffect
   const [socket] = useState(() =>
@@ -96,12 +102,16 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       socket.emit("canvas:join", { roomId, user: currentUser }, (ack) => {
         if (!ack?.success) {
           console.warn("[Socket] Join acknowledgment error:", ack?.error);
+        } else if (ack.activePresenter) {
+          setActivePresenter(ack.activePresenter);
         }
       });
     };
 
     const handleDisconnect = () => {
       setIsConnected(false);
+      setActivePresenter(null);
+      setIsFollowing(false);
     };
 
     const handleConnectError = (err) => {
@@ -125,13 +135,77 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
         next.delete(socketId);
         return next;
       });
+      setPeerCursors((prev) => {
+        const next = new Map(prev);
+        next.delete(socketId);
+        return next;
+      });
+      setPeerViewports((prev) => {
+        const next = new Map(prev);
+        next.delete(socketId);
+        return next;
+      });
+      setActivePresenter((prev) =>
+        prev?.socketId === socketId || prev?.presenterId === socketId ? null : prev
+      );
+    };
+
+    const handleCursorMoved = ({ socketId, user, x, y, timestamp }) => {
+      if (!socketId || socketId === socket.id) return;
+      setPeerCursors((prev) => {
+        const next = new Map(prev);
+        next.set(socketId, { socketId, user, x, y, timestamp: timestamp || Date.now() });
+        return next;
+      });
+    };
+
+    const handleViewportUpdated = ({ socketId, user, viewport }) => {
+      if (!socketId || socketId === socket.id) return;
+      setPeerViewports((prev) => {
+        const next = new Map(prev);
+        next.set(socketId, { socketId, user, viewport });
+        return next;
+      });
+    };
+
+    const handlePresenterStarted = (data) => {
+      const presenterSocketId = data?.socketId || data?.presenterId;
+      setActivePresenter({
+        socketId: presenterSocketId,
+        presenterId: presenterSocketId,
+        user: data?.user,
+        startedAt: data?.startedAt,
+      });
+      // Following is strictly an opt-in viewer action via WorkspaceHeader "Follow [Name]" button.
+      // Do NOT auto-set isFollowing to true to avoid yanking viewer viewports without consent.
+    };
+
+    const handlePresenterStopped = () => {
+      setActivePresenter(null);
+      setIsFollowing(false);
+    };
+
+    const handleCanvasInit = ({ activePresenter: initialPresenter }) => {
+      if (initialPresenter) {
+        const presenterSocketId = initialPresenter.socketId || initialPresenter.presenterId;
+        setActivePresenter({
+          ...initialPresenter,
+          socketId: presenterSocketId,
+          presenterId: presenterSocketId,
+        });
+      }
     };
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
     socket.on("connect_error", handleConnectError);
+    socket.on("canvas:init", handleCanvasInit);
     socket.on("presence:peer-joined", handlePeerJoined);
     socket.on("presence:peer-left", handlePeerLeft);
+    socket.on("cursor:moved", handleCursorMoved);
+    socket.on("presence:viewport-updated", handleViewportUpdated);
+    socket.on("presenter:started", handlePresenterStarted);
+    socket.on("presenter:stopped", handlePresenterStopped);
 
     // If socket is already connected when effect mounts
     if (socket.connected) {
@@ -142,11 +216,71 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.off("connect_error", handleConnectError);
+      socket.off("canvas:init", handleCanvasInit);
       socket.off("presence:peer-joined", handlePeerJoined);
       socket.off("presence:peer-left", handlePeerLeft);
+      socket.off("cursor:moved", handleCursorMoved);
+      socket.off("presence:viewport-updated", handleViewportUpdated);
+      socket.off("presenter:started", handlePresenterStarted);
+      socket.off("presenter:stopped", handlePresenterStopped);
       socket.emit("canvas:leave");
     };
   }, [socket, roomId, currentUser]);
+
+  // Presenter actions
+  const startPresenting = useCallback((callback) => {
+    if (!socket) return;
+    socket.emit("presenter:start", (res) => {
+      if (res?.success) {
+        const presenterSocketId = res.presenter?.socketId || res.presenter?.presenterId;
+        setActivePresenter({
+          ...res.presenter,
+          socketId: presenterSocketId,
+          presenterId: presenterSocketId,
+        });
+        setPresenterContestError(null);
+        setIsFollowing(false);
+        if (typeof callback === "function") callback(res);
+      } else if (res?.code === "PRESENTER_BUSY") {
+        setPresenterContestError(res.message || "Another participant is currently presenting");
+        setTimeout(() => setPresenterContestError(null), 3500);
+        if (typeof callback === "function") callback(res);
+      }
+    });
+  }, [socket]);
+
+  const stopPresenting = useCallback((callback) => {
+    if (!socket) return;
+    socket.emit("presenter:stop", (res) => {
+      setActivePresenter(null);
+      if (typeof callback === "function") callback(res);
+    });
+  }, [socket]);
+
+  const setFollowing = useCallback((val) => {
+    setIsFollowing(Boolean(val));
+  }, []);
+
+  const updateRoomMode = useCallback(
+    async (newMode, systemContext) => {
+      try {
+        const res = await fetch(`${SOCKET_SERVER_URL}/api/rooms/${roomId}/mode`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ mode: newMode, systemContext }),
+        });
+        const data = await res.json();
+        if (data?.success) {
+          setRoomMode(newMode);
+        }
+        return data;
+      } catch (err) {
+        console.error("[RoomContext] Error updating room mode:", err);
+      }
+    },
+    [roomId]
+  );
 
   // Re-run Socket.io HTTP handshake when auth status changes (login, signup, logout)
   // Ensures socket.data.user reflects the fresh JWT cookie on the server
@@ -170,8 +304,35 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       currentUser,
       isConnected,
       peers: Array.from(peers.values()),
+      peerCursors: Array.from(peerCursors.values()),
+      peerViewports: Array.from(peerViewports.values()),
+      activePresenter,
+      isFollowing,
+      presenterContestError,
+      roomMode,
+      startPresenting,
+      stopPresenting,
+      setFollowing,
+      updateRoomMode,
+      clearPresenterContestError: () => setPresenterContestError(null),
     }),
-    [roomId, socket, currentUser, isConnected, peers]
+    [
+      roomId,
+      socket,
+      currentUser,
+      isConnected,
+      peers,
+      peerCursors,
+      peerViewports,
+      activePresenter,
+      isFollowing,
+      presenterContestError,
+      roomMode,
+      startPresenting,
+      stopPresenting,
+      setFollowing,
+      updateRoomMode,
+    ]
   );
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;

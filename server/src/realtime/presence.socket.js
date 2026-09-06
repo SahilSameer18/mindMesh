@@ -58,6 +58,7 @@ export function setupPresenceSocketHandlers(io, socket) {
     if (result.success) {
       // Broadcast to all participants in the room that this user started presenting
       io.to(roomId).emit("presenter:started", {
+        socketId: socket.id,
         presenterId: socket.id,
         user: result.presenter.user,
         startedAt: result.presenter.startedAt,
@@ -159,6 +160,7 @@ export function setupPresenceSocketHandlers(io, socket) {
 
     if (result.released) {
       io.to(roomId).emit("presenter:stopped", {
+        socketId: socket.id,
         presenterId: socket.id,
         user: socket.user || socket.data?.user,
         reason: "stopped",

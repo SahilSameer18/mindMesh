@@ -514,15 +514,27 @@ export function useCanvas() {
     [viewport]
   );
 
+  // Animation frame ref for smooth flyTo transitions
+  const flyToAnimationRef = useRef(null);
+
+  const cancelFlyTo = useCallback(() => {
+    if (flyToAnimationRef.current) {
+      cancelAnimationFrame(flyToAnimationRef.current);
+      flyToAnimationRef.current = null;
+    }
+  }, []);
+
   const pan = useCallback((dx, dy) => {
+    cancelFlyTo();
     setViewport((prev) => ({
       ...prev,
       x: prev.x + dx,
       y: prev.y + dy,
     }));
-  }, []);
+  }, [cancelFlyTo]);
 
   const zoomAt = useCallback((deltaZoom, clientX, clientY, containerRect) => {
+    cancelFlyTo();
     setViewport((prev) => {
       const nextZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, prev.zoom * deltaZoom));
       if (nextZoom === prev.zoom) return prev;
@@ -540,11 +552,55 @@ export function useCanvas() {
         zoom: nextZoom,
       };
     });
-  }, []);
+  }, [cancelFlyTo]);
 
   const resetViewport = useCallback(() => {
+    cancelFlyTo();
     setViewport({ x: 0, y: 0, zoom: 1 });
-  }, []);
+  }, [cancelFlyTo]);
+
+  const setViewportDirect = useCallback((newX, newY, newZoom) => {
+    cancelFlyTo();
+    setViewport((prev) => ({
+      x: newX !== undefined ? newX : prev.x,
+      y: newY !== undefined ? newY : prev.y,
+      zoom: newZoom !== undefined ? Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newZoom)) : prev.zoom,
+    }));
+  }, [cancelFlyTo]);
+
+  const flyTo = useCallback((targetX, targetY, targetZoom, duration = 350) => {
+    cancelFlyTo();
+
+    setViewport((current) => {
+      const startX = current.x;
+      const startY = current.y;
+      const startZoom = current.zoom;
+      const finalZoom = targetZoom !== undefined ? Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, targetZoom)) : startZoom;
+      const startTime = performance.now();
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        // Ease-out cubic curve
+        const ease = 1 - Math.pow(1 - progress, 3);
+
+        const curX = startX + (targetX - startX) * ease;
+        const curY = startY + (targetY - startY) * ease;
+        const curZoom = startZoom + (finalZoom - startZoom) * ease;
+
+        setViewport({ x: curX, y: curY, zoom: curZoom });
+
+        if (progress < 1) {
+          flyToAnimationRef.current = requestAnimationFrame(step);
+        } else {
+          flyToAnimationRef.current = null;
+        }
+      }
+
+      flyToAnimationRef.current = requestAnimationFrame(step);
+      return current;
+    });
+  }, [cancelFlyTo]);
 
   const panToNode = useCallback((nodeId) => {
     const node = nodes.get(nodeId);
@@ -606,6 +662,9 @@ export function useCanvas() {
     pan,
     zoomAt,
     resetViewport,
+    setViewportDirect,
+    flyTo,
+    cancelFlyTo,
   };
 }
 

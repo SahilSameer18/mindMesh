@@ -7,6 +7,10 @@ import {
   HelpCircle,
   X,
   Layers,
+  Radio,
+  Zap,
+  Brain,
+  AlertCircle,
 } from "lucide-react";
 
 export default function WorkspaceHeader({
@@ -17,7 +21,22 @@ export default function WorkspaceHeader({
   onToggleSpeechSim,
   onOpenAuth,
 }) {
-  const { roomId, currentUser, isConnected, peers } = useRoom();
+  const {
+    roomId,
+    currentUser,
+    isConnected,
+    peers,
+    socket,
+    roomMode,
+    updateRoomMode,
+    activePresenter,
+    isFollowing,
+    startPresenting,
+    stopPresenting,
+    setFollowing,
+    presenterContestError,
+  } = useRoom();
+
   const { logout } = useAuth();
   const [showHelp, setShowHelp] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -25,11 +44,12 @@ export default function WorkspaceHeader({
   const isMarcus = currentUser.id === "demo-user-2";
   const alternateUrl = isMarcus ? window.location.pathname : `${window.location.pathname}?as=marcus`;
   const alternateLabel = isMarcus ? "Switch to Elena (Lead)" : "Open Marcus in 2nd Tab";
+  const isLocalUserPresenter = activePresenter?.socketId === socket?.id;
 
   return (
     <header className="h-14 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-3 sm:px-4 flex items-center justify-between z-30 shrink-0 select-none">
-      {/* Brand & Room Info */}
-      <div className="flex items-center gap-3">
+      {/* Brand, Room Info & Meeting Mode Selector */}
+      <div className="flex items-center gap-2 sm:gap-3">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-md shadow-sky-500/20">
             <Sparkles className="w-4 h-4 text-white" />
@@ -50,10 +70,90 @@ export default function WorkspaceHeader({
           />
           <span className="text-slate-300 font-mono font-medium">{roomId}</span>
         </div>
+
+        {/* Phase 6 Adaptive Mode Selector */}
+        <div className="hidden md:flex items-center p-0.5 rounded-lg bg-slate-900 border border-slate-800 text-xs">
+          <button
+            type="button"
+            onClick={() => updateRoomMode("operational")}
+            className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-medium transition-all ${
+              roomMode === "operational"
+                ? "bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm"
+                : "text-slate-400 hover:text-slate-200 border border-transparent"
+            }`}
+            title="Operational Mode: Structured outline, action items, and topic columns"
+          >
+            <Zap className="w-3 h-3 text-sky-400" />
+            <span>Operational</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => updateRoomMode("brainstorm")}
+            className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-medium transition-all ${
+              roomMode === "brainstorm"
+                ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm"
+                : "text-slate-400 hover:text-slate-200 border border-transparent"
+            }`}
+            title="Brainstorm Mode: Organic visual clustering and creative association"
+          >
+            <Brain className="w-3 h-3 text-purple-400" />
+            <span>Brainstorm</span>
+          </button>
+        </div>
       </div>
 
       {/* Center / Right Controls */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Phase 6 Presenter Broadcast / Follow Me Button */}
+        <div className="relative flex items-center">
+          {isLocalUserPresenter ? (
+            <button
+              type="button"
+              onClick={() => stopPresenting()}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/50 shadow-sm transition-all animate-pulse"
+              title="You are currently broadcasting your screen to followers. Click to stop."
+            >
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span>Broadcasting (Stop)</span>
+            </button>
+          ) : activePresenter ? (
+            <button
+              type="button"
+              onClick={() => setFollowing(!isFollowing)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                isFollowing
+                  ? "bg-violet-600/30 text-violet-200 border-violet-500/60 shadow-sm shadow-violet-500/20"
+                  : "bg-slate-900/90 text-slate-300 hover:text-white border-slate-800"
+              }`}
+              title={isFollowing ? "Click to stop following presenter" : "Click to follow presenter"}
+            >
+              <Radio className={`w-3.5 h-3.5 ${isFollowing ? "text-violet-400 animate-pulse" : "text-slate-400"}`} />
+              <span className="hidden sm:inline">
+                {isFollowing ? `Following ${activePresenter.user?.name?.split(" ")[0] || "Presenter"}` : `Follow ${activePresenter.user?.name?.split(" ")[0] || "Presenter"}`}
+              </span>
+              <span className="sm:hidden">{isFollowing ? "Following" : "Follow"}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => startPresenting()}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors"
+              title="Broadcast your screen coordinates to followers"
+            >
+              <Radio className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden sm:inline">Follow Me</span>
+            </button>
+          )}
+
+          {/* Inline Contested Presenter Alert Badge */}
+          {presenterContestError && (
+            <div className="absolute top-10 right-0 whitespace-nowrap px-2.5 py-1 rounded-md bg-amber-950/95 border border-amber-500/80 text-amber-200 text-[11px] font-medium shadow-xl flex items-center gap-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />
+              <span>{presenterContestError}</span>
+            </div>
+          )}
+        </div>
+
         {/* Phase 5 Speech Simulator Toggle Button */}
         <button
           type="button"
