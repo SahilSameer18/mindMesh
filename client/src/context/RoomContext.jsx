@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { io } from "socket.io-client";
 import { DEFAULT_ROOM_ID } from "../utils/canvasConstants.js";
 import { RoomContext } from "./roomContextInstance.js";

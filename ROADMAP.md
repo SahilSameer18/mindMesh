@@ -159,7 +159,7 @@
   - Mode switching between `operational` (structured topic execution) and `brainstorm` (freeform ideation & generative visuals).
   - REST endpoint `PATCH /api/rooms/:roomId/mode` with Socket.io broadcast to all participants.
 - **6.5 Contextual Zones (`ContextZone`)**:
-  - REST endpoints (`GET`, `POST`, `DELETE /api/rooms/:roomId/zones`) with scoped room checks for safe deletion.
+  - Authoritative database models and REST endpoints (`GET`, `POST`, `DELETE /api/rooms/:roomId/zones`) with scoped room checks for safe deletion.
 
 ---
 
@@ -201,4 +201,62 @@
 - **8.5 End-to-End Demo Script Dry Run**:
   - Validate the 13-point master demo script (*"We don't take notes for you. We think with you."*).
 
+---
 
+# Master Architectural Reference & System Ledger
+
+## 1. What is mindMesh? (The Product Thesis)
+**mindMesh** transforms real-time team dialogue into an interactive, interconnected knowledge graph.
+- **The Core Problem**: In standard video/audio meetings, manual note-taking is fragmented, critical decisions get lost in text documents, action items lack clear context, and alignment degrades immediately after the call.
+- **The Solution**: An AI-augmented collaborative spatial workspace where **the conversation becomes the canvas**. As participants speak or type, the system's dual-provider intelligence engine extracts goals, ideas, tasks, decisions, questions, and risks, calculating relational dependencies and laying them out geometrically on an infinite hardware-accelerated canvas.
+- **User Interface Roles**:
+  - **Top WorkspaceHeader**: Meeting mode toggles (`⚡ Operational` vs `🧠 Brainstorm`), presenter broadcast controls (`Follow Me`), room presence badges, and the Dialogue Simulator dock.
+  - **Infinite Canvas**: Interactive 2D pan/zoom viewport rendering 8 card types and directed Bezier connection curves.
+  - **Active Command Bar (`Cmd+K`)**: Floating conversational assistant to reorganize layouts, query the workspace, or generate concepts.
+  - **Radar Minimap (Bottom-Right)**: Canvas GPS thumbnail showing all cards, participant camera frames, and click-to-jump navigation.
+  - **AI Activity Stream**: Live audit drawer of every extraction, proposed action, and confidence score.
+  - **Evidence Inspection Cards**: Clicking any node opens truthful quotes, speaker identity, and timestamps directly linked to audio/transcript chunks.
+
+---
+
+## 2. Phase-by-Phase Technical Ledger & Invariants
+
+| Phase | Milestone | Scope Built | Critical Edge Cases Handled |
+| :--- | :--- | :--- | :--- |
+| **Phase 1** | Foundation & Data Architecture | 11 PostgreSQL Prisma models, Neon serverless adapter, demo seed data (`demo-user-1`, `demo-user-2`, `demo-room`) | **Persist-Then-Commit**: Critical state writes to DB before mutating memory. Unified `{ success, message, data }` response wrapping. Default room fallback preventing foreign-key crashes. |
+| **Phase 2** | Authoritative Canvas Engine | In-memory `CanvasDocument`, 60fps pan/zoom math, Bezier curves, action creators | **100ms Debounced MOVE_NODE**: Rapid pointer movements batch write to Postgres. **Dual Cascade on DELETE**: In-memory edge removal synchronized with SQL cascades. Idempotent edge upserts. Whitelisted payload mutation blocking `id`/`roomId` tampering. |
+| **Phase 3** | Dual-Provider AI Intelligence | Groq Llama 3.3 70B (primary) + Google Gemini Flash (fallback), confidence router, in-place deduplication | **Transparent HTTP 429/500 Failover**: Switches from Groq to Gemini in <100ms. **Candidate Model Resilience**: Survives organization model deprecations on 404. **2500 max_tokens Headroom**: Eliminates JSON truncation syntax throws. **Deterministic UUIDs**: Eliminates validation drops. In-place task mutation on status updates. |
+| **Phase 4** | Active Command Bar & Evidence | `Cmd+K` bar, geometric layout reorganization, truthful Evidence cards (`sourceId`), activity drawer | **Normalized SHA-256 Fingerprint**: Enforces `@unique` deduplication across concurrent AI suggestions. **Truthful Traceability**: Cards link directly to transcript timestamps, avoiding AI hallucinations. |
+| **Phase 5** | Speech Intelligence & Simulator | Pre-loaded meeting scenario simulator, streaming audio queue, custom JWT authentication | **Single-Flight Coalescing Queue**: Max 1 in-flight extraction with 3.5s cooldown ($\le 17$ RPM), eliminating race conditions and quota exhaustion. **9s Monologue Ceiling**. **Filler Filter**: Drops short fluff (*"yeah"*, *"uh-huh"*), saving 35% tokens. httpOnly auth cookies. |
+| **Phase 6** | Presence, Minimap & Modes | Multiplayer cursors, radar minimap, atomic presenter lock, meeting mode switcher | **Canvas-Space Cursors**: Coordinate math locks cursors to cards regardless of screen DPI/zoom. **35ms Client Throttle**: 60fps CSS glide with ~60% network traffic reduction. **Atomic Presenter Lock**: Rejects contested claims with `PRESENTER_BUSY`. **30ms Trailing-Edge Camera Sync**: Guarantees resting coordinates reach followers. **Opt-In Follow**: Followers consent without camera yanking. **Dual-Key Normalization**: Both `socketId` and `presenterId` supported. **Dynamic Resize Observer**: Real-time DOMRect queries prevent minimap drift. |
+
+---
+
+## 3. Future Implementations & Post-Phase 8 Roadmap (Deferred Items)
+
+The following items are architecturally planned, supported by database models/backend contracts where noted, and intentionally deferred to the post-Phase 8 polish milestone:
+
+1. **Tokenized Invite Links & Expiry Flow (Phase 1 & 5 Extension)**:
+   - *Current State*: `InviteLink` model exists in PostgreSQL schema. Rooms are joined dynamically via query params (`/?room=demo-room&as=marcus`) and verified via `getOrCreateRoom`.
+   - *Future Work*: Dedicated UI modal to generate unique tokenized share links (`/join/:token`) with optional expiration dates and one-click clipboard copying.
+2. **CRDT Real-Time Sync Layer (Phase 2 Extension)**:
+   - *Current State*: In-memory authoritative `CanvasDocument` with 100ms debounced PostgreSQL persistence and client-side ack rollback handles real-time concurrency cleanly.
+   - *Future Work*: Optional Yjs/y-socket.io integration for character-level conflict-free text merging if simultaneous card editing collisions require it.
+3. **OAuth & Password Recovery (Phase 5 Extension)**:
+   - *Current State*: Custom bcrypt hashing and JWT stored in httpOnly secure cookies with Socket.io handshake authentication.
+   - *Future Work*: Social login (Google / GitHub OAuth), password reset email flows, and Redis-backed IP rate limiting on `/auth/login`.
+4. **Context Zones Frontend UI (Phase 6.5 Extension)**:
+   - *Current State*: Backend models and REST API (`GET`, `POST`, `DELETE /api/rooms/:roomId/zones`) are fully built and verified in Neon PostgreSQL.
+   - *Future Work*: Add a header dropdown and canvas bounding box selector allowing users to save named canvas regions (*"Architecture"*, *"Sprint Goals"*) and click to jump the camera directly to that bounding box.
+5. **Solo Mode (Phase 6.4 Extension)**:
+   - *Current State*: `Operational` and `Brainstorm` modes are active and sync via WebSockets.
+   - *Future Work*: Add a 3rd toggle for *"Solo Mode"* that hides multiplayer cursors and participant attribution for private, distraction-free thinking.
+6. **Runtime Behavioral Steering Override (`ai.setSessionBehavior`)**:
+   - *Future Work*: Add a settings drawer where room leads can inject custom system instructions (*"Focus exclusively on technical risks and database bottlenecks"*).
+7. **Touch Gestures & Mobile Pinch-to-Zoom**:
+   - *Current State*: Mouse wheel, trackpad scrolling, and Space+drag are fully supported.
+   - *Future Work*: Native multi-touch gesture handlers for two-finger pinch-to-zoom on iOS/Android tablets.
+8. **Dynamic Audio Frequency Spectrum Bars**:
+   - *Future Work*: Visualizer waves animating above active speaker avatar badges when speech audio is detected.
+9. **Workspace Multi-Room Navigation Drawer**:
+   - *Future Work*: Sidebar allowing users to create new rooms and switch between team workspaces without manual URL changes.

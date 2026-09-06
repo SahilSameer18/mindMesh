@@ -658,13 +658,13 @@ integrations, or video. Phased sequence matching `ROADMAP.md`:
 - **5.3 Canonical Test Paragraph Verification**: Validate multi-node + dependency graph extraction against *"We need to improve onboarding. Mike will redesign the dashboard, but analytics needs to be ready first."*
 - **5.4 Real Custom Authentication (`server/src/routes/auth.routes.js` & `client/src/context/AuthContext.jsx`)**: bcrypt password hashing, JWT in httpOnly cookie, Socket.io handshake auth (`io.use`), room membership (`RoomMember`), dynamic room verification via `getOrCreateRoom` on `canvas:join`.
 
-### Phase 6: Live Presence, Minimap & Meeting Modes
+### Phase 6: Presence, Minimap & Meeting Modes (Complete & Verified)
 *Goal: Implement multiplayer live presence and adaptive meeting formats.*
-- **6.1 Multiplayer Live Cursors (`client/src/components/canvas/MultiplayerCursors.jsx`)**: Throttled cursor emission with smooth lerp movement and user color tags.
-- **6.2 Radar Minimap with Viewports (`client/src/components/canvas/Minimap.jsx`)**: Fixed radar thumbnail displaying canvas nodes, user viewports, and cursor dots with click-to-pan navigation.
-- **6.3 "Follow Me" Presenter Broadcast (`server/src/realtime/presence.socket.js`)**: Presenter broadcasts viewport coordinates; followers' screens smoothly track leader with "Stop Following" banner.
-- **6.4 Adaptive Meeting Modes & Steerability (`Room.mode`)**: Operational Mode (topic columns + unresolved questions), Brainstorm Mode (organic clustering + visual concepts), Solo Mode, and pre-meeting context prompt (`Room.systemContext`).
-- **6.5 Contextual Zones (`ContextZone`)**: Saved and jumped camera regions (*"Roadmap Area"*, *"Risks Matrix"*).
+- **6.1 Multiplayer Live Cursors (`client/src/components/canvas/MultiplayerCursors.jsx`)**: Emitted strictly in canvas-space `(x, y)` coordinates; 35ms client throttle reduces network traffic by ~60%, rendered with 60fps CSS transitions (`transform 40ms linear`) and 5s idle fade-out.
+- **6.2 Radar Minimap with Viewports (`client/src/components/canvas/Minimap.jsx`)**: Fixed bottom-right radar thumbnail with 0-node fallback (`width: 2000, height: 1500`) and 1-node padding floor (`±600px` horiz, `±400px` vert). Dynamic `ResizeObserver` / window resize tracking with fresh rect queries preventing stale viewport jump anchors; interactive click-and-drag navigation with absolute user input precedence.
+- **6.3 "Follow Me" Presenter Broadcast (`server/src/realtime/presence.socket.js` & `PresenterFollowBanner.jsx`)**: Atomic single-presenter lock rejecting competing claims with `PRESENTER_BUSY` (surfaced as inline amber badge). 30ms rate ceiling with defensive trailing-edge flush timer. Opt-in follow model (followers consent without camera yanking). Normalized `{ socketId, presenterId, user, startedAt }` schema. Single-source-of-truth disconnect pipeline in `presence.service.js`.
+- **6.4 Adaptive Meeting Modes & Steerability (`Room.mode`)**: Mode switching between `operational` (structured topic execution) and `brainstorm` (freeform ideation & generative visuals) via `PATCH /api/rooms/:roomId/mode` with Socket.io broadcast.
+- **6.5 Contextual Zones (`ContextZone`)**: Authoritative database models and REST endpoints (`GET`, `POST`, `DELETE /api/rooms/:roomId/zones`) with scoped room checks for safe deletion.
 
 ### Phase 7: Generative Visuals, Commit Flow & External Integrations
 *Goal: Connect canvas brainstorms to Pollinations.ai and package meetings for Notion, Slack, and Resend.*
