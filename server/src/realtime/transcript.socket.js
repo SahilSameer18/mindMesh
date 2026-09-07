@@ -13,7 +13,7 @@ export function setupTranscriptSocketHandlers(io, socket) {
   socket.on("transcript:chunk", async (payload, callback) => {
     try {
       const roomId = payload?.roomId || socket.data?.roomId;
-      const text = payload?.text?.trim();
+      const text = (payload?.text || payload?.chunk?.text)?.trim();
 
       if (!roomId || !text) {
         if (typeof callback === "function") {
@@ -23,11 +23,11 @@ export function setupTranscriptSocketHandlers(io, socket) {
       }
 
       const chunk = {
-        id: payload.id || `chunk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        speaker: payload.speaker || socket.data?.user?.name || "Participant",
-        userId: payload.userId || socket.data?.user?.id || null,
+        id: payload?.id || payload?.chunk?.id || `chunk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        speaker: payload?.speaker || payload?.chunk?.speaker || socket.data?.user?.name || "Participant",
+        userId: payload?.userId || payload?.chunk?.userId || socket.data?.user?.id || null,
         text,
-        timestamp: payload.timestamp || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+        timestamp: payload?.timestamp || payload?.chunk?.timestamp || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
       };
 
       // 1. Check if utterance is pure conversational filler

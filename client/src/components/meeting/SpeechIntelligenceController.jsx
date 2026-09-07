@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRoom } from "../../hooks/useRoom.js";
-import { useSpeechRecognition } from "../../hooks/useSpeechRecognition.js";
 import {
   Mic,
   MicOff,
@@ -103,7 +102,7 @@ export const BENCHMARK_SCENARIOS = [
   },
 ];
 
-export default function SpeechIntelligenceController({ isOpen, onClose }) {
+export default function SpeechIntelligenceController({ isOpen, onClose, speechRecognition }) {
   const { socket, roomId, currentUser } = useRoom();
 
   const [selectedScenarioIndex, setSelectedScenarioIndex] = useState(0);
@@ -222,22 +221,10 @@ export default function SpeechIntelligenceController({ isOpen, onClose }) {
     }
   };
 
-  // Live Microphone Integration (Consuming Unified Web Speech Hook)
-  const {
-    isListening: isMicActive,
-    micStatus,
-    toggleListening: toggleMicrophone,
-    isMicActiveRef,
-  } = useSpeechRecognition({
-    onFinalTranscript: (transcript) => {
-      if (transcript && transcript.trim()) {
-        emitChunk({
-          speaker: currentUser.name || "You",
-          text: transcript.trim(),
-        });
-      }
-    },
-  });
+  // Live Microphone Integration:
+  // Reuses the single shared SpeechRecognition instance from parent (App.jsx) to eliminate hardware capture contention
+  const isMicActive = speechRecognition?.isListening ?? false;
+  const toggleMicrophone = speechRecognition?.toggleListening || (() => {});
 
   if (!isOpen) {
     // Show subtle floating live caption ticker at bottom when closed

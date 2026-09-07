@@ -34,16 +34,14 @@ function Workspace() {
       if (text && socket) {
         socket.emit("transcript:chunk", {
           roomId,
-          chunk: {
-            id: crypto.randomUUID(),
-            speaker: currentUser?.name || "You",
-            text,
-            timestamp: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            }),
-          },
+          speaker: currentUser?.name || "You",
+          userId: currentUser?.id,
+          text,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
         });
       }
     },
@@ -93,10 +91,15 @@ function Workspace() {
           </div>
         )}
 
-        {/* Phase 5: Real-Time Speech Intelligence & Simulator Dock */}
+        {/* Phase 5: Real-Time Speech Intelligence & Simulator Dock (Consuming Shared SpeechRecognition) */}
         <SpeechIntelligenceController
           isOpen={isSpeechSimOpen}
           onClose={() => setIsSpeechSimOpen(false)}
+          speechRecognition={{
+            isListening,
+            toggleListening,
+            micStatus,
+          }}
         />
 
         {/* Phase 4.3: Collapsible AI Activity Stream Drawer */}
@@ -151,3 +154,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+
