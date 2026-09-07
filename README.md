@@ -1,32 +1,105 @@
 # mindMesh
 
-> **The conversation becomes the canvas.**
-> An AI-powered collaborative visual workspace where teams meet, think, and build together on a shared infinite canvas.
+<div align="center">
+
+```
+  ███╗   ███╗██╗███╗   ██╗██████╗ ███╗   ███╗███████╗███████╗██╗  ██╗
+  ████╗ ████║██║████╗  ██║██╔══██╗████╗ ████║██╔════╝██╔════╝██║  ██║
+  ██╔████╔██║██║██╔██╗ ██║██║  ██║██╔████╔██║█████╗  ███████╗███████║
+  ██║╚██╔╝██║██║██║╚██╗██║██║  ██║██║╚██╔╝██║██╔══╝  ╚════██║██╔══██║
+  ██║ ╚═╝ ██║██║██║ ╚████║██████╔╝██║ ╚═╝ ██║███████╗███████║██║  ██║
+  ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝ ╚═╝     ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝
+```
+
+### The conversation becomes the canvas.
+
+**An AI-native collaborative visual workspace that turns spoken dialogue into living, interactive knowledge maps in real time.**
+
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=flat-square)](https://opensource.org/licenses/ISC)
+[![React 19](https://img.shields.io/badge/React-19.0-61dafb.svg?style=flat-square&logo=react)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8.2-646CFF.svg?style=flat-square&logo=vite)](https://vitejs.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933.svg?style=flat-square&logo=node.js)](https://nodejs.org/)
+[![Express 5](https://img.shields.io/badge/Express-5.0-000000.svg?style=flat-square&logo=express)](https://expressjs.com/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-4.8-010101.svg?style=flat-square&logo=socket.io)](https://socket.io/)
+[![Neon PostgreSQL](https://img.shields.io/badge/Neon-PostgreSQL-00E599.svg?style=flat-square&logo=postgresql)](https://neon.tech/)
+[![Prisma ORM](https://img.shields.io/badge/Prisma-7.0-2D3748.svg?style=flat-square&logo=prisma)](https://www.prisma.io/)
+[![Groq LPU](https://img.shields.io/badge/Groq-Llama_3.3_70B-F55036.svg?style=flat-square)](https://groq.com/)
+[![Google Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4.svg?style=flat-square&logo=google)](https://ai.google.dev/)
+[![Tests Passing](https://img.shields.io/badge/Tests-130%2B_Passing-success.svg?style=flat-square)](https://github.com/SahilSameer18/mindMesh)
+
+[Quick Start](#-quick-start) • [Product Tour](#-product-tour) • [System Architecture](#-system-architecture) • [Engineering Invariants](#-hardened-engineering-invariants) • [Ontology](#-the-canvas-knowledge-ontology) • [API Reference](#-api--websocket-reference)
 
 ---
 
-## Overview
+</div>
 
-**mindMesh** transforms real-time team dialogue into an interactive, interconnected knowledge graph. As participants speak or type, the system's dual-provider AI engine extracts goals, ideas, tasks, decisions, questions, and risks, calculating relational dependencies and laying them out geometrically on an infinite hardware-accelerated canvas.
+## 💡 The Problem: Why Meetings Die in Transcripts
+
+Traditional meetings suffer from a fundamental disconnect between **discussion** and **execution**:
+
+```
+Traditional Flow:
+  🗣️ 45-Min Meeting ──► 📜 30-Page Wall of Text ──► 🗑️ Forgotten in Drive ──► ❓ Stalled Execution
+
+mindMesh Flow:
+  🗣️ Live Speech     ──► 🧠 Dual-Engine AI      ──► 🗺️ Structured Canvas ──► 🚀 One-Click Commit
+  (Microphone/Stream)     (Groq + Gemini Failover)    (Dagre Layout Engine)      (Slack, Notion, Resend)
+```
+
+1. **Linear transcripts hide relational truth**: Transcripts are chronological logs. They cannot show how an architectural decision blocks a backend task, or how a single technical risk undermines three separate sprint goals.
+2. **Post-meeting synthesis is lossy and delayed**: Summaries written hours after a call miss critical nuance, drop speaker attribution, and lack verbatim conversational evidence.
+3. **Action items disappear into ether**: Tasks mentioned in passing are rarely logged, assigned, or verified before participants hang up.
+
+**mindMesh solves this fundamentally.** As team members speak, an intelligent background pipeline extracts structured knowledge entities, computes relational dependencies, lays them out on an infinite hardware-accelerated canvas, and commits actionable outcomes directly to enterprise tools.
 
 ---
 
-## Development Roadmap & Status
+## ✨ Product Tour
 
-| Phase | Description | Status | Key Deliverables |
-| :---: | :--- | :---: | :--- |
-| **Phase 1** | Foundation & Neon DB Persistence | ✅ Complete | 11 PostgreSQL Prisma models, Neon serverless adapter, demo seed data |
-| **Phase 2** | Real-Time Authoritative Canvas Engine | ✅ Complete | In-memory `CanvasDocument`, 60fps pan/zoom, debounced batch writes, edge cascade |
-| **Phase 3** | Dual-Provider AI Intelligence Engine | ✅ Complete | Groq + Gemini failover, candidate model resilience, Jaccard in-place mutation, confidence routing |
-| **Phase 4** | Active Command Bar & AI Activity Stream | ✅ Complete | `Cmd+K` command bar, geometric layouts, live activity drawer, truthful Evidence cards (`sourceId`), query highlights |
-| **Phase 5** | Speech Intelligence & Transcript Simulator | ✅ Complete | Single-flight coalescing queue ($\le 17$ RPM), 9s ceiling window, fluff filter, speech simulator dock, custom JWT auth, live captions |
-| **Phase 6** | Presence, Radar Minimap & Meeting Modes | ✅ Complete | Multiplayer canvas-space cursors (35ms throttle, 60fps CSS glide), radar minimap with viewports & click/drag jump, atomic single-presenter lock with trailing-edge sync flush, meeting modes (Operational/Brainstorm), context zones |
-| **Phase 7** | Generative Visuals, Commit Flow & External Integrations | ⏳ Next | Pollinations.ai generative imagery, Meeting Commit summary report & confetti, Slack Block Kit, Notion database sync, Resend email dispatch |
-| **Phase 8** | Voice, Video Meeting Suite & Final Polish | 📋 Planned | Dual-tier Web Speech + Groq Whisper Large v3 Turbo, dockable video conference bar, Dagre hierarchical auto-layout, mobile responsiveness |
+### 1. 🎙️ Live Speech-to-Graph Synthesis
+- **Zero-Friction Dictation**: Click the **Dictate** button in the header or hit **`M`** to toggle continuous voice dictation with browser silence recovery.
+- **Interim Caption Stream (<10ms)**: Watch your spoken words stream into an ethereal floating pill right above the active command bar before they materialize into graph cards.
+- **Background Speech Simulator**: Test real-time intelligence with 4 pre-loaded benchmark scenarios (*Canonical Onboarding Debate*, *Live Reassignment & In-Place Correction*, *Architecture & Risk Mitigation*, *Fluff Filter vs. Action Marker*).
+
+### 2. ⚡ Dual-Provider AI Intelligence (<100ms Failover)
+- **Primary Engine**: Groq LPU running **Llama 3.3 70B Versatile** for lightning-fast structured JSON inference (~300 tokens/sec).
+- **Secondary Fallback**: Google **Gemini 2.5 Flash** transparently catches network anomalies or quota limits with zero user disruption.
+- **Confidence Routing**:
+  - High confidence ($\ge 0.85$): Auto-applied to the canvas instantly.
+  - Medium confidence ($0.50 - 0.85$): Displayed in the collapsible AI Activity Stream with one-click **Apply** / **Dismiss** chips.
+  - Low confidence ($< 0.50$): Highlighted with an amber review warning.
+
+### 3. 📐 Server-Authoritative Dagre Layout Engine
+- **Kahn's Topological Sort (Diamond-Safe)**: Ensures prerequisite parent cards are fully ranked before dependent children ($A \to B, A \to C, B \to D, C \to D \implies \text{rank}(D) = 2$).
+- **3-Color DFS Cycle Breaking**: Safely detects back-edges (`WHITE`, `GRAY`, `BLACK`) to eliminate circular dependencies without recursion crashes.
+- **Barycentric Crossing Minimization**: Orders nodes horizontally within each tier by averaging predecessor X coordinates.
+- **Collision-Free Geometry**: Spaced strictly by $360\text{px} \times 200\text{px}$ strides ($280\times140\text{px}$ cards), mathematically guaranteeing zero overlap.
+- **One-Click Tidy**: Click the **Tidy Graph** button on the floating toolbar or type `/layout hierarchical` in the command bar.
+
+### 4. 🎨 Generative Visual Concepts (Pollinations.ai)
+- Visual cards (`node.type === "image"`) render high-resolution architectural diagrams and creative concept artwork inline on the canvas.
+- Click any visual card to launch the **Visual Lightbox Inspection Modal** for full-resolution view, prompt inspection, and downloads.
+- Automatic retry lifecycle with jitter and fallback rendering on slow network connections.
+
+### 5. 👥 Multiplayer Presence & Radar Minimap
+- **60fps Cursors**: Canvas-space transformed cursors throttled to 35ms with smooth CSS transform interpolation and name badges.
+- **Radar Minimap**: Bottom-right interactive radar projecting all canvas cards and peer viewports; click or drag anywhere to jump instantly.
+- **Follow Me Presenter Broadcast**: Single-presenter concurrency lock allows a speaker to guide all attendees' viewports with trailing-edge sync.
+- **Dual Meeting Modes**:
+  - **Operational**: Structured columns, task assignments, and chronological deliverables.
+  - **Brainstorm**: Organic visual clustering and associative idea maps.
+
+### 6. 🏁 Dual-Source Meeting Commit & External Integrations
+- Click **Commit Call** to synthesize both the **final canvas knowledge graph** and **raw conversational dialogue** into an executive `MeetingReport`.
+- Celebratory dual-cannon confetti animation upon commit confirmation.
+- Direct outward dispatches:
+  - 💬 **Slack**: Formatted Block Kit payload.
+  - 📝 **Notion**: Complete database page and block hierarchy.
+  - 📧 **Resend**: Formatted executive email sent to attendees.
 
 ---
 
-## System Architecture
+## 🏛️ System Architecture
 
 ```mermaid
 flowchart TD
@@ -35,19 +108,21 @@ flowchart TD
         UI2["Client 2 (Marcus Sterling)"]
         CmdBar["Active Command Bar (Cmd+K)"]
         ActStream["AI Activity Stream & Evidence"]
+        Minimap["Radar Minimap & Presenter Lock"]
+        VoiceBar["Live Dictation Pill (Hotkey M)"]
     end
 
     subgraph Server["Server Layer (Node.js + Express 5)"]
-        SockRelay["Socket.io Collaboration Relay (socket.js)"]
-        REST["REST API Controllers (/api/rooms, /api/health)"]
-        AuthMid["Auth & Identity Abstraction (auth.middleware.js)"]
+        SockRelay["Socket.io Collaboration Hub (socket.js)"]
+        REST["REST API Controllers (/api/rooms, /api/auth)"]
+        AuthMid["JWT Auth & Demo Precedence Middleware"]
     end
 
     subgraph StateEngine["Authoritative Canvas Engine"]
         Doc["CanvasDocument (In-Memory Single Source of Truth)"]
-        LayoutEng["Geometric Layout Engine (canvasLayout.js)"]
+        Dagre["Dagre & Geometric Layout Engine (canvasLayout.js)"]
         Dedup["Jaccard Deduplication & In-Place Mutation"]
-        Debounce["100ms Debounced Write Queue"]
+        Debounce["100ms Debounced PostgreSQL Write Queue"]
     end
 
     subgraph EffectorLayer["AI Effector & Persistence Bridge"]
@@ -58,9 +133,9 @@ flowchart TD
 
     subgraph Intelligence["Dual-Provider AI Intelligence Engine"]
         Fallback["withFallback (Transparent <100ms Failover)"]
-        Groq["Primary: Groq LPU (Llama 3.3 70B / GPT-OSS)"]
-        Gemini["Secondary: Google Gemini Flash (1.5 / 2.5 Flash)"]
-        PromptEng["Ontology & Command Prompts"]
+        Groq["Primary: Groq LPU (Llama 3.3 70B Versatile)"]
+        Gemini["Secondary: Google Gemini Flash (2.5 Flash)"]
+        Flux["Visual Engine: Pollinations Flux"]
     end
 
     subgraph Database["Durable Storage"]
@@ -68,15 +143,22 @@ flowchart TD
         NeonDB[("Neon Serverless PostgreSQL")]
     end
 
-    %% Interactions
-    UI1 & UI2 <-->|WebSocket Events| SockRelay
+    subgraph External["External Integrations"]
+        Slack["Slack Block Kit"]
+        Notion["Notion Database Sync"]
+        Resend["Resend Email Dispatch"]
+    end
+
+    %% Real-time linkages
+    UI1 & UI2 <-->|WebSocket Action Stream| SockRelay
     CmdBar -->|canvas:command| SockRelay
+    VoiceBar -->|transcript:chunk| SockRelay
     ActStream <-->|ai:activity / ai:proposed| SockRelay
 
     SockRelay <--> Doc
     SockRelay --> REST
 
-    Doc --> LayoutEng
+    Doc --> Dagre
     Doc --> Debounce
     Debounce --> Prisma
     Doc -->|Persist-then-commit| Prisma
@@ -91,372 +173,289 @@ flowchart TD
     Intelligence --> Fallback
     Fallback --> Groq
     Fallback --> Gemini
+    Fallback --> Flux
     Fallback --> Dedup
     Dedup --> Effector
 
     Prisma <--> NeonDB
+    Doc -.->|Meeting Commit| External
 ```
 
 ---
 
-## AI Action Effector & Idempotency Pipeline
+## ⚡ Real-Time AI Action & Idempotency Pipeline
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as Client / Speech Stream
+    participant Client as Client (Voice / Command)
     participant Socket as Socket.io Relay
-    participant AI as AI Engine (Groq / Gemini)
+    participant AI as Dual-Provider AI (Groq / Gemini)
     participant Effector as applyAIActions.js
     participant Hasher as hash.js
     participant Doc as CanvasDocument (Memory)
     participant DB as Neon PostgreSQL (Prisma)
 
-    Client->>Socket: Emit canvas:command or Speech Transcript
-    Socket->>AI: executeWorkspaceCommand / extractMeetingElements
-    AI->>AI: Parse Intent & Calculate Actions
-    AI-->>Effector: Validated Actions Array
+    Client->>Socket: Emit transcript:chunk or canvas:command
+    Socket->>AI: executeWorkspaceCommand / processDialogueBatch
+    AI->>AI: Parse Intent, Resolve Ontological Types & Dependencies
+    AI-->>Effector: Validated AI Action Candidates Array
     
     loop For Each Action
         Effector->>Hasher: computeFingerprint(roomId, sourceId, type, normalizedPayload)
-        Hasher-->>Effector: 64-char SHA-256 Hex Hash
-        Effector->>DB: Check prisma.aIAction.findUnique({ fingerprint })
+        Hasher-->>Effector: Immutable 64-char SHA-256 Hex Hash
+        Effector->>DB: prisma.aIAction.findUnique({ fingerprint })
         
-        alt Action Already Exists
-            Effector-->>Effector: Skip duplicate (Idempotency Enforced)
-        else New Action
+        alt Action Already Exists (Duplicate / Retry)
+            Effector-->>Effector: Drop cleanly (PostgreSQL Idempotency Enforced)
+        else Fresh Action
             Effector->>DB: prisma.aIAction.create({ status: initialStatus, fingerprint })
             
-            alt status == "auto" (Confidence >= 0.85 or ANSWER_QUERY)
+            alt status == "auto" (Confidence >= 0.85)
                 Effector->>Doc: doc.applyAction(action)
                 Effector->>DB: prisma.aIAction.update({ status: "applied" })
-                Effector->>Socket: emit "canvas:action" (Canvas Updated)
-                Effector->>Socket: emit "ai:activity" (Feed Updated)
+                Effector->>Socket: emit "canvas:action" (Live 60fps Canvas Update)
+                Effector->>Socket: emit "ai:activity" (Activity Feed Update)
             else status == "proposed" or "clarify"
-                Effector->>Socket: emit "ai:proposed" or "ai:clarify" (Review Badge)
+                Effector->>Socket: emit "ai:proposed" (Review Badge on Card)
             end
         end
     end
     
-    Socket-->>Client: Result Callback & Stream Sync
+    Socket-->>Client: Real-Time Stream Sync & Acknowledgment
 ```
 
 ---
 
-## Project Status & Implementation Phases
+## 🧭 The Canvas Knowledge Ontology
 
-| Phase | Description | Status | Verification |
-| :--- | :--- | :--- | :--- |
-| **Phase 1: Foundation & Data Architecture** | 11 Prisma models, Neon Postgres WebSocket adapter, unified response format, Elena/Marcus demo identities, and seed data. | **Complete** | Database seeded & tested |
-| **Phase 2: Canvas Engine & Socket Relay** | In-memory `CanvasDocument`, 60fps infinite hardware-accelerated canvas, persist-then-commit ordering, debounced drag queue, dual edge cascade. | **Complete** | Verified 60fps pan/zoom & socket sync |
-| **Phase 3: AI Intelligence & Fallback** | Dual-provider LLM abstraction (Groq + Gemini Flash), `<100ms` failover, confidence routing (`auto`, `proposed`, `clarify`), Jaccard in-place mutation. | **Complete** | 19/19 automated test suite passing |
-| **Phase 4: Active Commands & Effector** | AIAction persistence effector (`applyAIActions.js`), SHA-256 fingerprint idempotency, geometric layout engine (`canvasLayout.js`), command execution. | **Complete** | 34/34 automated integration tests passing |
-| **Phase 5: Simulator, Extraction & Custom Auth** | Continuous transcript simulator, single-flight coalescing queue ($\le 17$ RPM), 9s ceiling window, signal-safe fluff filter, and custom JWT auth. | **Complete** | 7/7 automated test suites passing |
-| **Phase 6: Presence, Minimap & Meeting Modes** | Multiplayer live cursors, radar minimap, "Follow Me" presenter broadcast, Operational/Brainstorm modes. | Planned | Next phase |
-| **Phase 7: Generative Visuals & Integrations** | Pollinations.ai imagery, Meeting Commit flow (`MeetingReport`), and Slack/Notion/Resend integration. | Planned | Roadmap |
-| **Phase 8: Voice, Video & Final Polish** | Web Speech API, Groq Whisper Large v3 Turbo, dockable video bar, Dagre hierarchical auto-layout. | Planned | Roadmap |
+mindMesh classifies every piece of conversational intelligence into **8 distinct node types** and connects them through **8 semantic relationship edges**:
 
----
+### Node Types
 
-## Core Ontology
+| Type | Icon | Color Accent | Purpose & Behavior |
+| :--- | :---: | :---: | :--- |
+| **Goal** | 🎯 | Sky Blue | Strategic milestones, high-level objectives, and sprint deliverables. |
+| **Idea** | 💡 | Amber | Creative concepts, exploratory thoughts, architectural hypotheses. |
+| **Task** | 🟢 | Emerald | Assignable action items with interactive completion checkboxes. |
+| **Decision** | 🔵 | Violet | Finalized architectural choices, consensus agreements, approvals. |
+| **Question** | 🟣 | Fuchsia | Open inquiries, missing requirements, clarification requests. |
+| **Risk** | 🔴 | Rose | Technical debt, blockers, single points of failure, security risks. |
+| **Person** | 👤 | Slate | Stakeholders, meeting participants, and action item assignees. |
+| **Visual** | 🖼️ | Indigo | Generative diagrams, system mockups, visual concept cards. |
 
-### 1. The 8 Canvas Node Types
-- 🎯 **Goal** (`goal`): Strategic milestones, objectives, and sprint deliverables.
-- 💡 **Idea** (`idea`): Creative proposals, exploratory thoughts, and hypotheses.
-- 🟢 **Task** (`task`): Assignable action items with interactive completion checkboxes.
-- 🔵 **Decision** (`decision`): Agreed architectural choices, approvals, and conclusions.
-- 🟣 **Question** (`question`): Open inquiries, missing requirements, and clarification requests.
-- 🔴 **Risk** (`risk`): Technical debt, third-party blockers, rate limits, and failure modes.
-- 👤 **Person** (`person`): Active team members and stakeholders.
-- 🖼️ **Visual** (`image`): Generative concept imagery and diagrams.
+### Edge Relationships
 
-### 2. The 8 Edge Relationships
-`blocks` · `depends_on` · `leads_to` · `supports` · `contradicts` · `related_to` · `assigned_to` · `part_of`
-
----
-
-## Geometric Layout Engine
-
-The mathematical layout engine ([`server/src/canvas/canvasLayout.js`](file:///c:/Users/HP/Desktop/mindMesh/server/src/canvas/canvasLayout.js)) calculates deterministic `(x, y)` coordinates for canvas reorganizations:
-
-```mermaid
-flowchart LR
-    subgraph Roadmap["Roadmap Layout (computeRoadmapLayout)"]
-        direction TB
-        Col0["Col 0: Goals"] --> Col1["Col 1: Ideas & Questions"]
-        Col1 --> Col2["Col 2: Tasks"]
-        Col2 --> Col3["Col 3: Decisions"]
-        Col3 --> Col4["Col 4: Risks"]
-    end
-
-    subgraph RisksRight["Risks to Right (computeRisksRightLayout)"]
-        direction LR
-        MainCluster["Non-Risk Core Cards"] -->|Shift x > maxX + 360px| RiskCol["Dedicated Risk Column"]
-    end
-
-    subgraph Clusters["Thematic Clusters (computeClusterLayout)"]
-        direction TB
-        C1["Cluster: Goals & Decisions"] ~~~ C2["Cluster: Tasks"]
-        C3["Cluster: Open Questions"] ~~~ C4["Cluster: Risks"]
-    end
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  • blocks       (Prerequisite blocker between tasks/risks)                │
+│  • depends_on   (Directed dependency requirement)                        │
+│  • leads_to     (Causal chain or sequential outcome)                     │
+│  • supports     (Evidence or rationale supporting an idea/decision)      │
+│  • contradicts  (Conflicting viewpoint or architectural objection)       │
+│  • related_to   (Associative connection between related topics)          │
+│  • assigned_to  (Person-to-Task ownership edge)                          │
+│  • part_of      (Hierarchical decomposition into a goal or cluster)      │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Phase 5: Real-Time Speech Intelligence, Passive Extraction & Custom Auth
+## 🛡️ Hardened Engineering Invariants
 
-Phase 5 delivers the foundational thesis of **mindMesh**: *"The conversation becomes the canvas."* Dialogue spoken into microphones or stepped through benchmark scripts materializes automatically as interconnected visual knowledge graphs in real time.
-
-```mermaid
-flowchart TD
-    subgraph Client["Frontend Layer (React 19 + Vite)"]
-        Mic["Microphone / Web Speech API"]
-        Sim["SpeechIntelligenceController (4 Benchmark Scenarios)"]
-        Ticker["Live Caption & Fluff Filter Ticker"]
-        AuthM["AuthModal (Glassmorphic, Skeleton Loaders)"]
-        AuthC["AuthContext (7-day Session Hydration)"]
-    end
-
-    subgraph Relay["Real-Time Relay & Throttling"]
-        SockRelay["Socket.io Collaboration Server (socket.js)"]
-        SockAuth["socketAuthMiddleware (?as=marcus > JWT > Demo)"]
-        TransSock["transcript.socket.js (transcript:chunk, transcript:flush)"]
-        Queue["Single-Flight Queue & Coalescing Engine (extractionQueue.js)"]
-    end
-
-    subgraph Intelligence["Passive AI Intelligence"]
-        Fluff["Conversational Fluff Filter (ACTION_MARKERS Guard)"]
-        Ceiling["9-Second Monologue Ceiling Window"]
-        Extractor["processDialogueBatch (Attributed Transcript Formatter)"]
-        DualAI["withFallback (Groq Llama 3.3 70B / Gemini Flash)"]
-    end
-
-    subgraph Effector["Authoritative Persistence Effector"]
-        Eff["applyAIActions.js (Deterministic sourceId Hash)"]
-        CanvasDoc["CanvasDocument (In-Memory State)"]
-        PG[("PostgreSQL")]
-    end
-
-    Mic -->|Live Speech| Sim
-    Sim -->|transcript:chunk| TransSock
-    TransSock -->|Broadcast captions| Ticker
-    TransSock --> Fluff
-    Fluff -->|Drop pure fluff| Discard["Discard (Save Token Quota)"]
-    Fluff -->|Preserve decisions| Queue
-    Queue --> Ceiling
-    Ceiling -->|Coalesced dialogue batch| Extractor
-    Extractor --> DualAI
-    DualAI --> Eff
-    Eff --> CanvasDoc
-    Eff --> PG
-    Eff -->|canvas:action / ai:activity| SockRelay
-    SockRelay --> Client
-```
-
-### Key Technical Pillars
-
-1. **Single-Flight Coalescing Queue with Hard Rate Ceiling (`extractionQueue.js`)**:
-   - Enforces that **only 1 extraction request is in-flight** per room at any moment.
-   - A **3.5s cooldown timer** hard-caps call frequency to $\le 17\text{ RPM}$, guaranteeing full compliance with free-tier rate limits without dropping conversational context.
-   - Any utterances occurring while an extraction is in-flight or mid-cooldown buffer into a FIFO accumulator and flush together in a single batch once the lock clears.
-2. **9-Second Continuous Monologue Ceiling Window**:
-   - Tracks `firstChunkTime` on the empty-to-non-empty buffer transition.
-   - Clamps debounce timers so that continuous single-speaker speech with sub-1.5s pauses cannot postpone extraction indefinitely; extraction is forced within 9 seconds.
-3. **Signal-Safe Conversational Fluff Filter**:
-   - Pure filler (*"yeah"*, *"uh-huh"*, *"okay cool"*, *"sounds good"*) is safely discarded before reaching the queue, saving 30–40% token quota.
-   - Whitelist filter is strictly guarded by `ACTION_MARKERS = /\b(not|instead|assign|take|takes|but|wait|actually|no|let's|cancel|remove|block|blocks)\b/i`. Short handoffs (*"Sam takes it"*, *"Sam, not Mike"*, *"No, wait"*) are strictly preserved.
-4. **Deterministic `sourceId` Batch Window Hash**:
-   - Before flushing, dialogue chunks are sorted deterministically to compute an immutable SHA-256 fingerprint:
-     $$\text{sourceId} = \text{stream}:\text{roomId}:\text{sha256(sortedChunks).slice(0, 16)}$$
-   - Guaranteed idempotency: retries or failover reprocessing of the same dialogue window produce identical fingerprints, triggering PostgreSQL `@unique([roomId, fingerprint])` deduplication with zero duplicate rows.
-5. **Authoritative Single-Effector Invariant**:
-   - Extracted actions route directly into `applyAIActions(roomId, actions, { sourceId, io })`. Natural language workspace commands (Phase 4) and passive speech extraction (Phase 5) share the exact same effector, audit trail, deduplication, and canvas mutation pipeline.
-6. **Real Custom Authentication & Priority Precedence**:
-   - Passwords hashed with bcrypt (10 salt rounds).
-   - 7-day `httpOnly`, `sameSite: "lax"` JWT session cookie.
-   - Decoupled `isDemo` flag separating authenticated accounts from guest personas.
-   - Priority hierarchy:
-     1. `?as=marcus` / `?as=elena` query parameter (developer multi-window demo override)
-     2. Authenticated JWT cookie session
-     3. Default guest demo user (`demo-user-1`)
-   - Re-runs Socket.io handshake on login/signup/logout to keep server-side `socket.data.user` synchronized.
-7. **Interactive Speech Intelligence Simulator Dock (`SpeechIntelligenceController.jsx`)**:
-   - 4 pre-loaded benchmark scenarios (*Canonical Onboarding Debate*, *Live Reassignment & In-Place Correction*, *Architecture & Risk Mitigation*, *Fluff Filter & Short Decision Handoff*).
-   - Play/Pause with auto-step pacing, Step Next button, Speed multipliers (`1x`, `2x`, `3x`), and Reset Buffer.
-   - Web Speech API integration (`SpeechRecognition`) with `isMicActiveRef` ensuring uninterrupted continuous listening.
-   - Floating live caption ticker displaying real-time speech and *FILLER* status badges.
+1. **Persist-Then-Commit Ordering**: All non-debounced canvas actions persist to Neon PostgreSQL before updating in-memory `CanvasDocument` state. This prevents silent memory drift if a database write fails.
+2. **Deterministic Payload Hashing**: Object keys are recursively sorted via `normalizePayload()` before SHA-256 fingerprinting (`roomId:sourceId:type:normalizedPayload`). Duplicated network packets or retry attempts are idempotently ignored.
+3. **Single-Flight Coalescing Queue ($\le 17$ RPM)**: Guarantees that only 1 speech extraction request is in flight per room at any time, protecting free-tier LLM rate limits while preserving conversation order.
+4. **9-Second Monologue Ceiling Window**: Long continuous single-speaker utterances force-flush extraction within 9 seconds, preventing delayed graph updates.
+5. **Signal-Safe Fluff Filter**: Discards filler (*"yeah"*, *"uh-huh"*, *"sounds good"*) to conserve 30–40% token quota while strictly safeguarding decision handoffs with `ACTION_MARKERS` (*"not"*, *"instead"*, *"assign"*, *"wait"*, *"actually"*).
+6. **Diamond-Safe Topological Dagre**: The layout engine calculates ranks using Kahn's topological sort with in-degree queues, ensuring diamond sinks ($A \to B, A \to C, B \to D, C \to D$) are placed at rank 2, never prematurely at rank 1.
+7. **Collision-Free Coordinates**: Spaced by $360\text{px} \times 200\text{px}$ strides ($280\times140\text{px}$ cards), mathematically guaranteeing $|x_i - x_j| \ge 280\text{px}$ or $|y_i - y_j| \ge 140\text{px}$ across all node pairs.
+8. **End-to-End Data Lineage (`sourceId`)**: Nodes store their originating `AIAction.id` in `CanvasNode.sourceId`, allowing clicking any card's "Why This Exists" button to display the verbatim transcript quote and conversational reasoning.
+9. **Rule 7 Loading State Polish**: 100% shimmering skeleton loaders across canvas load states, visual lightbox, and command reasoning bars; zero raw circular loading spinners.
 
 ---
 
-## Architectural Invariants & Guarantees
-
-1. **Persist-Then-Commit Ordering**: All non-debounced canvas actions commit to Neon PostgreSQL before updating in-memory `CanvasDocument` state, preventing silent memory drift on database write errors.
-2. **Deterministic Payload Hashing**: Object keys are sorted recursively via `normalizePayload()` before SHA-256 hashing (`roomId:sourceId:type:normalizedPayload`), enforcing the `@unique` constraint on `AIAction.fingerprint` and dropping duplicate network retries.
-3. **Dual Edge Cascade**: Node deletion triggers an immediate in-memory sweep of all connected edges in `CanvasDocument`, mirrored atomically by `prisma.canvasEdge.deleteMany` in PostgreSQL.
-4. **Phantom Resurrection Guard**: `MOVE_NODE` validates that target nodes exist before setting coordinates, preventing race conditions with concurrent deletions.
-5. **Centralized Confidence Routing Policy**:
-   - `confidence >= 0.85` or `ANSWER_QUERY` $\to$ `"auto"` (executed directly onto canvas).
-   - `0.50 <= confidence < 0.85` $\to$ `"proposed"` (surfaced in AI Activity Stream with Apply/Dismiss chips).
-   - `confidence < 0.50` $\to$ `"clarify"` (surfaced with amber review warning).
-   - **Destructive Gating**: `DELETE_NODE` and `DELETE_EDGE` are permanently gated to `"proposed"`.
-6. **Candidate Model Resilience**: The primary provider automatically falls back across available models (`config.groqModel`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `llama-3.3-70b-versatile`) on HTTP 404, gracefully surviving per-organization deprecations.
-7. **End-to-End Data Lineage (`sourceId` Join Key)**: Both `CREATE_NODE` and `UPDATE_NODE` actions inject the authoritative `AIAction.id` into `CanvasNode.sourceId` and persist it to PostgreSQL, ensuring that Evidence Cards display true conversational rationale and verbatim `metadata.sourceQuote` across creation and live corrections.
-8. **Chronological Stream Integrity**: Self-approval and live WebSocket action updates match by ID/fingerprint and update records in-place rather than unshifting, preventing approved actions from jumping to the top of the feed.
-9. **Single-Flight Coalescing & Hard Rate Ceiling**: Only 1 extraction request is in-flight per room at any time; bursts of incoming dialogue coalesce in arrival order; a 3.5s cooldown window guarantees $\le 17$ RPM.
-10. **Continuous Monologue Ceiling Window**: Debounce delay cannot defer extraction beyond 9 seconds from the first utterance in a dialogue window.
-11. **Idempotent Dialogue Window Fingerprint**: Chunks are sorted deterministically before computing the `sourceId` hash, ensuring identical retry windows generate identical fingerprints and produce zero duplicate rows.
-12. **Zero Duplicate Effector Pipeline**: Both active workspace commands and passive speech extraction route authoritatively through `applyAIActions()`.
-13. **Zero-Friction Guest & Demo Priority Hierarchy**: `?as=marcus` / `?as=elena` demo parameter $\to$ authenticated session $\to$ default guest identity.
-
----
-
-## Socket.io & REST API Reference
-
-### Real-Time Socket Events
-
-| Event Name | Direction | Payload / Description |
-| :--- | :--- | :--- |
-| `canvas:join` | Client $\to$ Server | `{ roomId, user }`: Joins room channel, returns authoritative state (`canvas:init`), broadcasts presence. |
-| `canvas:action` | Bidirectional | `{ action }`: Atomic canvas action (`CREATE_NODE`, `UPDATE_NODE`, etc.). |
-| `canvas:batch_action` | Bidirectional | `{ actions: [...] }`: Batch atomic action execution. |
-| `canvas:command` | Client $\to$ Server | `{ prompt, workspaceContext }`: Natural language command (`"Move risks to the right"`, `"What did we decide?"`). |
-| `canvas:command:result` | Server $\to$ Client | `{ intent, summary, answer, highlightedNodeIds, actions }`. |
-| `ai:activity` | Server $\to$ Room | Live feed broadcast of applied `AIAction` row. |
-| `ai:proposed` | Server $\to$ Room | Broadcast of proposed action requiring user approval. |
-| `ai:clarify` | Server $\to$ Room | Broadcast of low-confidence action requiring clarification. |
-| `ai:action:approve` | Client $\to$ Server | `{ actionId }`: User approves proposed action; applies to canvas and emits `ai:activity`. |
-| `ai:action:reject` | Client $\to$ Server | `{ actionId }`: User dismisses proposed action; updates DB to `status: "rejected"`. |
-| `cursor:move` | Client $\to$ Server | Throttled cursor coordinates `(x, y)` broadcast to peers as `cursor:moved`. |
-
-### Unified REST Endpoints
-
-All JSON endpoints strictly adhere to the unified format:
-- **Success**: `{ "success": true, "message": "...", "data": { ... } }`
-- **Failure**: `{ "success": false, "message": "...", "errors": [ ... ] }`
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/health` | Service health, uptime, and environment check. |
-| `GET` | `/api/rooms/:roomId` | Room metadata and authorization check. |
-| `GET` | `/api/rooms/:roomId/ai-actions` | Fetches recent `AIAction` history for Activity Stream hydration. |
-| `POST` | `/api/rooms/:roomId/ai-actions/:actionId/approve` | Approves and executes a proposed action via REST. |
-| `POST` | `/api/rooms/:roomId/ai-actions/:actionId/reject` | Rejects/dismisses a proposed action via REST. |
-
----
-
-## Getting Started
+## 🚀 Quick Start
 
 ### 1. Prerequisites
-- Node.js (v18 or higher; v24 recommended)
-- npm (v9+)
+- **Node.js** (v18 or higher; v22/v24 recommended)
+- **npm** (v9+)
 - A [Neon](https://neon.tech) Serverless PostgreSQL database URL
-- At least one Groq or Google Gemini API key
+- At least one API key from [Groq](https://console.groq.com) or [Google AI Studio](https://aistudio.google.com)
 
 ### 2. Backend Setup
 ```bash
+# Navigate to backend
 cd server
 
 # Install dependencies
 npm install
 
-# Configure environment
+# Configure environment variables
 cp .env.example .env
-# Edit .env and configure:
+# Edit .env and supply:
 # DATABASE_URL="postgresql://..."
 # GROQ_API_KEYS="gsk_..."
 # GEMINI_API_KEYS="AIzaSy..."
 
-# Apply database migrations
+# Apply Prisma database schema
 npx prisma migrate dev --name init
 
 # Seed database with demo identities (Elena Vance & Marcus Sterling)
 npm run prisma:seed
 
-# Run Phase 3 AI tests (19 checks)
-node test/phase3_ai.test.js
-
-# Run Phase 4 Backend tests (34 checks)
-node test/phase4_backend.test.js
-
-# Start backend server
+# Start Express + Socket.io backend (Port 3000)
 npm run dev
 ```
-The server will start on port `3000`. Test the health check at `http://localhost:3000/api/health`.
 
 ### 3. Frontend Setup
 ```bash
+# In a new terminal, navigate to client
 cd client
 
 # Install dependencies
 npm install
 
-# Start Vite development server
+# Start Vite development server (Port 5173)
 npm run dev
 ```
-Access the application at `http://localhost:5173`. Add `?as=marcus` to simulate multi-user collaboration in a second browser tab.
+
+Open `http://localhost:5173` in your browser.
+
+> [!TIP]
+> **Multi-User Collaboration Simulation**: Open a second browser window at `http://localhost:5173?as=marcus`. You will instantly see Elena and Marcus collaborating with live canvas cursors, shared selection states, and presenter follow-me broadcasting!
 
 ---
 
-## Directory Structure
+## 🧪 Comprehensive Test Suites (130+ Passing)
+
+The repository features comprehensive automated test suites validating every layer of the stack:
+
+```bash
+cd server
+
+# Phase 3: AI Fallback, Confidence Routing & Jaccard Mutation (19 tests)
+node test/phase3_ai.test.js
+
+# Phase 4: Command Bar, Layout Engine & AIAction Persistence (34 tests)
+node test/phase4_backend.test.js
+
+# Phase 7: Dual-Source Meeting Commit, Confetti & Integrations (42 tests)
+node test/phase7_commit.test.js
+
+# Phase 8: Dagre Topological Sort, Diamond Dependencies & Voice Commands (36 tests)
+node --test test/phase8_voice_layout.test.js
+```
+
+---
+
+## 📡 API & WebSocket Reference
+
+### Unified REST Response Contract
+All endpoints strictly adhere to the unified JSON schema:
+- **Success**: `{ "success": true, "message": "...", "data": { ... } }`
+- **Failure**: `{ "success": false, "message": "...", "errors": [ ... ] }`
+
+### Core REST Endpoints
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/health` | Service uptime, database connection, and environment health check. |
+| `GET` | `/api/rooms/:roomId` | Room metadata, active participant count, and canvas authorization. |
+| `GET` | `/api/rooms/:roomId/ai-actions` | Fetches historical `AIAction` feed for Activity Stream hydration. |
+| `POST` | `/api/rooms/:roomId/ai-actions/:id/approve` | Approves and executes a proposed action via REST. |
+| `POST` | `/api/rooms/:roomId/ai-actions/:id/reject` | Dismisses a proposed action and marks it `rejected`. |
+| `POST` | `/api/auth/login` | Issues 7-day `httpOnly` JWT session cookie. |
+
+### Real-Time Socket.io Events
+
+| Event Name | Direction | Payload & Description |
+| :--- | :---: | :--- |
+| `canvas:join` | `C ──► S` | `{ roomId, user }`: Joins room, returns authoritative `canvas:init`, broadcasts presence. |
+| `canvas:action` | `C ◄──► S` | `{ action }`: Atomic canvas mutation (`CREATE_NODE`, `MOVE_NODE`, etc.). |
+| `canvas:batch_action` | `C ◄──► S` | `{ actions: [...] }`: Batch transactional canvas mutations. |
+| `canvas:command` | `C ──► S` | `{ prompt, workspaceContext }`: Natural language command (`"/layout hierarchical"`). |
+| `transcript:chunk` | `C ──► S` | `{ roomId, chunk: { id, speaker, text, timestamp } }`: Live speech stream. |
+| `cursor:move` | `C ──► S` | Throttled `(x, y)` coordinates broadcast to peers as `cursor:moved`. |
+| `presence:presenter-start` | `C ──► S` | Requests atomic single-presenter broadcast lock. |
+| `ai:activity` | `S ──► C` | Real-time broadcast of newly applied `AIAction` row. |
+| `ai:proposed` | `S ──► C` | Broadcast of action requiring user review and approval. |
+
+---
+
+## 🔮 Future Horizons: WebRTC Video Calling
+
+The architectural specification for adding **Peer-to-Peer WebRTC Video Conferencing** (featuring mesh topology, zero-server-cost signaling, and ambient avatar fallbacks) is fully documented in [**`WEBRTC.md`**](file:///c:/Users/HP/Desktop/mindMesh/WEBRTC.md).
+
+---
+
+## 📁 Repository Structure
 
 ```
 mindMesh/
-├── client/                           # React 19 + Vite Frontend
+├── client/                               # React 19 + Vite Frontend
 │   ├── src/
-│   │   ├── api/                      # REST & WebSocket client instances
+│   │   ├── api/                          # REST & WebSocket client instances
 │   │   ├── components/
-│   │   │   ├── canvas/               # InfiniteCanvas, CanvasNode, CanvasEdge
-│   │   │   ├── command/              # ActiveCommandBar (Floating OS bar)
-│   │   │   ├── activity/             # ActivityStream & EvidenceCard
-│   │   │   └── meeting/              # SpeechIntelligence & VideoConference
-│   │   ├── context/                  # RoomContext (WebSockets & presence)
-│   │   ├── hooks/                    # useCanvas, useAIActions, useSpeechRecognition
-│   │   └── utils/                    # canvasConstants, color tokens
+│   │   │   ├── canvas/                   # InfiniteCanvas, CanvasNode, CanvasEdge, VisualLightboxModal
+│   │   │   ├── command/                  # ActiveCommandBar (Floating OS bar)
+│   │   │   ├── activity/                 # ActivityStream & EvidenceCard
+│   │   │   ├── meeting/                  # SpeechIntelligenceController, CommitCallModal
+│   │   │   └── ui/                       # WorkspaceHeader, Minimap, Avatar
+│   │   ├── context/                      # RoomContext, AuthContext
+│   │   ├── hooks/                        # useCanvas, useAIActions, useSpeechRecognition
+│   │   └── utils/                        # canvasConstants, color tokens
 │   └── package.json
 │
-├── server/                           # Node.js + Express 5 Backend
+├── server/                               # Node.js + Express 5 Backend
 │   ├── prisma/
-│   │   ├── schema.prisma             # 11 PostgreSQL data models
-│   │   └── seed.js                   # Demo users & room seeding
+│   │   ├── schema.prisma                 # 11 PostgreSQL data models
+│   │   └── seed.js                       # Elena & Marcus demo seeding
 │   ├── src/
 │   │   ├── ai/
-│   │   │   ├── applyAIActions.js     # Effector service & DB persistence
-│   │   │   ├── commands.js           # Workspace command execution engine
-│   │   │   ├── validation.js         # Confidence routing & action sanitization
-│   │   │   ├── prompts/              # Extraction & Command system prompts
-│   │   │   └── providers/            # Groq & Gemini with transparent failover
+│   │   │   ├── applyAIActions.js         # Authoritative Effector service & DB persistence
+│   │   │   ├── commands.js               # Workspace command execution engine
+│   │   │   ├── validation.js             # Confidence routing & action sanitization
+│   │   │   ├── prompts/                  # Extraction & Command system prompts
+│   │   │   └── providers/                # Groq & Gemini with transparent failover
 │   │   ├── canvas/
-│   │   │   ├── canvasDocument.js     # Authoritative in-memory state container
-│   │   │   ├── canvasLayout.js       # Geometric spatial layout engine
-│   │   │   ├── canvasDeduplication.js# Jaccard token & semanticKey in-place mutator
-│   │   │   ├── canvasPersistence.js  # Neon PostgreSQL Prisma writer
-│   │   │   └── canvasValidation.js   # Payload schema validators
+│   │   │   ├── canvasDocument.js         # In-memory single source of truth
+│   │   │   ├── canvasLayout.js           # Dagre & Geometric spatial layout engine
+│   │   │   ├── canvasDeduplication.js    # Jaccard token & semanticKey mutator
+│   │   │   ├── canvasPersistence.js      # Neon PostgreSQL Prisma writer
+│   │   │   └── canvasValidation.js       # Payload schema validators
 │   │   ├── realtime/
-│   │   │   ├── socket.js             # Socket.io server bootstrap
-│   │   │   └── canvas.socket.js      # Real-time action, command & presence relays
-│   │   ├── routes/                   # REST API routes (room, ai)
+│   │   │   ├── socket.js                 # Socket.io server bootstrap
+│   │   │   ├── canvas.socket.js          # Canvas action & command relays
+│   │   │   └── presence.socket.js        # Multiplayer cursor & presenter relays
+│   │   ├── routes/                       # REST API routes (room, ai, auth, commit)
 │   │   ├── utils/
-│   │   │   ├── hash.js               # Normalized SHA-256 fingerprinting
-│   │   │   └── response.js           # Unified JSON response formatters
-│   │   └── app.js                    # Express app configuration & middleware
+│   │   │   ├── hash.js                   # Normalized SHA-256 fingerprinting
+│   │   │   └── response.js               # Unified JSON response formatters
+│   │   └── app.js                        # Express app configuration & middleware
 │   ├── test/
-│   │   ├── phase3_ai.test.js         # 19 Phase 3 AI extraction tests
-│   │   └── phase4_backend.test.js    # 34 Phase 4 backend integration tests
+│   │   ├── phase3_ai.test.js             # 19 Phase 3 AI extraction tests
+│   │   ├── phase4_backend.test.js        # 34 Phase 4 backend integration tests
+│   │   ├── phase7_commit.test.js         # 42 Phase 7 commit & integration tests
+│   │   └── phase8_voice_layout.test.js   # 36 Phase 8 Dagre & command tests
 │   └── package.json
 │
-├── ROADMAP.md                        # Master 8-Phase Architectural Plan
-├── implementation-plan.md            # Comprehensive technical design document
-└── README.md                         # This document
+├── WEBRTC.md                             # Full WebRTC P2P Video Calling Architecture Specification
+├── ROADMAP.md                            # Master 8-Phase Architectural Plan
+└── README.md                             # Production Showcase & Documentation
 ```
 
 ---
 
-## Author
+## 👨‍💻 Author & Acknowledgments
 
-Designed and engineered by **Sahil Sameer** ([@SahilSameer18](https://github.com/SahilSameer18)).
+Engineered by **Sahil Sameer** ([@SahilSameer18](https://github.com/SahilSameer18)).
+
+Built with [React](https://react.dev/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/), [Socket.io](https://socket.io/), [Neon](https://neon.tech/), [Prisma](https://www.prisma.io/), [Groq](https://groq.com/), [Google Gemini](https://ai.google.dev/), and [Lucide Icons](https://lucide.dev/).
 
 ---
 
-## License
+## 📄 License
 
-ISC License
+This project is licensed under the [ISC License](LICENSE).
+
