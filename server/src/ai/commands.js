@@ -181,7 +181,51 @@ export async function executeWorkspaceCommand({
   const nodes = state.nodes || [];
   const edges = state.edges || [];
 
-  // 2. Query AI model with fallback
+  // Sanitize and normalize prompt for whitespace and punctuation tolerance
+  // (e.g. "/layout   hierarchical.", "tidy architecture!", "  /layout   tree  ")
+  const normalizedPrompt = trimmedPrompt
+    .toLowerCase()
+    .replace(/[.!?]+$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Fast-path: deterministic layout commands & slash shortcuts
+  const isHierarchicalPhrase =
+    normalizedPrompt === "/layout hierarchical" ||
+    normalizedPrompt === "/layout tree" ||
+    normalizedPrompt === "/layout dagre" ||
+    normalizedPrompt === "tidy architecture" ||
+    normalizedPrompt === "hierarchical layout" ||
+    normalizedPrompt === "organize tree" ||
+    normalizedPrompt === "arrange dependencies";
+
+  const slashLayoutMatch = normalizedPrompt.match(/^\/layout\s+([a-z_-]+)$/i);
+
+  if (isHierarchicalPhrase || slashLayoutMatch) {
+    const layoutType = isHierarchicalPhrase ? "hierarchical" : slashLayoutMatch[1].toLowerCase();
+    const moves = computeLayout(layoutType, nodes, edges);
+    const moveActions = createMoveActionsFromLayout(roomId, moves);
+    const commandSourceId = `cmd:layout:${Date.now()}:${(userId || "user").slice(0, 8)}`;
+    const appliedActions = await applyAIActions(roomId, moveActions, {
+      sourceId: commandSourceId,
+      io,
+    });
+
+    return {
+      intent: "REORGANIZE_LAYOUT",
+      summary: `Reorganized workspace into ${layoutType} layout.`,
+      answer: null,
+      highlightedNodeIds: [],
+      highlightedEdgeIds: [],
+      layoutType,
+      actions: appliedActions,
+      status: "success",
+      provider: "deterministic",
+      model: "dagre-kahn-v1",
+    };
+  }
+
+  // 2. Query AI model with fallback for natural language intent
   const rawResult = await withFallback("executeCanvasCommand", {
     prompt: prompt.trim(),
     nodes,
@@ -198,6 +242,8 @@ export async function executeWorkspaceCommand({
   let targetActions = [];
 
   // 3. Process Intent & Calculate Changes
+  // Invariant: The LLM only classifies intent. 100% of spatial coordinates
+  // are computed deterministically by the layout engine. The model's actions never dictate positions.
   if (intent === "REORGANIZE_LAYOUT" || rawResult.layoutType) {
     const layoutType = rawResult.layoutType || "grid";
     const moves = computeLayout(layoutType, nodes, edges);
@@ -221,8 +267,8 @@ export async function executeWorkspaceCommand({
     ];
   }
 
-  // Complementary actions proposed by AI (e.g. new nodes or edits)
-  if (Array.isArray(rawResult.actions) && rawResult.actions.length > 0) {
+  // Complementary actions proposed by AI (e.g. new nodes or edits, strictly not pure layout reorganizations)
+  if (intent !== "REORGANIZE_LAYOUT" && Array.isArray(rawResult.actions) && rawResult.actions.length > 0) {
     const validated = processAIActions(rawResult.actions);
     const deduplicated = deduplicateAndLinkActions(validated, nodes, edges);
     targetActions.push(...deduplicated);
@@ -248,3 +294,4 @@ export async function executeWorkspaceCommand({
     model: rawResult.model,
   };
 }
+

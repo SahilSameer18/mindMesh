@@ -47,7 +47,7 @@ Interpret user intent and output a SINGLE valid JSON object matching this schema
   "answer": "Clear markdown answer if user asked a question (otherwise null)",
   "highlightedNodeIds": ["id1", "id2"],
   "highlightedEdgeIds": ["edgeId1"],
-  "layoutType": "roadmap" | "risks_right" | "cluster" | "grid" | null,
+  "layoutType": "roadmap" | "risks_right" | "cluster" | "grid" | "hierarchical" | null,
   "actions": [
     {
       "type": "CREATE_NODE" | "UPDATE_NODE" | "DELETE_NODE" | "CREATE_EDGE" | "DELETE_EDGE",
@@ -67,6 +67,7 @@ Interpret user intent and output a SINGLE valid JSON object matching this schema
    - \`layoutType\` MUST be null for queries.
 
 2. **REORGANIZE_LAYOUT** (Geometric spatial realignment):
+   - "Tidy architecture" / "Hierarchical layout" / "Organize tree" / "Dependency tree" -> \`layoutType\`: "hierarchical"
    - "Turn this into a roadmap" / "Timeline view" -> \`layoutType\`: "roadmap"
    - "Move risks to the right" / "Isolate risks" -> \`layoutType\`: "risks_right"
    - "Group these ideas" / "Cluster by theme" -> \`layoutType\`: "cluster"
