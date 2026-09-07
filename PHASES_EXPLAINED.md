@@ -163,14 +163,20 @@ Meetings end, people leave the call, and nobody follows up. Traditional meeting 
 
 ---
 
-## 🔮 Phase 8: Voice Dictation, Video Bar & Final Polish (Upcoming)
-*Goal: The closing flourish—voice-to-canvas speaking and dockable video tiles.*
+## 🎙️ Phase 8: Voice Dictation, Dagre Auto-Layout & Final Polish (Completed)
+*Goal: The closing flourish—real-time voice-to-canvas dictation, Dagre hierarchical auto-layout, dockable video meeting bar, and shimmer skeletons.*
 
-### What's Coming:
-* **Local Web Speech + Cloud Whisper**: Talk directly into your mic; local captions show up instantly with zero lag, while Groq Whisper catches engineering jargon in the background.
-* **Dockable Video Bar**: Webcam tiles at the bottom of the canvas with mic/camera/screenshare toggles.
-* **Dagre Hierarchical Auto-Layout**: One-click algorithm that organizes messy brainstorm webs into clean top-down tree diagrams.
-* **Skeleton Loaders Everywhere**: Smooth shimmer loaders instead of raw spinners for a true premium feel.
+### What We Built & Why It Matters:
+* **Zero-Lag Voice Dictation (`M` Hotkey)**:
+  Talk directly into your microphone; the Web Speech API streams local captions with $<10$ms latency into an interim caption pill above the command bar, while silence auto-recovery keeps dictation alive during conversational pauses.
+* **Dagre Hierarchical Auto-Layout Engine**:
+  Messy whiteboard nodes arrange themselves into clean top-down tree graphs with a single click. Uses Kahn's algorithm for topological sorting, breaks circular dependency loops safely, and applies barycentric crossing minimization so connector lines stay neat and readable.
+* **Dockable Video Meeting Bar**:
+  A glassmorphic dock at the bottom of the canvas with live webcam feeds, toggleable camera/mic controls, RMS audio level meters, and instant hotkey integration.
+* **Unified Single-Mic Pipeline**:
+  Both the header dictation toggle and the bottom video conference bar share a single authoritative microphone capture instance—eliminating browser audio hardware contention.
+* **Premium Shimmer Skeletons**:
+  AI thinking states and card loaders use sleek glassmorphic skeleton placeholders instead of raw spinning wheels, matching startup-grade design standards.
 
 ---
 
@@ -183,5 +189,3 @@ Meetings end, people leave the call, and nobody follows up. Traditional meeting 
 5. **Truthful Evidence**: Every card on the board can prove *why* it exists with a direct transcript timestamp.
 6. **Graceful Simulation**: Integrations (Slack, Notion, Email) work out of the box without requiring external API keys.
 7. **Mobile-First & Skeleton UI**: Layouts stay responsive across viewports, and loading states use shimmer skeletons instead of spinning wheels.
-
-

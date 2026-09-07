@@ -163,7 +163,7 @@
 
 ---
 
-# Phase 7: Generative Visuals, Commit Flow & External Integrations
+# Phase 7: Generative Visuals, Commit Flow & External Integrations (Complete & Verified)
 *Goal: Connect canvas brainstorms to Pollinations.ai and package meetings for Notion, Slack, and Resend.*
 
 - **7.1 Pollinations.ai Generative Visuals (`server/src/integrations/imageGen.js`)**:
@@ -181,7 +181,7 @@
 
 ---
 
-# Phase 8: Voice, Video Meeting Suite & Final Polish
+# Phase 8: Voice Dictation, Dagre Auto-Layout & Final Polish (Complete & Verified)
 *Goal: Integrate voice dictation, video communication bar, auto-layout, and demo script validation.*
 
 - **8.1 Dual-Tier Speech-to-Text Audio Engine (`client/src/hooks/useSpeechRecognition.js` & `server/src/ai/transcription.js`)**:
@@ -229,6 +229,8 @@
 | **Phase 4** | Active Command Bar & Evidence | `Cmd+K` bar, geometric layout reorganization, truthful Evidence cards (`sourceId`), activity drawer | **Normalized SHA-256 Fingerprint**: Enforces `@unique` deduplication across concurrent AI suggestions. **Truthful Traceability**: Cards link directly to transcript timestamps, avoiding AI hallucinations. |
 | **Phase 5** | Speech Intelligence & Simulator | Pre-loaded meeting scenario simulator, streaming audio queue, custom JWT authentication | **Single-Flight Coalescing Queue**: Max 1 in-flight extraction with 3.5s cooldown ($\le 17$ RPM), eliminating race conditions and quota exhaustion. **9s Monologue Ceiling**. **Filler Filter**: Drops short fluff (*"yeah"*, *"uh-huh"*), saving 35% tokens. httpOnly auth cookies. |
 | **Phase 6** | Presence, Minimap & Modes | Multiplayer cursors, radar minimap, atomic presenter lock, meeting mode switcher | **Canvas-Space Cursors**: Coordinate math locks cursors to cards regardless of screen DPI/zoom. **35ms Client Throttle**: 60fps CSS glide with ~60% network traffic reduction. **Atomic Presenter Lock**: Rejects contested claims with `PRESENTER_BUSY`. **30ms Trailing-Edge Camera Sync**: Guarantees resting coordinates reach followers. **Opt-In Follow**: Followers consent without camera yanking. **Dual-Key Normalization**: Both `socketId` and `presenterId` supported. **Dynamic Resize Observer**: Real-time DOMRect queries prevent minimap drift. |
+| **Phase 7** | Generative Visuals & Integrations | Pollinations.ai concept generation, multi-format meeting commit flow, Slack, Notion, and Resend email dispatches | **Dual-Source Truth Hierarchy**: Canvas state takes authoritative precedence over transcript dialogue. **Promise Sharing**: Concurrent commit clicks join the same calculation. **Safe HTML Escaping**: Resend HTML reports sanitize scripts and brackets. Zero-key graceful simulation mode. |
+| **Phase 8** | Voice, Dagre Layout & Final Polish | Unified Web Speech dictation with interim captions, Dagre hierarchical auto-layout, dockable video bar, and skeleton loaders | **Unified Single-Mic Ownership**: Shared microphone instance across header dictation and video bar eliminates audio hardware collisions. **Kahn's Topological Cycle Breaking**: Circular graph loops survive without stack overflow. **Barycentric Edge Untangling**: Minimizes connector crossings. Rule 7 shimmer skeletons. |
 
 ---
 
