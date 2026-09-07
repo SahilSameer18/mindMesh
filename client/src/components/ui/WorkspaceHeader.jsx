@@ -11,6 +11,7 @@ import {
   Zap,
   Brain,
   AlertCircle,
+  Mic,
 } from "lucide-react";
 
 export default function WorkspaceHeader({
@@ -20,6 +21,9 @@ export default function WorkspaceHeader({
   isSpeechSimOpen = false,
   onToggleSpeechSim,
   onOpenAuth,
+  isListening = false,
+  onToggleMic,
+  micStatus = "idle",
 }) {
   const {
     roomId,
@@ -157,6 +161,31 @@ export default function WorkspaceHeader({
             </div>
           )}
         </div>
+
+        {/* Phase 8B Live Voice Dictation Button */}
+        <button
+          type="button"
+          onClick={onToggleMic}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
+            isListening
+              ? "bg-rose-500/20 text-rose-200 border-rose-500/60 shadow-[0_0_15px_rgba(244,63,94,0.35)] animate-pulse"
+              : "text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border-slate-800"
+          }`}
+          title={isListening ? "Mute Live Voice Dictation (Hotkey: M)" : "Start Live Voice Dictation (Hotkey: M)"}
+        >
+          {isListening ? (
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+              <Mic className="w-3.5 h-3.5 text-rose-400" />
+              <span className="hidden md:inline">Listening</span>
+            </>
+          ) : (
+            <>
+              <Mic className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden md:inline">Dictate</span>
+            </>
+          )}
+        </button>
 
         {/* Phase 5 Speech Simulator Toggle Button */}
         <button

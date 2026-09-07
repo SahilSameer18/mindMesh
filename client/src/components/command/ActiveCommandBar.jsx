@@ -143,7 +143,7 @@ export default function ActiveCommandBar({ canvas }) {
         {isThinking && (
           <div className="px-4 py-2 flex flex-col gap-1.5 animate-pulse border-b border-slate-800">
             <div className="flex items-center gap-2 text-xs text-violet-400 font-medium">
-              <Sparkles className="w-3.5 h-3.5 animate-spin" />
+              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
               <span>Reasoning across workspace canvas...</span>
             </div>
             <div className="h-2 bg-gradient-to-r from-violet-600/30 via-cyan-500/40 to-violet-600/30 rounded-full w-3/4 animate-pulse" />

@@ -129,15 +129,20 @@ export default function VisualLightboxModal({ node, onClose }) {
 
         {/* Viewport Area */}
         <div className="flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center bg-slate-950/40 relative min-h-[300px]">
+          {/* Rule 7: Skeleton Loader over raw spinner */}
           {!imgLoaded && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 animate-pulse">
-              <div className="w-12 h-12 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-sky-400 mb-3">
-                <Sparkles className="w-6 h-6 animate-spin" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="w-64 h-48 rounded-xl bg-slate-900/90 border border-slate-800/80 flex flex-col items-center justify-center p-4 animate-pulse relative overflow-hidden shadow-inner">
+                <div className="w-10 h-10 rounded-lg bg-slate-800/80 border border-slate-700/50 flex items-center justify-center text-sky-400/70 mb-3">
+                  <Sparkles className="w-5 h-5 animate-pulse" />
+                </div>
+                <div className="h-2.5 w-36 bg-slate-800 rounded-full mb-2" />
+                <div className="h-2 w-24 bg-slate-800/50 rounded-full" />
               </div>
-              <span className="text-xs font-semibold text-slate-300">
+              <span className="text-xs font-semibold text-slate-400 mt-3 animate-pulse">
                 Buffering high-resolution visual concept...
               </span>
-              <span className="text-[11px] text-slate-500 mt-1">Pollinations Flux Engine</span>
+              <span className="text-[11px] text-slate-500 mt-0.5">Pollinations Flux Engine</span>
             </div>
           )}
 

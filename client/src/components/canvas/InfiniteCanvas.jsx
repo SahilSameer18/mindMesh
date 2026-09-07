@@ -294,14 +294,25 @@ export default function InfiniteCanvas({ canvas }) {
       {/* Background click target for deselection */}
       <div className="absolute inset-0 canvas-bg pointer-events-auto" />
 
-      {/* Skeleton Loading State */}
+      {/* Skeleton Loading State (Rule 7: Prefer Skeleton Loaders over Raw Spinners) */}
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm z-50 pointer-events-none">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 rounded-full border-2 border-sky-400/40 border-t-sky-400 animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm z-50 pointer-events-none">
+          <div className="flex flex-col items-center gap-6">
+            <div className="grid grid-cols-2 gap-4 w-72">
+              <div className="h-24 rounded-xl border border-slate-800/80 bg-slate-900/60 p-3 space-y-2 animate-pulse shadow-lg">
+                <div className="h-3 w-16 bg-slate-700/60 rounded" />
+                <div className="h-2.5 w-24 bg-slate-800 rounded" />
+                <div className="h-2 w-20 bg-slate-800/40 rounded" />
+              </div>
+              <div className="h-24 rounded-xl border border-slate-800/80 bg-slate-900/60 p-3 space-y-2 animate-pulse shadow-lg">
+                <div className="h-3 w-14 bg-slate-700/60 rounded" />
+                <div className="h-2.5 w-20 bg-slate-800 rounded" />
+                <div className="h-2 w-16 bg-slate-800/40 rounded" />
+              </div>
+            </div>
             <div className="space-y-2 text-center">
-              <div className="h-4 w-40 bg-slate-800 rounded-md animate-pulse mx-auto" />
-              <div className="h-3 w-56 bg-slate-800/60 rounded-md animate-pulse mx-auto" />
+              <div className="h-3.5 w-36 bg-slate-800/80 rounded-full animate-pulse mx-auto" />
+              <div className="h-2.5 w-48 bg-slate-800/40 rounded-full animate-pulse mx-auto" />
             </div>
           </div>
         </div>
