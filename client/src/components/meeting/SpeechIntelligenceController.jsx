@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRoom } from "../../hooks/useRoom.js";
+import { useSpeechRecognition } from "../../hooks/useSpeechRecognition.js";
 import {
   Mic,
   MicOff,
@@ -110,16 +111,12 @@ export default function SpeechIntelligenceController({ isOpen, onClose }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1); // 1x | 2x | 3x
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isMicActive, setIsMicActive] = useState(false);
-  const [micStatus, setMicStatus] = useState("idle"); // "idle" | "listening" | "unsupported" | "error"
 
   // Live Captions & Ticker State
   const [latestCaption, setLatestCaption] = useState(null);
   const [recentChunks, setRecentChunks] = useState([]);
   const [lastExtractionNotice, setLastExtractionNotice] = useState(null);
 
-  const recognitionRef = useRef(null);
-  const isMicActiveRef = useRef(false);
   const playTimerRef = useRef(null);
 
   const currentScenario = BENCHMARK_SCENARIOS[selectedScenarioIndex];
@@ -225,104 +222,22 @@ export default function SpeechIntelligenceController({ isOpen, onClose }) {
     }
   };
 
-  // Cleanup speech recognition on component unmount
-  useEffect(() => {
-    return () => {
-      isMicActiveRef.current = false;
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch {
-          // ignore
-        }
+  // Live Microphone Integration (Consuming Unified Web Speech Hook)
+  const {
+    isListening: isMicActive,
+    micStatus,
+    toggleListening: toggleMicrophone,
+    isMicActiveRef,
+  } = useSpeechRecognition({
+    onFinalTranscript: (transcript) => {
+      if (transcript && transcript.trim()) {
+        emitChunk({
+          speaker: currentUser.name || "You",
+          text: transcript.trim(),
+        });
       }
-    };
-  }, []);
-
-  // Live Microphone Integration (Web Speech API)
-  const toggleMicrophone = () => {
-    const SpeechRecognition =
-      typeof window !== "undefined" &&
-      (window.SpeechRecognition || window.webkitSpeechRecognition);
-
-    if (!SpeechRecognition) {
-      setMicStatus("unsupported");
-      alert("Web Speech API is not supported in this browser. Please use Chrome/Edge or the simulator.");
-      return;
-    }
-
-    if (isMicActiveRef.current) {
-      isMicActiveRef.current = false;
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch {
-          // ignore
-        }
-      }
-      setIsMicActive(false);
-      setMicStatus("idle");
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = false;
-      recognition.lang = "en-US";
-
-      recognition.onstart = () => {
-        isMicActiveRef.current = true;
-        setIsMicActive(true);
-        setMicStatus("listening");
-      };
-
-      recognition.onresult = (event) => {
-        const lastResult = event.results[event.results.length - 1];
-        if (lastResult.isFinal) {
-          const transcript = lastResult[0].transcript.trim();
-          if (transcript) {
-            emitChunk({
-              speaker: currentUser.name || "You",
-              text: transcript,
-            });
-          }
-        }
-      };
-
-      recognition.onerror = (event) => {
-        console.warn("[Speech] Recognition error:", event.error);
-        if (event.error !== "no-speech") {
-          setMicStatus("error");
-          isMicActiveRef.current = false;
-          setIsMicActive(false);
-        }
-      };
-
-      recognition.onend = () => {
-        if (isMicActiveRef.current) {
-          // Restart if user intended to keep listening
-          try {
-            recognition.start();
-          } catch {
-            isMicActiveRef.current = false;
-            setIsMicActive(false);
-            setMicStatus("idle");
-          }
-        } else {
-          setMicStatus("idle");
-        }
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-    } catch (err) {
-      console.error("[Speech] Failed to start microphone:", err);
-      setMicStatus("error");
-      isMicActiveRef.current = false;
-      setIsMicActive(false);
-    }
-  };
+    },
+  });
 
   if (!isOpen) {
     // Show subtle floating live caption ticker at bottom when closed

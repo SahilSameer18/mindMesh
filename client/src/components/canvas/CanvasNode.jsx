@@ -156,6 +156,7 @@ function CanvasNodeComponent({
       style={{
         transform: `translate(${node.x}px, ${node.y}px)`,
         touchAction: "none",
+        transition: isDragging ? "none" : "transform 450ms cubic-bezier(0.16, 1, 0.3, 1)",
       }}
       onPointerDown={handlePointerDown}
       onClick={(e) => {

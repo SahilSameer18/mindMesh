@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   HelpCircle,
   AlertTriangle,
+  GitFork,
   X,
 } from "lucide-react";
 import { CanvasNode } from "./CanvasNode.jsx";
@@ -64,6 +65,8 @@ export default function InfiniteCanvas({ canvas }) {
   const [isPanning, setIsPanning] = useState(false);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [mouseCanvasPos, setMouseCanvasPos] = useState({ x: 0, y: 0 });
+  const [isTidying, setIsTidying] = useState(false);
+  const [tidyFeedback, setTidyFeedback] = useState(null); // null | "success" | "empty" | "error"
   const panStartRef = useRef({ x: 0, y: 0 });
   const lastCursorEmitRef = useRef(0);
   const lastViewportEmitRef = useRef(0);
@@ -246,6 +249,30 @@ export default function InfiniteCanvas({ canvas }) {
     setConnectingNodeId(null);
   };
 
+  const handleTidyGraph = () => {
+    if (!socket || isTidying) return;
+    if (!nodes || nodes.length === 0) {
+      setTidyFeedback("empty");
+      setTimeout(() => setTidyFeedback(null), 2000);
+      return;
+    }
+
+    setIsTidying(true);
+    socket.emit("canvas:command", { prompt: "/layout hierarchical" }, (res) => {
+      setIsTidying(false);
+      if (res && res.success !== false) {
+        setTidyFeedback("success");
+      } else {
+        setTidyFeedback("error");
+      }
+      setTimeout(() => setTidyFeedback(null), 2000);
+    });
+
+    setTimeout(() => {
+      setIsTidying(false);
+    }, 1500);
+  };
+
   // Connecting line preview
   const connectingSourceNode = connectingNodeId ? nodesMap.get(connectingNodeId) : null;
 
@@ -423,6 +450,50 @@ export default function InfiniteCanvas({ canvas }) {
         >
           <AlertTriangle className="w-4 h-4 text-rose-400" />
           <span className="hidden sm:inline">Risk</span>
+        </button>
+
+        <div className="w-px h-5 bg-slate-700/60 mx-1" />
+
+        {/* Hierarchical Auto-Layout (Dagre DAG Engine) */}
+        <button
+          type="button"
+          title={
+            nodes.length === 0
+              ? "Add nodes to tidy graph"
+              : "Hierarchical Auto-Layout (Dagre DAG Engine)"
+          }
+          disabled={nodes.length === 0 || isTidying}
+          onClick={handleTidyGraph}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+            tidyFeedback === "success"
+              ? "text-emerald-300 bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+              : tidyFeedback === "empty"
+              ? "text-amber-300 bg-amber-500/20 border-amber-500/40"
+              : tidyFeedback === "error"
+              ? "text-rose-300 bg-rose-500/20 border-rose-500/40"
+              : isTidying
+              ? "text-cyan-200 bg-cyan-500/25 border-cyan-500/50 animate-pulse"
+              : nodes.length === 0
+              ? "text-slate-500 cursor-not-allowed opacity-50 border-transparent"
+              : "text-cyan-300 hover:bg-cyan-500/15 border-transparent hover:border-cyan-500/30"
+          } border`}
+        >
+          <GitFork
+            className={`w-4 h-4 rotate-180 transition-transform ${
+              isTidying ? "animate-spin text-cyan-200" : tidyFeedback === "success" ? "text-emerald-400 scale-110" : "text-cyan-400"
+            }`}
+          />
+          <span className="hidden sm:inline">
+            {isTidying
+              ? "Tidying..."
+              : tidyFeedback === "success"
+              ? "Tidied!"
+              : tidyFeedback === "empty"
+              ? "Empty Canvas"
+              : tidyFeedback === "error"
+              ? "Failed"
+              : "Tidy Graph"}
+          </span>
         </button>
 
         <div className="w-px h-5 bg-slate-700/60 mx-1" />

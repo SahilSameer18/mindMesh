@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, ArrowRight, CornerDownLeft, X, CheckCircle, Lightbulb, MapPin, AlertTriangle, Link2 } from "lucide-react";
+import { Sparkles, ArrowRight, CornerDownLeft, X, CheckCircle, Lightbulb, MapPin, AlertTriangle, Link2, GitFork } from "lucide-react";
 import { useRoom } from "../../hooks/useRoom.js";
 
 const PROMPT_PILLS = [
+  { label: "Tidy architecture", icon: GitFork, prompt: "Tidy architecture" },
   { label: "Turn into roadmap", icon: MapPin, prompt: "Turn this into a roadmap" },
   { label: "What did we decide?", icon: CheckCircle, prompt: "What did we decide?" },
   { label: "Show dependencies", icon: Link2, prompt: "Show all dependencies" },
