@@ -1,69 +1,45 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { createContext, useContext, useCallback, useMemo } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 
 const RouterContext = createContext(null);
 
-function parseRouteFromLocation() {
-  if (typeof window === "undefined") {
-    return { route: "home", roomId: "" };
-  }
-
-  const searchParams = new URLSearchParams(window.location.search);
-  const roomQuery = searchParams.get("room")?.trim();
-  if (roomQuery) {
-    return { route: "room", roomId: roomQuery };
-  }
-
-  const pathParts = window.location.pathname.split("/").filter(Boolean);
-  if (pathParts[0] === "room" && pathParts[1]) {
-    return { route: "room", roomId: decodeURIComponent(pathParts[1]) };
-  }
-
-  return { route: "home", roomId: "" };
-}
-
 export function RouterProvider({ children }) {
-  const [routeState, setRouteState] = useState(parseRouteFromLocation);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  useEffect(() => {
-    const handlePopState = () => {
-      setRouteState(parseRouteFromLocation());
-    };
+  // Extract roomId from either /room/:roomId path or ?room=:roomId query param
+  const pathParts = location.pathname.split("/").filter(Boolean);
+  const pathRoomId =
+    pathParts[0] === "room" && pathParts[1] ? decodeURIComponent(pathParts[1]) : "";
+  const queryRoomId = searchParams.get("room")?.trim() || "";
+  const roomId = pathRoomId || queryRoomId;
+  const currentRoute = roomId ? "room" : "home";
 
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  const navigateToRoom = useCallback(
+    (targetRoomId, { replace = false } = {}) => {
+      if (!targetRoomId) return;
+      const cleanId = targetRoomId.trim();
+      navigate(`/room/${encodeURIComponent(cleanId)}`, { replace });
+    },
+    [navigate]
+  );
 
-  const navigateToRoom = useCallback((roomId, { replace = false } = {}) => {
-    if (!roomId) return;
-    const cleanId = roomId.trim();
-    const url = `/?room=${encodeURIComponent(cleanId)}`;
-
-    if (replace) {
-      window.history.replaceState(null, "", url);
-    } else {
-      window.history.pushState(null, "", url);
-    }
-    setRouteState({ route: "room", roomId: cleanId });
-  }, []);
-
-  const navigateToHome = useCallback(({ replace = false } = {}) => {
-    const url = "/";
-    if (replace) {
-      window.history.replaceState(null, "", url);
-    } else {
-      window.history.pushState(null, "", url);
-    }
-    setRouteState({ route: "home", roomId: "" });
-  }, []);
+  const navigateToHome = useCallback(
+    ({ replace = false } = {}) => {
+      navigate("/", { replace });
+    },
+    [navigate]
+  );
 
   const value = useMemo(
     () => ({
-      currentRoute: routeState.route,
-      roomId: routeState.roomId,
+      currentRoute,
+      roomId,
       navigateToRoom,
       navigateToHome,
     }),
-    [routeState.route, routeState.roomId, navigateToRoom, navigateToHome]
+    [currentRoute, roomId, navigateToRoom, navigateToHome]
   );
 
   return <RouterContext.Provider value={value}>{children}</RouterContext.Provider>;
@@ -76,6 +52,3 @@ export function useRouter() {
   }
   return context;
 }
-
-
-
