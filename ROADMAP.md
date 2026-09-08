@@ -93,7 +93,7 @@
     - `"proposed"` & `"clarify"` actions: persisted to Neon Postgres with `status: "proposed"` and emitted via `ai:proposed` to surface user approval badges in the UI.
   - Resolution lifecycle: `approveAIAction()` and `rejectAIAction()` with HTTP (`/api/rooms/:roomId/ai-actions`) and Socket.io handlers for interactive review.
 - **4.1 Active Command Bar UI (`client/src/components/command/ActiveCommandBar.jsx`)**:
-  - Permanent floating input at canvas bottom: `✨ Ask your workspace...`
+  - Permanent floating input at canvas bottom: `Ask your workspace...`
   - Rotating prompt pills (*"Turn this into a roadmap"*, *"What did we decide?"*, *"Show all dependencies"*, *"Move risks to the right"*).
 - **4.2 Action Vocabulary Expansion (`server/src/ai/commands.js`)**:
   - Implement `REORGANIZE_LAYOUT`: Re-aligns existing nodes (hierarchical roadmap, cluster by theme, move risks to right) through the layout engine.

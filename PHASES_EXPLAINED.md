@@ -1,4 +1,4 @@
-# mindMesh — Every Phase Explained in Plain English 🧠✨
+# mindMesh — Every Phase Explained in Plain English 🧠
 
 > *"We don't take notes for you. We think with you."*
 

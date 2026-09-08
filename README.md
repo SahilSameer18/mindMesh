@@ -54,7 +54,7 @@ mindMesh Flow:
 
 ---
 
-## ✨ Product Tour
+## 🗺️ Product Tour
 
 ### 1. 🎙️ Live Speech-to-Graph Synthesis
 - **Zero-Friction Dictation**: Click the **Dictate** button in the header or hit **`M`** to toggle continuous voice dictation with browser silence recovery.
@@ -95,7 +95,12 @@ mindMesh Flow:
 - Direct outward dispatches:
   - 💬 **Slack**: Formatted Block Kit payload.
   - 📝 **Notion**: Complete database page and block hierarchy.
-  - 📧 **Resend**: Formatted executive email sent to attendees.
+### 7. 🌐 Enterprise Landing Page & Brand Architecture
+- **Proprietary Geometric Brand Mark**: Interconnected neural knowledge mesh SVG icon scalable across browser favicons, navigation bars, and authentication dialogs.
+- **Fixed Glassmorphic Navigation**: Sticky top navigation that shifts from minimalist glass to an elevated translucent backdrop (`backdrop-blur-xl`) upon scroll.
+- **Silky-Smooth Q&A Accordion**: Zero-jitter CSS Grid fractional height transitions (`grid-template-rows: 0fr ↔ 1fr`) with coordinated chevron rotations.
+- **100% Mobile-First Responsiveness**: Tailored layout hierarchies across 320px mobile viewports, tablets, and 4K desktop screens with zero horizontal overflow.
+- **Modern Routing Pipeline**: Standard React Router v7 DOM navigation (`/` and `/room/:roomId`) with backward-compatible room query strings.
 
 ---
 
@@ -397,13 +402,16 @@ mindMesh/
 │   ├── src/
 │   │   ├── api/                          # REST & WebSocket client instances
 │   │   ├── components/
+│   │   │   ├── landing/                  # Navbar, Hero, HowItWorks, Workspaces, Comparison, FAQ, Footer
 │   │   │   ├── canvas/                   # InfiniteCanvas, CanvasNode, CanvasEdge, VisualLightboxModal
 │   │   │   ├── command/                  # ActiveCommandBar (Floating OS bar)
 │   │   │   ├── activity/                 # ActivityStream & EvidenceCard
 │   │   │   ├── meeting/                  # SpeechIntelligenceController, CommitCallModal
-│   │   │   └── ui/                       # WorkspaceHeader, Minimap, Avatar
+│   │   │   └── ui/                       # BrandLogo, WorkspaceHeader, Minimap, Avatar
 │   │   ├── context/                      # RoomContext, AuthContext
-│   │   ├── hooks/                        # useCanvas, useAIActions, useSpeechRecognition
+│   │   ├── hooks/                        # useCanvas, useAIActions, useSpeechRecognition, useWebRTC
+│   │   ├── pages/                        # LandingPage
+│   │   ├── app.routes.jsx                # React Router v7 routes & navigation hooks
 │   │   └── utils/                        # canvasConstants, color tokens
 │   └── package.json
 │
@@ -458,4 +466,3 @@ Built with [React](https://react.dev/), [Vite](https://vitejs.dev/), [Tailwind C
 ## 📄 License
 
 This project is licensed under the [ISC License](LICENSE).
-
