@@ -6,7 +6,7 @@ import { initSocketServer } from "./src/realtime/socket.js";
 const server = http.createServer(app);
 
 // Initialize Socket.io
-initSocketServer(server);
+const io = initSocketServer(server);
 
 server.listen(config.port, () => {
   console.log(`=========================================`);
@@ -15,13 +15,50 @@ server.listen(config.port, () => {
   console.log(`🔗 Health Check: http://localhost:${config.port}/api/health`);
 });
 
-const shutdown = () => {
-  console.log("\n[Server] Shutting down gracefully...");
+let isShuttingDown = false;
+const shutdown = (signal) => {
+  if (isShuttingDown) {
+    process.exit(0);
+  }
+  isShuttingDown = true;
+  console.log(`\n[Server] Received ${signal}. Shutting down gracefully...`);
+
+  try {
+    io.close();
+  } catch {}
+
+  if (typeof server.closeAllConnections === "function") {
+    server.closeAllConnections();
+  }
+
   server.close(() => {
     console.log("[Server] Closed HTTP & WebSocket server.");
     process.exit(0);
   });
+
+  // Failsafe: Force-exit after 500ms if any socket is still held
+  setTimeout(() => {
+    process.exit(0);
+  }, 500).unref();
 };
 
-process.on("SIGTERM", shutdown);
-process.on("SIGINT", shutdown);
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
+
+// Nodemon graceful reload support
+process.once("SIGUSR2", () => {
+  if (typeof server.closeAllConnections === "function") {
+    server.closeAllConnections();
+  }
+  server.close(() => {
+    process.kill(process.pid, "SIGUSR2");
+  });
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("[Server Error] Unhandled Promise Rejection:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("[Server Error] Uncaught Exception:", err);
+});
