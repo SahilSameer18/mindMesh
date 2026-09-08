@@ -99,3 +99,22 @@ export async function updateRoomMode(req, res, next) {
   }
 }
 
+export async function listRooms(req, res, next) {
+  try {
+    const rooms = await roomService.listRooms();
+    return sendSuccess(res, "Rooms retrieved successfully", rooms);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteRoom(req, res, next) {
+  try {
+    const { roomId } = req.params;
+    await roomService.deleteRoom(roomId);
+    return sendSuccess(res, "Room deleted successfully", { roomId });
+  } catch (err) {
+    next(err);
+  }
+}
+

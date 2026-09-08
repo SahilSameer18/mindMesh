@@ -31,6 +31,11 @@ export async function getOrCreateRoom(roomId, { name, mode = "operational", syst
       },
     });
 
+    let validUser = null;
+    if (userId) {
+      validUser = await prisma.user.findUnique({ where: { id: userId } }).catch(() => null);
+    }
+
     if (!room) {
       room = await prisma.room.create({
         data: {
@@ -39,11 +44,11 @@ export async function getOrCreateRoom(roomId, { name, mode = "operational", syst
           name: name || `Room ${roomId.slice(0, 8)}`,
           mode,
           systemContext,
-          ...(userId
+          ...(validUser
             ? {
                 members: {
                   create: {
-                    userId,
+                    userId: validUser.id,
                     role: "owner",
                   },
                 },
@@ -151,6 +156,40 @@ export async function updateRoomMode(roomId, { mode, systemContext }) {
     });
   } catch (err) {
     console.error(`[RoomService] Error updating mode for room ${roomId}:`, err.message);
+    throw err;
+  }
+}
+
+export async function listRooms() {
+  try {
+    return await prisma.room.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      include: {
+        _count: {
+          select: {
+            nodes: true,
+            edges: true,
+            transcriptChunks: true,
+            members: true,
+          },
+        },
+      },
+    });
+  } catch (err) {
+    console.error("[RoomService] Error listing rooms:", err.message);
+    throw err;
+  }
+}
+
+export async function deleteRoom(roomId) {
+  try {
+    await prisma.room.delete({
+      where: { id: roomId },
+    });
+    return true;
+  } catch (err) {
+    console.error(`[RoomService] Error deleting room ${roomId}:`, err.message);
     throw err;
   }
 }
