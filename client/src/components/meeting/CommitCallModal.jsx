@@ -3,8 +3,8 @@ import { createPortal } from "react-dom";
 import confetti from "canvas-confetti";
 import { useRoom } from "../../hooks/useRoom.js";
 import {
-  Sparkles,
   CheckCircle2,
+  Cpu,
   Check,
   Copy,
   Download,
@@ -319,7 +319,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800/80 bg-slate-950/70 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-500/20 shrink-0">
-              <Sparkles className="w-5 h-5" />
+              <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -403,7 +403,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
               {/* Pulsing AI Logo & Pipeline Progress */}
               <div className="relative">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-violet-600 flex items-center justify-center shadow-xl shadow-violet-500/30 animate-pulse">
-                  <Sparkles className="w-8 h-8 text-white" />
+                  <Cpu className="w-8 h-8 text-white" />
                 </div>
                 <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-cyan-400 to-violet-500 opacity-30 blur animate-pulse" />
               </div>
@@ -442,16 +442,15 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
             /* STATE 2: Pre-Commit Preview (No report yet generated) */
             <div className="py-6 px-2 sm:px-6 flex flex-col items-center justify-center max-w-xl mx-auto text-center space-y-5 animate-in fade-in duration-200">
               <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-amber-400 shadow-md">
-                <Sparkles className="w-7 h-7" />
+                <CheckCircle2 className="w-7 h-7" />
               </div>
 
               <div>
                 <h3 className="text-lg font-bold text-white tracking-tight">
-                  Ratify Canvas Consensus & Commit Milestone
+                  Ratify Canvas Consensus &amp; Commit Milestone
                 </h3>
                 <p className="text-xs text-slate-300 mt-1 max-w-md">
-                  Commit the live room state into an authoritative synthesis. Groq Llama 3.3 70B will
-                  fuse the spoken audio transcripts with active canvas nodes and dependencies.
+                  Commit the live room state into an authoritative synthesis, fusing spoken audio transcripts with active canvas nodes and dependencies.
                 </p>
               </div>
 
@@ -493,7 +492,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                 onClick={handleRunCommit}
                 className="w-full py-3 px-4 rounded-xl text-sm font-bold bg-gradient-to-r from-amber-500 via-rose-500 to-violet-600 hover:from-amber-400 hover:via-rose-400 hover:to-violet-500 text-white shadow-xl shadow-violet-500/25 transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2"
               >
-                <Sparkles className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4" />
                 <span>Generate Synthesis &amp; Commit Meeting</span>
               </button>
             </div>
@@ -589,7 +588,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/60 border border-slate-800/80 relative">
                     <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80">
                       <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Executive Synthesis
+                        <FileText className="w-3.5 h-3.5 text-sky-400" /> Executive Synthesis
                       </span>
                       <button
                         type="button"

@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { X, Sparkles, Mail, Lock, User, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { X, Mail, Lock, User, AlertCircle, Eye, EyeOff } from "lucide-react";
+import BrandLogo from "../ui/BrandLogo.jsx";
 
-export default function AuthModal({ isOpen, onClose }) {
+export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
   const { login, signup, authError, setAuthError } = useAuth();
-  const [tab, setTab] = useState("login"); // "login" | "signup"
+  const [tab, setTab] = useState(initialTab); // "login" | "signup"
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (initialTab) {
+      setTab(initialTab);
+    }
+  }, [initialTab, isOpen]);
 
   // Close on Escape key
   useEffect(() => {
@@ -87,7 +94,7 @@ export default function AuthModal({ isOpen, onClose }) {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0">
-            <Sparkles className="w-5 h-5 text-white" />
+            <BrandLogo size={22} className="text-white" />
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight text-white font-display">

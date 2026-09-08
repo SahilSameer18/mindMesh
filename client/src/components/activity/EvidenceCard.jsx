@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Sparkles, Quote, Clock, User, Target, Lightbulb, CheckSquare, CheckCircle2, HelpCircle, AlertTriangle, ArrowUpRight } from "lucide-react";
+import { X, Quote, Clock, User, Target, Lightbulb, CheckSquare, CheckCircle2, HelpCircle, AlertTriangle, ArrowUpRight } from "lucide-react";
 import { NODE_CONFIGS, NODE_TYPES } from "../../utils/canvasConstants.js";
 
 const ICON_MAP = {
@@ -94,7 +94,7 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                <Quote className="w-3.5 h-3.5 text-violet-400" />
                 <span className="text-xs font-semibold tracking-wider uppercase text-violet-400">Why This Exists</span>
               </div>
               <h3 className="text-sm font-semibold text-slate-100 capitalize">{node.type || "Concept"} Explanation</h3>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  Sparkles,
+  Activity,
+  Zap,
   X,
   Check,
   Ban,
@@ -130,7 +131,7 @@ export default function ActivityStream({
           )}
           {proposedCount > 0 && (
             <span className="flex items-center gap-1 text-[10px] text-cyan-300 bg-cyan-950/60 px-1.5 py-0.2 rounded-full border border-cyan-800/50">
-              <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
+              <Zap className="w-2.5 h-2.5 text-cyan-400" />
               <span>{proposedCount}</span>
             </span>
           )}
@@ -171,7 +172,7 @@ export default function ActivityStream({
           }}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-medium cursor-pointer transition-colors active:scale-95"
         >
-          <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+          <Activity className="w-3.5 h-3.5 text-violet-400" />
           <span>Activity</span>
           {proposedCount > 0 && (
             <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-500 text-slate-950 font-bold">
@@ -236,8 +237,8 @@ export default function ActivityStream({
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Activity</span>
+            <Activity className="w-3.5 h-3.5" />
+            <span>Activity</span>
             {proposedCount > 0 && (
               <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-cyan-400 text-slate-950">
                 {proposedCount}
@@ -322,7 +323,7 @@ export default function ActivityStream({
               </div>
             ) : filteredActions.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-500">
-                <Sparkles className="w-8 h-8 mb-2 opacity-30 text-violet-400" />
+                <Activity className="w-8 h-8 mb-2 opacity-30 text-violet-400" />
                 <p className="text-sm font-medium text-slate-400">No activity recorded yet</p>
                 <p className="text-xs mt-1 text-slate-500">
                   Run commands via the Command Bar (⌘K) or speak via microphone to populate the canvas.
@@ -330,7 +331,7 @@ export default function ActivityStream({
               </div>
             ) : (
               filteredActions.map((item) => {
-                const Icon = ACTION_ICONS[item.type] || Sparkles;
+                const Icon = ACTION_ICONS[item.type] || Activity;
                 const isProposed = item.status === "proposed" || item.status === "clarify";
                 const isClarify = item.status === "clarify";
                 const isApplied = item.status === "applied";

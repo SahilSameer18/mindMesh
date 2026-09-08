@@ -6,7 +6,6 @@ import {
   Copy,
   Check,
   ExternalLink,
-  Sparkles,
   Image as ImageIcon,
   Layers,
 } from "lucide-react";
@@ -139,7 +138,7 @@ export default function VisualLightboxModal({ node, onClose }) {
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
               <div className="w-64 h-48 rounded-xl bg-slate-900/90 border border-slate-800/80 flex flex-col items-center justify-center p-4 animate-pulse relative overflow-hidden shadow-inner">
                 <div className="w-10 h-10 rounded-lg bg-slate-800/80 border border-slate-700/50 flex items-center justify-center text-sky-400/70 mb-3">
-                  <Sparkles className="w-5 h-5 animate-pulse" />
+                  <ImageIcon className="w-5 h-5 animate-pulse" />
                 </div>
                 <div className="h-2.5 w-36 bg-slate-800 rounded-full mb-2" />
                 <div className="h-2 w-24 bg-slate-800/50 rounded-full" />
@@ -147,7 +146,7 @@ export default function VisualLightboxModal({ node, onClose }) {
               <span className="text-xs font-semibold text-slate-400 mt-3 animate-pulse">
                 Buffering high-resolution visual concept...
               </span>
-              <span className="text-[11px] text-slate-500 mt-0.5">Pollinations Flux Engine</span>
+              <span className="text-[11px] text-slate-500 mt-0.5">Visual Concept Engine</span>
             </div>
           )}
 
@@ -165,16 +164,16 @@ export default function VisualLightboxModal({ node, onClose }) {
         <div className="px-4 py-3 border-t border-slate-800/80 bg-slate-950/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs shrink-0">
           <div className="flex items-center gap-2 text-slate-400">
             <span className="flex items-center gap-1 text-slate-300 font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-violet-400" /> Prompt:
+              <ImageIcon className="w-3.5 h-3.5 text-violet-400" /> Prompt:
             </span>
             <span className="italic text-slate-200 line-clamp-1 max-w-md">{prompt}</span>
           </div>
 
           <div className="flex items-center gap-2 text-[11px] text-slate-400">
             <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">
-              Flux / 1024x768
+              Concept / 1024x768
             </span>
-            <span>Zero-Key Pollinations AI</span>
+            <span>High-Resolution Render</span>
           </div>
         </div>
       </div>

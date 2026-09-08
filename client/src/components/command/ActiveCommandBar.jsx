@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  Sparkles,
+  Command,
+  Cpu,
   ArrowRight,
   CornerDownLeft,
   X,
@@ -116,7 +117,7 @@ export default function ActiveCommandBar({ canvas }) {
         <div className="w-full pointer-events-auto backdrop-blur-2xl bg-slate-900/90 border border-slate-700/80 rounded-2xl shadow-2xl p-4 text-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-200">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
             <div className="flex items-center gap-2 text-xs font-medium text-violet-400">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Cpu className="w-3.5 h-3.5" />
               <span>{lastResponse.summary || "AI Workspace Response"}</span>
             </div>
             <button
@@ -165,7 +166,7 @@ export default function ActiveCommandBar({ canvas }) {
         >
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-xs">
             <div className="flex items-center gap-1.5 font-semibold text-violet-400">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Command className="w-3.5 h-3.5" />
               <span>Prompt Suggestions</span>
             </div>
             <span className="text-[11px] text-slate-400">Click to fill into command bar</span>
@@ -205,7 +206,7 @@ export default function ActiveCommandBar({ canvas }) {
         {isThinking && (
           <div className="px-4 py-2 flex flex-col gap-1.5 animate-pulse border-b border-slate-800">
             <div className="flex items-center gap-2 text-xs text-violet-400 font-medium">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+              <Cpu className="w-3.5 h-3.5 animate-pulse" />
               <span>Reasoning across workspace canvas...</span>
             </div>
             <div className="h-2 bg-gradient-to-r from-violet-600/30 via-cyan-500/40 to-violet-600/30 rounded-full w-3/4 animate-pulse" />
@@ -225,7 +226,7 @@ export default function ActiveCommandBar({ canvas }) {
             }`}
             title="View prompt suggestions"
           >
-            <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+            <Command className="w-3.5 h-3.5 text-violet-400" />
             <span className="hidden sm:inline">Prompts</span>
             {isPromptsOpen ? (
               <ChevronDown className="w-3 h-3 opacity-80" />

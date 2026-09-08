@@ -7,7 +7,6 @@ import {
   Pause,
   SkipForward,
   RotateCcw,
-  Sparkles,
   Volume2,
   ChevronDown,
   ChevronUp,
@@ -265,7 +264,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
                 : "bg-slate-800 text-slate-300"
             }`}
           >
-            <Sparkles className="w-4 h-4" />
+            <Radio className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 font-display flex items-center gap-1.5">
@@ -431,7 +430,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
           {lastExtractionNotice && (
             <div className="p-2.5 rounded-xl bg-violet-600/20 border border-violet-500/40 text-violet-200 text-xs flex items-center justify-between animate-in fade-in zoom-in-95 duration-200">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-violet-400 shrink-0" />
+                <Zap className="w-4 h-4 text-violet-400 shrink-0" />
                 <span className="font-medium truncate">{lastExtractionNotice.summary}</span>
               </div>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/30 font-bold shrink-0">

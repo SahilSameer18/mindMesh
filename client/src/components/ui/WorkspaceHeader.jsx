@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useRoom } from "../../hooks/useRoom.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import {
-  Sparkles,
+  CheckCircle2,
   ExternalLink,
   HelpCircle,
   X,
@@ -22,6 +22,7 @@ import {
   Edit2,
   Trash2,
 } from "lucide-react";
+import BrandLogo from "./BrandLogo.jsx";
 
 export default function WorkspaceHeader({
   onOpenAuth,
@@ -170,17 +171,21 @@ export default function WorkspaceHeader({
   const isLocalUserPresenter = activePresenter?.socketId === socket?.id;
 
   return (
-    <header className="h-14 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-3 sm:px-4 flex items-center justify-between z-30 shrink-0 select-none">
+    <header className="h-14 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-2 sm:px-4 flex items-center justify-between z-30 shrink-0 select-none gap-2">
       {/* Brand, Room Info & Meeting Mode Selector */}
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-md shadow-sky-500/20">
-            <Sparkles className="w-4 h-4 text-white" />
+        <a
+          href="/"
+          className="flex items-center gap-2 group transition-opacity hover:opacity-90"
+          title="mindMesh Home"
+        >
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform">
+            <BrandLogo size={18} className="text-white" />
           </div>
           <span className="font-display font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent hidden sm:inline">
             mindMesh
           </span>
-        </div>
+        </a>
 
         <div className="h-4 w-px bg-slate-800 hidden sm:block" />
 
@@ -191,7 +196,7 @@ export default function WorkspaceHeader({
               isConnected ? "bg-emerald-400 shadow-sm shadow-emerald-400/50 animate-pulse" : "bg-rose-400"
             }`}
           />
-          <span className="text-slate-300 font-mono font-medium max-w-[100px] sm:max-w-none truncate">{roomId}</span>
+          <span className="text-slate-300 font-mono font-medium max-w-[65px] sm:max-w-none truncate">{roomId}</span>
           <button
             type="button"
             onClick={handleCopyLink}
@@ -321,9 +326,12 @@ export default function WorkspaceHeader({
           className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500 via-rose-500 to-violet-600 hover:from-amber-400 hover:via-rose-400 hover:to-violet-500 text-white shadow-md shadow-violet-500/25 border border-white/20 transition-all duration-200 active:scale-95 group relative shrink-0"
           title="Commit meeting synthesis, review decisions, and export to Slack / Notion / Email"
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-200 group-hover:rotate-12 transition-transform" />
-          <span className="font-medium tracking-tight">
+          <CheckCircle2 className="w-3.5 h-3.5 text-amber-200 group-hover:scale-110 transition-transform" />
+          <span className="font-medium tracking-tight hidden sm:inline">
             {latestMeetingReport ? "Meeting Report" : "Commit Call"}
+          </span>
+          <span className="font-medium tracking-tight sm:hidden">
+            {latestMeetingReport ? "Report" : "Commit"}
           </span>
           {latestMeetingReport ? (
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

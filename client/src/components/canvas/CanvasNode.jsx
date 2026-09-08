@@ -11,7 +11,7 @@ import {
   Image as ImageIcon,
   Trash2,
   Link2,
-  Sparkles,
+  Quote,
   RotateCw,
   Maximize2,
 } from "lucide-react";
@@ -211,7 +211,7 @@ function CanvasNodeComponent({
                   }}
                   className="p-1 text-slate-400 hover:text-violet-300 hover:bg-slate-800/90 rounded transition-colors"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                  <Quote className="w-3.5 h-3.5 text-violet-400" />
                 </button>
               )}
 
@@ -295,9 +295,9 @@ function CanvasNodeComponent({
                 /* Generating Phase: Shimmering skeleton loader */
                 <div className="w-full h-32 rounded-xl bg-slate-900/90 border border-slate-800/80 flex flex-col items-center justify-center p-3 relative overflow-hidden animate-pulse shadow-inner">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-700/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
-                  <Sparkles className="w-5 h-5 text-sky-400 mb-2 animate-bounce" />
+                  <ImageIcon className="w-5 h-5 text-sky-400 mb-2 animate-pulse" />
                   <span className="text-xs font-semibold text-slate-200">Synthesizing visual concept...</span>
-                  <span className="text-[10px] text-slate-400 mt-1">Pollinations Flux AI</span>
+                  <span className="text-[10px] text-slate-400 mt-1">Generative Concept</span>
                 </div>
               ) : imgError ? (
                 /* Error Phase: Option (B) Client-side error state with Retry Generation button */

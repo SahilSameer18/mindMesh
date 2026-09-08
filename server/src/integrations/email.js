@@ -96,8 +96,8 @@ export function buildMeetingEmailHtml(report, { roomName = "mindMesh Workspace",
     <!-- Header -->
     <tr>
       <td style="padding: 24px; background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); border-bottom: 1px solid #1e293b;">
-        <div style="font-size: 11px; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">✨ mindMesh Executive Synthesis</div>
-        <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">📋 ${safeRoomName}</h1>
+        <div style="font-size: 11px; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">mindMesh Executive Synthesis</div>
+        <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">${safeRoomName}</h1>
         <div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">
           Committed on ${new Date().toLocaleDateString()} &bull; Room: <code>${safeRoomId || "workspace"}</code>
         </div>
