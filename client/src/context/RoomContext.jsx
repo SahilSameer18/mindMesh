@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import { DEFAULT_ROOM_ID } from "../utils/canvasConstants.js";
 import { RoomContext } from "./roomContextInstance.js";
 import { useAuth } from "./AuthContext.jsx";
+import { getUserColor, getUserInitials } from "../utils/colors.js";
 
 const SOCKET_SERVER_URL =
   import.meta.env.VITE_SERVER_URL ||
@@ -12,6 +13,22 @@ const SOCKET_SERVER_URL =
 
 export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const { user: authUser } = useAuth();
+  const [customDisplayName, setCustomDisplayName] = useState(() => {
+    if (typeof localStorage !== "undefined") {
+      return localStorage.getItem("mindmesh_username") || "";
+    }
+    return "";
+  });
+
+  const updateDisplayName = useCallback((name) => {
+    const trimmed = name?.trim() || "";
+    if (trimmed) {
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("mindmesh_username", trimmed);
+      }
+      setCustomDisplayName(trimmed);
+    }
+  }, []);
 
   const currentUser = useMemo(() => {
     // 1. Explicit query parameter override (highest priority for multi-tab developer demos)
@@ -44,34 +61,53 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
 
     // 2. Real authenticated session from AuthContext
     if (authUser && !authUser.isDemo) {
-      const initials = (authUser.name || authUser.email || "U")
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase();
-
+      const initials = getUserInitials(authUser.name || authUser.email || "User");
       return {
         id: authUser.id,
         name: authUser.name || authUser.email,
         email: authUser.email,
         role: authUser.role || "owner",
-        color: "#8b5cf6",
+        color: getUserColor(authUser.name || authUser.email),
         avatar: initials,
         isDemo: false,
       };
     }
 
-    // 3. Fallback guest identity (zero-login barrier)
+    // 3. User configured display name from localStorage or in-room editing
+    if (customDisplayName) {
+      const guestId =
+        (typeof localStorage !== "undefined" && localStorage.getItem("mindmesh_userid")) ||
+        `user-${Math.random().toString(36).slice(2, 8)}`;
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("mindmesh_userid", guestId);
+      }
+      return {
+        id: guestId,
+        name: customDisplayName,
+        role: "Member",
+        color: getUserColor(customDisplayName),
+        avatar: getUserInitials(customDisplayName),
+        isDemo: false,
+      };
+    }
+
+    // 4. Default persistent guest identity
+    const guestId =
+      (typeof localStorage !== "undefined" && localStorage.getItem("mindmesh_userid")) ||
+      `guest-${Math.random().toString(36).slice(2, 6)}`;
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("mindmesh_userid", guestId);
+    }
+    const guestName = `Guest ${guestId.slice(-4)}`;
     return {
-      id: "demo-user-1",
-      name: "Elena Vance",
-      role: "Product Lead",
-      color: "#8b5cf6",
-      avatar: "EV",
-      isDemo: true,
+      id: guestId,
+      name: guestName,
+      role: "Guest",
+      color: getUserColor(guestId),
+      avatar: getUserInitials(guestName),
+      isDemo: false,
     };
-  }, [authUser]);
+  }, [authUser, customDisplayName]);
   const [isConnected, setIsConnected] = useState(false);
   const [peers, setPeers] = useState(new Map());
   const [peerCursors, setPeerCursors] = useState(new Map());
@@ -86,6 +122,9 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
   const [isCommitting, setIsCommitting] = useState(false);
   const [commitError, setCommitError] = useState(null);
+
+  // Live Spoken Transcripts State across all room participants
+  const [transcripts, setTranscripts] = useState([]);
 
   // Synchronous socket initialization eliminates setState inside useEffect
   const [socket] = useState(() =>
@@ -218,6 +257,15 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
     };
     socket.on("meeting:committed", handleMeetingCommitted);
 
+    const handleTranscriptChunk = (chunk) => {
+      if (!chunk?.text) return;
+      setTranscripts((prev) => {
+        if (chunk.id && prev.some((t) => t.id === chunk.id)) return prev;
+        return [...prev, chunk];
+      });
+    };
+    socket.on("transcript:chunk", handleTranscriptChunk);
+
     // If socket is already connected when effect mounts
     if (socket.connected) {
       handleConnect();
@@ -235,6 +283,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       socket.off("presenter:started", handlePresenterStarted);
       socket.off("presenter:stopped", handlePresenterStopped);
       socket.off("meeting:committed", handleMeetingCommitted);
+      socket.off("transcript:chunk", handleTranscriptChunk);
       socket.emit("canvas:leave");
     };
   }, [socket, roomId, currentUser]);
@@ -426,7 +475,28 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       stopPresenting,
       setFollowing,
       updateRoomMode,
+      updateDisplayName,
       clearPresenterContestError: () => setPresenterContestError(null),
+      transcripts,
+      clearTranscripts: () => setTranscripts([]),
+      addTranscript: (text) => {
+        const clean = text?.trim();
+        if (!clean || !socket) return;
+        const chunk = {
+          id: `chunk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          speaker: currentUser?.name || "You",
+          userId: currentUser?.id,
+          text: clean,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        socket.emit("transcript:chunk", {
+          roomId,
+          ...chunk,
+        });
+      },
     }),
     [
       roomId,
@@ -452,6 +522,8 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       stopPresenting,
       setFollowing,
       updateRoomMode,
+      updateDisplayName,
+      transcripts,
     ]
   );
 

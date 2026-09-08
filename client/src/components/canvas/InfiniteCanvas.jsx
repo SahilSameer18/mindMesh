@@ -401,69 +401,84 @@ export default function InfiniteCanvas({ canvas }) {
         </div>
       )}
 
-      {/* Floating Canvas Action Toolbar (Docked Bottom-Left to avoid Command Bar collision) */}
-      <div className="absolute bottom-6 left-6 z-30 flex items-center gap-1.5 p-1.5 bg-slate-900/85 backdrop-blur-xl border border-slate-700/70 rounded-2xl shadow-2xl">
+      {/* Option 2A: Vertical Canvas Creation Dock (Left rail, like Figma/Miro) */}
+      <aside
+        aria-label="Canvas Creation Tools"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-1.5 p-1.5 bg-slate-900/85 backdrop-blur-xl border border-slate-700/70 rounded-2xl shadow-2xl pointer-events-auto"
+      >
         <button
           type="button"
           title="Add Goal (Target)"
           onClick={() => handleQuickAdd(NODE_TYPES.GOAL)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-amber-300 hover:bg-amber-500/15 border border-transparent hover:border-amber-500/30 transition-colors"
+          className="p-2.5 rounded-xl text-amber-300 hover:bg-amber-500/15 border border-transparent hover:border-amber-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
         >
           <Target className="w-4 h-4 text-amber-400" />
-          <span className="hidden sm:inline">Goal</span>
+          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-slate-900/95 border border-slate-700 text-xs font-medium text-slate-200 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Add Goal (Target)
+          </span>
         </button>
 
         <button
           type="button"
           title="Add Idea"
           onClick={() => handleQuickAdd(NODE_TYPES.IDEA)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-sky-300 hover:bg-sky-500/15 border border-transparent hover:border-sky-500/30 transition-colors"
+          className="p-2.5 rounded-xl text-sky-300 hover:bg-sky-500/15 border border-transparent hover:border-sky-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
         >
           <Lightbulb className="w-4 h-4 text-sky-400" />
-          <span className="hidden sm:inline">Idea</span>
+          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-slate-900/95 border border-slate-700 text-xs font-medium text-slate-200 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Add Idea
+          </span>
         </button>
 
         <button
           type="button"
           title="Add Task"
           onClick={() => handleQuickAdd(NODE_TYPES.TASK)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-emerald-300 hover:bg-emerald-500/15 border border-transparent hover:border-emerald-500/30 transition-colors"
+          className="p-2.5 rounded-xl text-emerald-300 hover:bg-emerald-500/15 border border-transparent hover:border-emerald-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
         >
           <CheckSquare className="w-4 h-4 text-emerald-400" />
-          <span className="hidden sm:inline">Task</span>
+          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-slate-900/95 border border-slate-700 text-xs font-medium text-slate-200 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Add Task
+          </span>
         </button>
 
         <button
           type="button"
           title="Add Decision"
           onClick={() => handleQuickAdd(NODE_TYPES.DECISION)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-indigo-300 hover:bg-indigo-500/15 border border-transparent hover:border-indigo-500/30 transition-colors"
+          className="p-2.5 rounded-xl text-indigo-300 hover:bg-indigo-500/15 border border-transparent hover:border-indigo-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
         >
           <CheckCircle2 className="w-4 h-4 text-indigo-400" />
-          <span className="hidden sm:inline">Decision</span>
+          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-slate-900/95 border border-slate-700 text-xs font-medium text-slate-200 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Add Decision
+          </span>
         </button>
 
         <button
           type="button"
           title="Add Question"
           onClick={() => handleQuickAdd(NODE_TYPES.QUESTION)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-purple-300 hover:bg-purple-500/15 border border-transparent hover:border-purple-500/30 transition-colors"
+          className="p-2.5 rounded-xl text-purple-300 hover:bg-purple-500/15 border border-transparent hover:border-purple-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
         >
           <HelpCircle className="w-4 h-4 text-purple-400" />
-          <span className="hidden sm:inline">Question</span>
+          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-slate-900/95 border border-slate-700 text-xs font-medium text-slate-200 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Add Question
+          </span>
         </button>
 
         <button
           type="button"
           title="Add Risk"
           onClick={() => handleQuickAdd(NODE_TYPES.RISK)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-300 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition-colors"
+          className="p-2.5 rounded-xl text-rose-300 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
         >
           <AlertTriangle className="w-4 h-4 text-rose-400" />
-          <span className="hidden sm:inline">Risk</span>
+          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-slate-900/95 border border-slate-700 text-xs font-medium text-slate-200 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Add Risk
+          </span>
         </button>
 
-        <div className="w-px h-5 bg-slate-700/60 mx-1" />
+        <div className="w-5 h-px bg-slate-700/60 my-0.5" />
 
         {/* Hierarchical Auto-Layout (Dagre DAG Engine) */}
         <button
@@ -475,7 +490,7 @@ export default function InfiniteCanvas({ canvas }) {
           }
           disabled={nodes.length === 0 || isTidying}
           onClick={handleTidyGraph}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+          className={`p-2.5 rounded-xl transition-all relative group flex items-center justify-center cursor-pointer ${
             tidyFeedback === "success"
               ? "text-emerald-300 bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
               : tidyFeedback === "empty"
@@ -494,7 +509,7 @@ export default function InfiniteCanvas({ canvas }) {
               isTidying ? "animate-spin text-cyan-200" : tidyFeedback === "success" ? "text-emerald-400 scale-110" : "text-cyan-400"
             }`}
           />
-          <span className="hidden sm:inline">
+          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-slate-900/95 border border-slate-700 text-xs font-medium text-slate-200 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
             {isTidying
               ? "Tidying..."
               : tidyFeedback === "success"
@@ -503,13 +518,16 @@ export default function InfiniteCanvas({ canvas }) {
               ? "Empty Canvas"
               : tidyFeedback === "error"
               ? "Failed"
-              : "Tidy Graph"}
+              : "Tidy Graph (Auto-Layout)"}
           </span>
         </button>
+      </aside>
 
-        <div className="w-px h-5 bg-slate-700/60 mx-1" />
-
-        {/* Viewport controls */}
+      {/* Compact Viewport Controls (Bottom-Left Mini-Pill) */}
+      <aside
+        aria-label="Viewport Controls"
+        className="absolute bottom-6 left-6 z-30 flex items-center gap-1 p-1 bg-slate-900/85 backdrop-blur-xl border border-slate-700/70 rounded-2xl shadow-xl pointer-events-auto"
+      >
         <button
           type="button"
           title="Zoom Out"
@@ -517,12 +535,12 @@ export default function InfiniteCanvas({ canvas }) {
             const rect = containerRef.current.getBoundingClientRect();
             zoomAt(0.85, rect.left + rect.width / 2, rect.top + rect.height / 2, rect);
           }}
-          className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
         >
-          <ZoomOut className="w-4 h-4" />
+          <ZoomOut className="w-3.5 h-3.5" />
         </button>
 
-        <span className="text-[11px] font-mono text-slate-400 min-w-[36px] text-center">
+        <span className="text-[11px] font-mono text-slate-400 min-w-[34px] text-center select-none">
           {Math.round(viewport.zoom * 100)}%
         </span>
 
@@ -533,20 +551,20 @@ export default function InfiniteCanvas({ canvas }) {
             const rect = containerRef.current.getBoundingClientRect();
             zoomAt(1.15, rect.left + rect.width / 2, rect.top + rect.height / 2, rect);
           }}
-          className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
         >
-          <ZoomIn className="w-4 h-4" />
+          <ZoomIn className="w-3.5 h-3.5" />
         </button>
 
         <button
           type="button"
           title="Reset View"
           onClick={resetViewport}
-          className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="w-3.5 h-3.5" />
         </button>
-      </div>
+      </aside>
 
       {/* Floating Presenter Follow Banner & Contested Alerts */}
       <PresenterFollowBanner

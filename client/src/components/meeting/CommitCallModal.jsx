@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import confetti from "canvas-confetti";
 import { useRoom } from "../../hooks/useRoom.js";
 import {
@@ -291,9 +292,21 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
     URL.revokeObjectURL(url);
   };
 
-  if (!isOpen) return null;
+  // Close on Escape key if not actively synthesizing
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && !isCommitting) {
+        onClose?.();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, isCommitting, onClose]);
 
-  return (
+  if (!isOpen || typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-xl animate-in fade-in duration-200"
       onClick={!isCommitting ? onClose : undefined}
@@ -1042,6 +1055,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

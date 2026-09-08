@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { toast } from "sonner";
 import { useRoom } from "../../hooks/useRoom.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import {
@@ -11,19 +13,22 @@ import {
   Zap,
   Brain,
   AlertCircle,
+  AlertTriangle,
   Mic,
+  PhoneOff,
+  Check,
+  Copy,
+  User,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 
 export default function WorkspaceHeader({
-  isActivityStreamOpen,
-  onToggleActivityStream,
-  proposedCount = 0,
-  isSpeechSimOpen = false,
-  onToggleSpeechSim,
   onOpenAuth,
   isListening = false,
   onToggleMic,
   micStatus = "idle",
+  onLeaveRoom,
 }) {
   const {
     roomId,
@@ -43,15 +48,125 @@ export default function WorkspaceHeader({
     setIsCommitModalOpen,
     isCommitting,
     commitError,
+    updateDisplayName,
   } = useRoom();
 
   const { logout } = useAuth();
   const [showHelp, setShowHelp] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
 
-  const isMarcus = currentUser.id === "demo-user-2";
-  const alternateUrl = isMarcus ? window.location.pathname : `${window.location.pathname}?as=marcus`;
-  const alternateLabel = isMarcus ? "Switch to Elena (Lead)" : "Open Marcus in 2nd Tab";
+  const userMenuRef = useRef(null);
+  const helpMenuRef = useRef(null);
+
+  // Close menus and modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowLeaveModal(false);
+        setShowUserMenu(false);
+        setShowHelp(false);
+        setIsEditingName(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Close menus on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setShowUserMenu(false);
+        setIsEditingName(false);
+      }
+      if (helpMenuRef.current && !helpMenuRef.current.contains(e.target)) {
+        setShowHelp(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleCopyLink = () => {
+    if (typeof window !== "undefined") {
+      const shareUrl = `${window.location.origin}/?room=${encodeURIComponent(roomId)}`;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setCopiedLink(true);
+        toast.success("Room invite link copied to clipboard!");
+        setTimeout(() => setCopiedLink(false), 2000);
+      }).catch(() => {
+        toast.error("Could not copy link to clipboard.");
+      });
+    }
+  };
+
+  const handleSaveName = (e) => {
+    e.preventDefault();
+    if (nameInput.trim()) {
+      updateDisplayName(nameInput.trim());
+      setIsEditingName(false);
+      toast.success(`Display name updated to ${nameInput.trim()}`);
+    }
+  };
+
+  const handleUserLogout = () => {
+    setShowUserMenu(false);
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("mindmesh_username");
+      localStorage.removeItem("mindmesh_userid");
+    }
+    updateDisplayName("");
+    logout();
+    toast.info("Logged out / identity reset.");
+  };
+
+  const handleLeaveCall = () => {
+    setShowLeaveModal(false);
+    setShowDeleteConfirm(false);
+    if (typeof onLeaveRoom === "function") {
+      onLeaveRoom();
+    } else {
+      window.location.href = "/";
+    }
+  };
+
+  const [isDeletingRoom, setIsDeletingRoom] = useState(false);
+
+  const handleExecuteDeleteRoom = async () => {
+    setIsDeletingRoom(true);
+    try {
+      const apiBase =
+        import.meta.env.VITE_SERVER_URL ||
+        (typeof window !== "undefined" && window.location.port === "5173"
+          ? `${window.location.protocol}//${window.location.hostname}:3000`
+          : "");
+
+      const res = await fetch(`${apiBase}/api/rooms/${encodeURIComponent(roomId)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        toast.success(`Workspace "${roomId}" permanently deleted.`);
+        setShowLeaveModal(false);
+        setShowDeleteConfirm(false);
+        handleLeaveCall();
+      } else {
+        toast.error("Failed to delete room from server.");
+      }
+    } catch (err) {
+      console.error("[WorkspaceHeader] Error deleting room:", err);
+      toast.error("Network error while deleting room.");
+    } finally {
+      setIsDeletingRoom(false);
+    }
+  };
+
   const isLocalUserPresenter = activePresenter?.socketId === socket?.id;
 
   return (
@@ -69,14 +184,26 @@ export default function WorkspaceHeader({
 
         <div className="h-4 w-px bg-slate-800 hidden sm:block" />
 
-        {/* Room Badge */}
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-xs">
+        {/* Room Badge & Share Trigger */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-xs">
           <span
             className={`w-2 h-2 rounded-full ${
               isConnected ? "bg-emerald-400 shadow-sm shadow-emerald-400/50 animate-pulse" : "bg-rose-400"
             }`}
           />
-          <span className="text-slate-300 font-mono font-medium">{roomId}</span>
+          <span className="text-slate-300 font-mono font-medium max-w-[100px] sm:max-w-none truncate">{roomId}</span>
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="p-0.5 text-slate-400 hover:text-white rounded transition-colors ml-0.5"
+            title="Copy shareable room link to invite teammates"
+          >
+            {copiedLink ? (
+              <Check className="w-3 h-3 text-emerald-400" />
+            ) : (
+              <Copy className="w-3 h-3" />
+            )}
+          </button>
         </div>
 
         {/* Phase 6 Adaptive Mode Selector */}
@@ -187,29 +314,11 @@ export default function WorkspaceHeader({
           )}
         </button>
 
-        {/* Phase 5 Speech Simulator Toggle Button */}
-        <button
-          type="button"
-          onClick={onToggleSpeechSim}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
-            isSpeechSimOpen
-              ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-violet-400/60 shadow-md shadow-violet-500/20"
-              : "text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border-slate-800"
-          }`}
-          title="Toggle Real-Time Speech Intelligence Simulator"
-        >
-          <span className="text-sm">🎙️</span>
-          <span className="hidden md:inline">Dialogue Sim</span>
-          {isSpeechSimOpen && (
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-          )}
-        </button>
-
         {/* Phase 7 Commit Call Button */}
         <button
           type="button"
           onClick={() => setIsCommitModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500 via-rose-500 to-violet-600 hover:from-amber-400 hover:via-rose-400 hover:to-violet-500 text-white shadow-md shadow-violet-500/25 border border-white/20 transition-all duration-200 active:scale-95 group relative"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500 via-rose-500 to-violet-600 hover:from-amber-400 hover:via-rose-400 hover:to-violet-500 text-white shadow-md shadow-violet-500/25 border border-white/20 transition-all duration-200 active:scale-95 group relative shrink-0"
           title="Commit meeting synthesis, review decisions, and export to Slack / Notion / Email"
         >
           <Sparkles className="w-3.5 h-3.5 text-amber-200 group-hover:rotate-12 transition-transform" />
@@ -225,24 +334,12 @@ export default function WorkspaceHeader({
           ) : null}
         </button>
 
-        {/* Identity & Multi-tab switch */}
-        <a
-          href={alternateUrl}
-          target="_blank"
-          rel="noreferrer"
-          title="Open second identity in new tab to test real-time collaboration"
-          className="hidden lg:flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-sky-300 bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 transition-colors"
-        >
-          <ExternalLink className="w-3 h-3" />
-          <span>{alternateLabel}</span>
-        </a>
-
         {/* Peer Presence Cluster */}
-        <div className="flex items-center -space-x-1.5 overflow-hidden">
+        <div className="flex items-center -space-x-1.5 overflow-hidden shrink-0">
           {/* Active Local User */}
           <div
             title={`You: ${currentUser.name} (${currentUser.role})`}
-            className="w-7 h-7 rounded-full border-2 border-slate-950 flex items-center justify-center text-[10px] font-bold text-slate-900 shadow-sm ring-1 ring-sky-400/80 cursor-default"
+            className="w-7 h-7 rounded-full border-2 border-slate-950 flex items-center justify-center text-[10px] font-bold text-slate-900 shadow-sm ring-1 ring-sky-400/80 cursor-default shrink-0"
             style={{ backgroundColor: currentUser.color || "#38bdf8" }}
           >
             {currentUser.avatar || "ME"}
@@ -253,7 +350,7 @@ export default function WorkspaceHeader({
             <div
               key={peer.socketId}
               title={`Collaborator: ${peer.user?.name || "Peer"} (${peer.user?.role || "Member"})`}
-              className="w-7 h-7 rounded-full border-2 border-slate-950 flex items-center justify-center text-[10px] font-bold text-slate-900 shadow-sm ring-1 ring-emerald-400 animate-in fade-in zoom-in-75 duration-200"
+              className="w-7 h-7 rounded-full border-2 border-slate-950 flex items-center justify-center text-[10px] font-bold text-slate-900 shadow-sm ring-1 ring-emerald-400 animate-in fade-in zoom-in-75 duration-200 shrink-0"
               style={{ backgroundColor: peer.user?.color || "#10b981" }}
             >
               {peer.user?.avatar || "P"}
@@ -266,14 +363,14 @@ export default function WorkspaceHeader({
           <button
             type="button"
             onClick={onOpenAuth}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition-colors shrink-0"
             title="Sign in or register an account"
           >
             <span className="hidden sm:inline">Sign In</span>
             <span className="sm:hidden">Login</span>
           </button>
         ) : (
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               type="button"
               onClick={() => setShowUserMenu((prev) => !prev)}
@@ -284,97 +381,275 @@ export default function WorkspaceHeader({
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 top-9 w-48 rounded-xl bg-slate-900 border border-slate-800 shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
-                <div className="px-2 py-1.5 border-b border-slate-800 mb-1">
+              <div
+                ref={userMenuRef}
+                className="absolute right-0 top-9 w-52 rounded-xl bg-slate-900 border border-slate-800 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 text-xs space-y-1"
+              >
+                <div className="px-2.5 py-2 border-b border-slate-800">
                   <div className="font-semibold text-slate-200 truncate">{currentUser.name}</div>
-                  <div className="text-[10px] text-slate-400 truncate">{currentUser.email}</div>
+                  <div className="text-[10px] text-slate-400 truncate">{currentUser.email || "Guest Collaborator"}</div>
                   <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono">
                     {currentUser.role || "Member"}
                   </span>
                 </div>
+
+                {/* Edit Display Name */}
+                {isEditingName ? (
+                  <form onSubmit={handleSaveName} className="p-1.5 space-y-1.5">
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      placeholder="New display name"
+                      className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-white"
+                      autoFocus
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        type="submit"
+                        className="px-2 py-0.5 bg-indigo-600 text-white rounded text-[10px]"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingName(false)}
+                        className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNameInput(currentUser.name);
+                      setIsEditingName(true);
+                    }}
+                    className="w-full text-left px-2 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-1.5"
+                  >
+                    <Edit2 className="w-3 h-3 text-slate-400" />
+                    <span>Change Name</span>
+                  </button>
+                )}
+
+                {/* Log Out & Clear Identity */}
+                <button
+                  type="button"
+                  onClick={handleUserLogout}
+                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors font-medium flex items-center gap-1.5"
+                >
+                  <User className="w-3 h-3" />
+                  <span>Log Out / Reset Name</span>
+                </button>
+
+                {/* Leave Meeting from Menu */}
                 <button
                   type="button"
                   onClick={() => {
                     setShowUserMenu(false);
-                    logout();
+                    setShowLeaveModal(true);
                   }}
-                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors font-medium"
+                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-300 hover:bg-rose-500/20 transition-colors font-medium flex items-center gap-1.5 border-t border-slate-800/80 pt-1.5"
                 >
-                  Log Out
+                  <PhoneOff className="w-3 h-3" />
+                  <span>Leave Meeting</span>
                 </button>
               </div>
             )}
           </div>
         )}
 
-        {/* Activity Stream Drawer Button */}
-        <button
-          type="button"
-          onClick={onToggleActivityStream}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-            isActivityStreamOpen
-              ? "bg-violet-600/30 text-violet-200 border-violet-500/60 shadow-sm shadow-violet-500/20"
-              : "text-slate-400 hover:text-slate-100 bg-slate-900/80 hover:bg-slate-800/80 border-slate-800"
-          }`}
-          title="Toggle AI Activity Stream"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-          <span className="hidden sm:inline">AI Activity</span>
-          {proposedCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-cyan-500 text-slate-950 ml-0.5">
-              {proposedCount}
-            </span>
-          )}
-        </button>
-
         {/* Help shortcuts button */}
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowHelp(!showHelp)}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            title="Canvas navigation tips"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+
+          {/* Help Modal Popup */}
+          {showHelp && (
+            <div
+              ref={helpMenuRef}
+              className="absolute top-10 right-0 w-80 bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl p-4 backdrop-blur-xl z-50 text-xs animate-in fade-in zoom-in-95 duration-150"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+                <span className="font-semibold text-slate-200 flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-sky-400" /> Canvas Shortcuts
+                </span>
+                <button
+                  onClick={() => setShowHelp(false)}
+                  className="text-slate-400 hover:text-white p-1 rounded"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <ul className="space-y-2 text-slate-300">
+                <li className="flex justify-between">
+                  <span className="text-slate-400">Pan canvas:</span>
+                  <span className="font-mono text-slate-200">Space + Drag or Click & Drag</span>
+                </li>
+                <li className="flex justify-between">
+                  <span className="text-slate-400">Zoom view:</span>
+                  <span className="font-mono text-slate-200">Mouse Wheel</span>
+                </li>
+                <li className="flex justify-between">
+                  <span className="text-slate-400">Edit text:</span>
+                  <span className="font-mono text-slate-200">Double click card</span>
+                </li>
+                <li className="flex justify-between">
+                  <span className="text-slate-400">Link cards:</span>
+                  <span className="font-mono text-slate-200">Drag/click right handle</span>
+                </li>
+                <li className="flex justify-between">
+                  <span className="text-slate-400">Dictation:</span>
+                  <span className="font-mono text-slate-200">M key</span>
+                </li>
+                <li className="flex justify-between">
+                  <span className="text-slate-400">Cancel action:</span>
+                  <span className="font-mono text-slate-200">Esc key</span>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Google Meet-Style Leave Call Button (Always Visible) */}
         <button
           type="button"
-          onClick={() => setShowHelp(!showHelp)}
-          className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-          title="Canvas navigation tips"
+          onClick={() => setShowLeaveModal(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/40 border border-rose-500/50 transition-all active:scale-95 ml-1 shrink-0 cursor-pointer"
+          title="Leave meeting and return to home"
         >
-          <HelpCircle className="w-4 h-4" />
+          <PhoneOff className="w-3.5 h-3.5" />
+          <span>Leave</span>
         </button>
       </div>
 
-      {/* Help Modal Popup */}
-      {showHelp && (
-        <div className="absolute top-16 right-4 w-80 bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl p-4 backdrop-blur-xl z-50 text-xs">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
-            <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-sky-400" /> Canvas Shortcuts
-            </span>
+      {/* Google Meet-Style Leave Confirmation Modal (Rendered to body via createPortal to prevent clipping) */}
+      {showLeaveModal && typeof document !== "undefined" && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="leave-modal-title"
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => {
+            setShowLeaveModal(false);
+            setShowDeleteConfirm(false);
+          }}
+        >
+          <div
+            className="bg-slate-900 border border-slate-700/80 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
-              onClick={() => setShowHelp(false)}
-              className="text-slate-400 hover:text-white p-1 rounded"
+              type="button"
+              onClick={() => {
+                setShowLeaveModal(false);
+                setShowDeleteConfirm(false);
+              }}
+              className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Close dialog"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
+
+            {showDeleteConfirm ? (
+              /* Step 2: Danger In-App Confirmation Card (No browser confirm popups) */
+              <div className="space-y-5 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0 shadow-lg shadow-rose-500/10 animate-pulse">
+                    <AlertTriangle className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1.5 pt-0.5">
+                    <h3 id="leave-modal-title" className="text-base font-bold text-white tracking-tight">
+                      Permanently Delete Workspace?
+                    </h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      This will permanently wipe workspace <span className="font-mono text-white font-semibold">#{roomId}</span> and remove all cards, connections, transcripts, and summaries for all teammates.
+                    </p>
+                    <p className="text-[11px] text-rose-400 font-medium pt-1">
+                      ⚠️ This action is irreversible.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end pt-3 border-t border-slate-800/80 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeletingRoom}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExecuteDeleteRoom}
+                    disabled={isDeletingRoom}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/40 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{isDeletingRoom ? "Deleting Workspace..." : "Yes, Delete Everything"}</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Step 1: Standard Leave Meeting Dialog */
+              <div className="space-y-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0 shadow-inner">
+                    <PhoneOff className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1.5 pt-0.5">
+                    <h3 id="leave-modal-title" className="text-base font-bold text-white tracking-tight">
+                      Leave Meeting Room?
+                    </h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      You will disconnect from live audio dictation and collaborative canvas updates. All cards and notes remain saved in this workspace.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-slate-800/80 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-400/80 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    title="Permanently delete this workspace and wipe all cards from database"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Room</span>
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowLeaveModal(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
+                    >
+                      Stay
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleLeaveCall}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 transition-all active:scale-95 cursor-pointer"
+                    >
+                      <PhoneOff className="w-3.5 h-3.5" />
+                      <span>Leave Call</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <ul className="space-y-2 text-slate-300">
-            <li className="flex justify-between">
-              <span className="text-slate-400">Pan canvas:</span>
-              <span className="font-mono text-slate-200">Space + Drag or Click & Drag</span>
-            </li>
-            <li className="flex justify-between">
-              <span className="text-slate-400">Zoom view:</span>
-              <span className="font-mono text-slate-200">Mouse Wheel</span>
-            </li>
-            <li className="flex justify-between">
-              <span className="text-slate-400">Edit text:</span>
-              <span className="font-mono text-slate-200">Double click card</span>
-            </li>
-            <li className="flex justify-between">
-              <span className="text-slate-400">Link cards:</span>
-              <span className="font-mono text-slate-200">Drag/click right handle</span>
-            </li>
-            <li className="flex justify-between">
-              <span className="text-slate-400">Cancel action:</span>
-              <span className="font-mono text-slate-200">Esc key</span>
-            </li>
-          </ul>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );

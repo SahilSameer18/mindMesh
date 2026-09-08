@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Download,
@@ -58,8 +59,12 @@ export default function VisualLightboxModal({ node, onClose }) {
     }
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
+      role="dialog"
+      aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-xl animate-in fade-in duration-200"
       onClick={onClose}
     >
@@ -173,6 +178,7 @@ export default function VisualLightboxModal({ node, onClose }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

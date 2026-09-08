@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { X, Sparkles, Mail, Lock, User, AlertCircle, Eye, EyeOff } from "lucide-react";
 
@@ -7,6 +8,18 @@ export default function AuthModal({ isOpen, onClose }) {
   const [tab, setTab] = useState("login"); // "login" | "signup"
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose?.();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -45,7 +58,9 @@ export default function AuthModal({ isOpen, onClose }) {
     }
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -236,6 +251,7 @@ export default function AuthModal({ isOpen, onClose }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

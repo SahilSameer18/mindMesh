@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Sparkles, Quote, Clock, User, Target, Lightbulb, CheckSquare, CheckCircle2, HelpCircle, AlertTriangle, ArrowUpRight } from "lucide-react";
 import { NODE_CONFIGS, NODE_TYPES } from "../../utils/canvasConstants.js";
 
@@ -53,8 +55,26 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
       : null) ||
     new Date(node.createdAt || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose?.();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-lg bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden text-slate-200 flex flex-col animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
@@ -168,6 +188,7 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,1 +1,1 @@
-export default function WorkspacePage() { return null; }
+export { default } from "./RoomPage.jsx";
