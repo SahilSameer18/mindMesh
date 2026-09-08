@@ -172,12 +172,12 @@ function CanvasNodeComponent({
         config.borderClass
       } ${
         isHighlighted
-          ? "ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_35px_rgba(6,182,212,0.6)] animate-pulse z-40"
+          ? "ring-4 ring-cyan-500 ring-offset-2 ring-offset-app shadow-[0_0_30px_rgba(6,182,212,0.4)] animate-pulse z-40"
           : isSelected
-          ? `ring-2 ring-sky-400/80 shadow-2xl z-30 ${config.glowClass}`
+          ? `ring-2 ring-sky-500 shadow-elevated z-30 ${config.glowClass}`
           : isConnectingSource
-          ? "ring-2 ring-amber-400 ring-dashed z-30"
-          : "hover:border-slate-500/80 shadow-lg z-10"
+          ? "ring-2 ring-amber-500 ring-dashed z-30"
+          : "hover:border-border-strong shadow-card z-10"
       } ${isDragging ? "opacity-90 scale-[1.01]" : ""}`}
     >
       <div className="w-64 min-h-[96px] p-4 flex flex-col justify-between relative">
@@ -192,7 +192,7 @@ function CanvasNodeComponent({
             </span>
 
             {node.metadata?.assignee && (
-              <span className="text-[11px] font-medium text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700/60 truncate max-w-[80px]">
+              <span className="text-[11px] font-medium text-text-muted bg-surface-subtle px-1.5 py-0.5 rounded border border-border-subtle truncate max-w-[80px]">
                 @{node.metadata.assignee}
               </span>
             )}
@@ -209,9 +209,9 @@ function CanvasNodeComponent({
                     e.stopPropagation();
                     onInspectEvidence?.(node);
                   }}
-                  className="p-1 text-slate-400 hover:text-violet-300 hover:bg-slate-800/90 rounded transition-colors"
+                  className="p-1 text-text-muted hover:text-violet-600 hover:bg-surface-subtle rounded transition-colors cursor-pointer"
                 >
-                  <Quote className="w-3.5 h-3.5 text-violet-400" />
+                  <Quote className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
                 </button>
               )}
 
@@ -223,9 +223,9 @@ function CanvasNodeComponent({
                   e.stopPropagation();
                   onInspectVisual?.(node);
                 }}
-                className="p-1 text-slate-400 hover:text-sky-300 hover:bg-slate-800/90 rounded transition-colors"
+                className="p-1 text-text-muted hover:text-sky-600 hover:bg-surface-subtle rounded transition-colors cursor-pointer"
               >
-                <Maximize2 className="w-3.5 h-3.5 text-sky-400" />
+                <Maximize2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
               </button>
             )}
 
@@ -235,7 +235,7 @@ function CanvasNodeComponent({
                 e.stopPropagation();
                 onStartConnect(node.id);
               }}
-              className="p-1 text-slate-400 hover:text-amber-300 hover:bg-slate-800/90 rounded transition-colors"
+              className="p-1 text-text-muted hover:text-amber-600 hover:bg-surface-subtle rounded transition-colors cursor-pointer"
             >
               <Link2 className="w-3.5 h-3.5" />
             </button>
@@ -245,7 +245,7 @@ function CanvasNodeComponent({
                 e.stopPropagation();
                 onDelete(node.id);
               }}
-              className="p-1 text-slate-400 hover:text-rose-400 hover:bg-slate-800/90 rounded transition-colors"
+              className="p-1 text-text-muted hover:text-rose-600 hover:bg-surface-subtle rounded transition-colors cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -259,12 +259,12 @@ function CanvasNodeComponent({
               <button
                 type="button"
                 onClick={handleToggleTask}
-                className="mt-0.5 text-emerald-400 hover:text-emerald-300 transition-colors"
+                className="mt-0.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors cursor-pointer"
               >
                 {isTaskCompleted ? (
-                  <CheckSquare className="w-4 h-4 text-emerald-400" />
+                  <CheckSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 ) : (
-                  <Square className="w-4 h-4 text-slate-500" />
+                  <Square className="w-4 h-4 text-text-faint" />
                 )}
               </button>
               {isEditing ? (
@@ -274,13 +274,13 @@ function CanvasNodeComponent({
                   onChange={(e) => setEditText(e.target.value)}
                   onBlur={handleFinishEditing}
                   onKeyDown={handleKeyDown}
-                  className="w-full text-sm bg-slate-900/90 text-slate-100 p-1 rounded border border-sky-500/50 outline-none resize-none font-sans"
+                  className="w-full text-sm bg-surface text-text-main p-1 rounded border border-sky-500 outline-none resize-none font-sans"
                   rows={2}
                 />
               ) : (
                 <p
                   className={`text-sm leading-snug font-sans break-words ${
-                    isTaskCompleted ? "line-through text-slate-400 font-normal" : "text-slate-100 font-medium"
+                    isTaskCompleted ? "line-through text-text-muted font-normal" : "text-text-main font-medium"
                   }`}
                 >
                   {node.text}
@@ -293,18 +293,17 @@ function CanvasNodeComponent({
             <div className="mb-2">
               {!displayImageUrl || node.metadata?.status === "generating" ? (
                 /* Generating Phase: Shimmering skeleton loader */
-                <div className="w-full h-32 rounded-xl bg-slate-900/90 border border-slate-800/80 flex flex-col items-center justify-center p-3 relative overflow-hidden animate-pulse shadow-inner">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-700/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
-                  <ImageIcon className="w-5 h-5 text-sky-400 mb-2 animate-pulse" />
-                  <span className="text-xs font-semibold text-slate-200">Synthesizing visual concept...</span>
-                  <span className="text-[10px] text-slate-400 mt-1">Generative Concept</span>
+                <div className="w-full h-32 rounded-xl bg-surface-subtle border border-border-subtle flex flex-col items-center justify-center p-3 relative overflow-hidden animate-pulse shadow-inner">
+                  <ImageIcon className="w-5 h-5 text-sky-600 dark:text-sky-400 mb-2 animate-pulse" />
+                  <span className="text-xs font-semibold text-text-main">Synthesizing visual concept...</span>
+                  <span className="text-[10px] text-text-muted mt-1">Generative Concept</span>
                 </div>
               ) : imgError ? (
                 /* Error Phase: Option (B) Client-side error state with Retry Generation button */
-                <div className="w-full h-32 rounded-xl bg-rose-950/20 border border-rose-800/50 flex flex-col items-center justify-center p-2.5 text-center shadow-inner">
-                  <AlertTriangle className="w-4 h-4 text-rose-400 mb-1" />
-                  <span className="text-xs text-rose-200 font-semibold">Failed to load visual concept</span>
-                  <p className="text-[10px] text-slate-400 mt-0.5 mb-2 line-clamp-1">
+                <div className="w-full h-32 rounded-xl bg-rose-50 border border-rose-200 dark:bg-rose-950/20 dark:border-rose-800/50 flex flex-col items-center justify-center p-2.5 text-center shadow-inner">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 mb-1" />
+                  <span className="text-xs text-rose-700 dark:text-rose-200 font-semibold">Failed to load visual concept</span>
+                  <p className="text-[10px] text-text-muted mt-0.5 mb-2 line-clamp-1">
                     Pollinations service timed out
                   </p>
                   <button
@@ -315,7 +314,7 @@ function CanvasNodeComponent({
                       setImgLoaded(false);
                       setRetryCount((prev) => prev + 1);
                     }}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/40 text-[11px] font-medium transition-all shadow-sm active:scale-95"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 text-[11px] font-medium transition-all shadow-subtle active:scale-95 cursor-pointer dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:text-rose-200 dark:border-rose-500/40"
                   >
                     <RotateCw className="w-3 h-3" />
                     <span>Retry Generation</span>
@@ -324,7 +323,7 @@ function CanvasNodeComponent({
               ) : (
                 /* Ready Phase: Image container with skeleton under-layer and smooth fade-in */
                 <div
-                  className="relative w-full h-32 rounded-xl overflow-hidden border border-slate-800/80 bg-slate-900/90 group/img cursor-zoom-in shadow-md"
+                  className="relative w-full h-32 rounded-xl overflow-hidden border border-border-subtle bg-surface-subtle group/img cursor-zoom-in shadow-subtle"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (imgLoaded) {
@@ -334,9 +333,9 @@ function CanvasNodeComponent({
                   title="Click to inspect high-resolution visual concept"
                 >
                   {!imgLoaded && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/95 animate-pulse">
-                      <ImageIcon className="w-5 h-5 text-slate-500 mb-1 animate-pulse" />
-                      <span className="text-[11px] font-medium text-slate-400">Loading visual...</span>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-subtle animate-pulse">
+                      <ImageIcon className="w-5 h-5 text-text-faint mb-1 animate-pulse" />
+                      <span className="text-[11px] font-medium text-text-muted">Loading visual...</span>
                     </div>
                   )}
                   <img
@@ -356,8 +355,8 @@ function CanvasNodeComponent({
                     } group-hover/img:scale-105`}
                   />
                   {imgLoaded && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-end justify-between p-2">
-                      <span className="text-[10px] font-medium text-slate-200 flex items-center gap-1 bg-slate-900/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-slate-700/60 shadow">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-end justify-between p-2">
+                      <span className="text-[10px] font-medium text-white flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/20 shadow">
                         <Maximize2 className="w-2.5 h-2.5 text-sky-400" />
                         Inspect
                       </span>
@@ -365,7 +364,7 @@ function CanvasNodeComponent({
                   )}
                 </div>
               )}
-              <p className="text-xs text-slate-300 font-medium mt-1.5 line-clamp-2">{node.text}</p>
+              <p className="text-xs text-text-main font-medium mt-1.5 line-clamp-2">{node.text}</p>
             </div>
           )}
 
@@ -378,12 +377,12 @@ function CanvasNodeComponent({
                   onChange={(e) => setEditText(e.target.value)}
                   onBlur={handleFinishEditing}
                   onKeyDown={handleKeyDown}
-                  className="w-full text-sm bg-slate-900/90 text-slate-100 p-1.5 rounded border border-sky-500/50 outline-none resize-none font-sans"
+                  className="w-full text-sm bg-surface text-text-main p-1.5 rounded border border-sky-500 outline-none resize-none font-sans"
                   rows={2}
                 />
               ) : (
-                <p className="text-sm leading-relaxed text-slate-100 font-medium break-words">
-                  {node.text || <span className="italic text-slate-500">Double click to add details...</span>}
+                <p className="text-sm leading-relaxed text-text-main font-medium break-words">
+                  {node.text || <span className="italic text-text-faint">Double click to add details...</span>}
                 </p>
               )}
             </div>
@@ -392,22 +391,22 @@ function CanvasNodeComponent({
 
         {/* Card Footer: Metadata info (e.g. source/status) */}
         {node.semanticKey && (
-          <div className="mt-1 pt-1 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400">
+          <div className="mt-1 pt-1 border-t border-border-subtle flex items-center justify-between text-[10px] text-text-muted">
             <span className="truncate max-w-[140px]">key: {node.semanticKey}</span>
-            {node.sourceType === "transcript" && <span className="text-sky-400">Echo Voice</span>}
+            {node.sourceType === "transcript" && <span className="text-sky-600 dark:text-sky-400 font-medium">Echo Voice</span>}
           </div>
         )}
 
         {/* Right Connection Port Anchor Handle */}
         <button
           title="Drag or click to link"
-          className="connect-handle absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-900 border-2 border-slate-500 hover:border-sky-400 hover:bg-sky-500/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-crosshair z-40"
+          className="connect-handle absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface border-2 border-border-strong hover:border-sky-500 hover:bg-sky-50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-subtle cursor-crosshair z-40"
           onClick={(e) => {
             e.stopPropagation();
             onStartConnect(node.id);
           }}
         >
-          <div className="w-1.5 h-1.5 rounded-full bg-slate-400 group-hover:bg-sky-400" />
+          <div className="w-1.5 h-1.5 rounded-full bg-border-strong group-hover:bg-sky-500" />
         </button>
       </div>
     </div>

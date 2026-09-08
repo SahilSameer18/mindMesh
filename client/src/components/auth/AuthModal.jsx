@@ -71,21 +71,21 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-md rounded-2xl bg-slate-900/90 border border-slate-800/90 shadow-2xl shadow-indigo-500/10 backdrop-blur-xl p-6 sm:p-8 text-slate-100 overflow-hidden">
+      <div className="relative w-full max-w-md rounded-2xl bg-surface border border-border-subtle shadow-elevated backdrop-blur-xl p-6 sm:p-8 text-text-main overflow-hidden">
         {/* Glow ambient accent */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-sky-500/10 dark:bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
 
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-subtle transition-colors"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -97,10 +97,10 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
             <BrandLogo size={22} className="text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-white font-display">
+            <h2 className="text-xl font-bold tracking-tight text-text-main font-display">
               {tab === "login" ? "Welcome back" : "Create your account"}
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-text-muted">
               {tab === "login"
                 ? "Sign in to save workspaces and preserve action lineage"
                 : "Join mindMesh to build visual intelligence with your team"}
@@ -109,7 +109,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex rounded-xl bg-slate-950/60 p-1 mb-6 border border-slate-800/80">
+        <div className="flex rounded-xl bg-surface-subtle p-1 mb-6 border border-border-subtle">
           <button
             type="button"
             onClick={() => {
@@ -119,7 +119,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
             className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
               tab === "login"
                 ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20"
-                : "text-slate-400 hover:text-slate-200"
+                : "text-text-muted hover:text-text-main"
             }`}
           >
             Sign In
@@ -133,7 +133,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
             className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
               tab === "signup"
                 ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20"
-                : "text-slate-400 hover:text-slate-200"
+                : "text-text-muted hover:text-text-main"
             }`}
           >
             Create Account
@@ -142,8 +142,8 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
 
         {/* Error Alert */}
         {authError && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-start gap-2.5 text-rose-300 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+          <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-500/15 border border-rose-200 dark:border-rose-500/30 flex items-start gap-2.5 text-rose-700 dark:text-rose-300 text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500 dark:text-rose-400" />
             <span>{authError}</span>
           </div>
         )}
@@ -153,29 +153,29 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
           <div className="space-y-4 py-2" aria-label="Processing authentication">
             {tab === "signup" && (
               <div className="space-y-1.5">
-                <div className="w-16 h-3 bg-slate-800 rounded animate-pulse" />
-                <div className="w-full h-10 bg-slate-800/80 rounded-xl animate-pulse" />
+                <div className="w-16 h-3 bg-surface-subtle rounded animate-pulse" />
+                <div className="w-full h-10 bg-surface-subtle/80 rounded-xl animate-pulse" />
               </div>
             )}
             <div className="space-y-1.5">
-              <div className="w-16 h-3 bg-slate-800 rounded animate-pulse" />
-              <div className="w-full h-10 bg-slate-800/80 rounded-xl animate-pulse" />
+              <div className="w-16 h-3 bg-surface-subtle rounded animate-pulse" />
+              <div className="w-full h-10 bg-surface-subtle/80 rounded-xl animate-pulse" />
             </div>
             <div className="space-y-1.5">
-              <div className="w-20 h-3 bg-slate-800 rounded animate-pulse" />
-              <div className="w-full h-10 bg-slate-800/80 rounded-xl animate-pulse" />
+              <div className="w-20 h-3 bg-surface-subtle rounded animate-pulse" />
+              <div className="w-full h-10 bg-surface-subtle/80 rounded-xl animate-pulse" />
             </div>
-            <div className="w-full h-10 bg-indigo-600/40 rounded-xl animate-pulse mt-4" />
+            <div className="w-full h-10 bg-indigo-600/30 rounded-xl animate-pulse mt-4" />
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {tab === "signup" && (
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                <label className="block text-xs font-medium text-text-muted mb-1.5">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-slate-500 absolute left-3 top-3 pointer-events-none" />
+                  <User className="w-4 h-4 text-text-muted absolute left-3 top-3 pointer-events-none" />
                   <input
                     type="text"
                     name="name"
@@ -183,18 +183,18 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Dr. Gordon Freeman"
-                    className="w-full pl-9 pr-3 py-2 text-sm bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                    className="w-full pl-9 pr-3 py-2 text-sm bg-surface-subtle border border-border-subtle rounded-xl text-text-main placeholder-text-muted/60 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-border-muted transition-all"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label className="block text-xs font-medium text-text-muted mb-1.5">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3 pointer-events-none" />
+                <Mail className="w-4 h-4 text-text-muted absolute left-3 top-3 pointer-events-none" />
                 <input
                   type="email"
                   name="email"
@@ -202,17 +202,17 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="gordon@blackmesa.gov"
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-surface-subtle border border-border-subtle rounded-xl text-text-main placeholder-text-muted/60 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-border-muted transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label className="block text-xs font-medium text-text-muted mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3 pointer-events-none" />
+                <Lock className="w-4 h-4 text-text-muted absolute left-3 top-3 pointer-events-none" />
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -221,19 +221,19 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-10 py-2 text-sm bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                  className="w-full pl-9 pr-10 py-2 text-sm bg-surface-subtle border border-border-subtle rounded-xl text-text-main placeholder-text-muted/60 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-border-muted transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-2.5 text-text-muted hover:text-text-main transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
               {tab === "signup" && (
-                <p className="text-[11px] text-slate-500 mt-1">Must be at least 6 characters.</p>
+                <p className="text-[11px] text-text-muted mt-1">Must be at least 6 characters.</p>
               )}
             </div>
 
@@ -247,12 +247,12 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }) {
         )}
 
         {/* Frictionless Guest Bypass */}
-        <div className="mt-6 pt-4 border-t border-slate-800/70 flex items-center justify-between">
-          <span className="text-xs text-slate-500">Just exploring?</span>
+        <div className="mt-6 pt-4 border-t border-border-subtle flex items-center justify-between">
+          <span className="text-xs text-text-muted">Just exploring?</span>
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-medium text-sky-400 hover:text-sky-300 hover:underline transition-colors"
+            className="text-xs font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline transition-colors"
           >
             Continue as Guest Demo →
           </button>

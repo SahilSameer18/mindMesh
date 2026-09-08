@@ -221,19 +221,19 @@ export function Minimap({
       aria-label="Canvas Minimap"
       className="fixed bottom-6 right-6 z-40 select-none transition-all duration-300 pointer-events-auto"
     >
-      <div className="bg-slate-900/85 backdrop-blur-xl border border-slate-700/60 rounded-2xl shadow-2xl p-2.5 overflow-hidden">
+      <div className="bg-surface/90 backdrop-blur-xl border border-border-subtle rounded-2xl shadow-elevated p-2.5 overflow-hidden">
         {/* Radar Header */}
-        <div className="flex items-center justify-between px-1 pb-1.5 border-b border-slate-700/40 text-[11px] font-medium text-slate-300">
+        <div className="flex items-center justify-between px-1 pb-1.5 border-b border-border-subtle text-[11px] font-medium text-text-main">
           <div className="flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-violet-400" />
+            <Compass className="w-3.5 h-3.5 text-violet-500" />
             <span>Radar Minimap</span>
-            <span className="text-[10px] text-slate-500 font-normal">
+            <span className="text-[10px] text-text-muted font-normal">
               ({nodes.length} {nodes.length === 1 ? "node" : "nodes"})
             </span>
           </div>
           <button
             onClick={() => setIsCollapsed((prev) => !prev)}
-            className="p-1 text-slate-400 hover:text-white rounded transition-colors"
+            className="p-1 text-text-muted hover:text-text-main rounded transition-colors"
             title={isCollapsed ? "Expand minimap" : "Collapse minimap"}
           >
             {isCollapsed ? <Maximize2 className="w-3 h-3" /> : <Minimize2 className="w-3 h-3" />}
@@ -248,15 +248,15 @@ export function Minimap({
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
-            className="relative cursor-crosshair rounded-xl mt-2 bg-slate-950/80 border border-slate-800/80 overflow-hidden shadow-inner"
+            className="relative cursor-crosshair rounded-xl mt-2 bg-slate-100/90 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-inner"
             style={{ width: `${RADAR_WIDTH}px`, height: `${RADAR_HEIGHT}px` }}
           >
-            {/* Subtle grid pattern */}
+            {/* Blueprint grid pattern */}
             <div
-              className="absolute inset-0 opacity-10 pointer-events-none"
+              className="absolute inset-0 opacity-25 pointer-events-none"
               style={{
-                backgroundImage: "radial-gradient(circle, #8b5cf6 1px, transparent 1px)",
-                backgroundSize: "16px 16px",
+                backgroundImage: "radial-gradient(circle, rgba(99, 102, 241, 0.4) 1px, transparent 1px)",
+                backgroundSize: "14px 14px",
               }}
             />
 
@@ -314,7 +314,7 @@ export function Minimap({
 
             {/* Current User Camera Rectangle */}
             <div
-              className="absolute pointer-events-none rounded border-2 border-violet-400 bg-violet-500/15 shadow-sm transition-all"
+              className="absolute pointer-events-none rounded-lg border-2 border-violet-500 bg-violet-500/10 shadow-[0_0_8px_rgba(139,92,246,0.25)] transition-all"
               style={{
                 left: `${userCameraRect.x}px`,
                 top: `${userCameraRect.y}px`,
@@ -322,7 +322,7 @@ export function Minimap({
                 height: `${userCameraRect.height}px`,
               }}
             >
-              <div className="absolute inset-0 border border-white/30 rounded" />
+              <div className="absolute inset-0 border border-violet-400/30 rounded-md" />
             </div>
           </div>
         )}

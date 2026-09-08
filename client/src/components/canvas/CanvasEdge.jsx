@@ -105,10 +105,10 @@ function CanvasEdgeComponent({
         className="overflow-visible pointer-events-auto"
       >
         <div
-          className={`inline-flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border backdrop-blur-md shadow-md transition-transform group-hover:scale-105 ${
+          className={`inline-flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border backdrop-blur-md shadow-subtle transition-transform group-hover:scale-105 ${
             isSelected
-              ? "bg-slate-900 border-sky-400 text-sky-300"
-              : "bg-slate-950/85 border-slate-700/80 text-slate-300 hover:border-slate-500"
+              ? "bg-surface border-sky-500 text-sky-600 dark:text-sky-300 shadow-sm"
+              : "bg-surface/95 border-border-subtle text-text-muted hover:border-border-muted"
           }`}
           style={{ borderColor: isSelected ? undefined : strokeColor }}
         >
@@ -120,7 +120,7 @@ function CanvasEdgeComponent({
               e.stopPropagation();
               onDelete(edge.id);
             }}
-            className="text-slate-400 hover:text-rose-400 p-0.5 rounded transition-colors"
+            className="text-text-muted hover:text-rose-500 p-0.5 rounded transition-colors"
           >
             <X className="w-2.5 h-2.5" />
           </button>

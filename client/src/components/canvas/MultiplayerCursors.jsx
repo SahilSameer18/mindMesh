@@ -43,7 +43,7 @@ function CursorItem({ cursor }) {
         <path
           d="M3 3L10.07 19.97L12.58 12.58L19.97 10.07L3 3Z"
           fill={color}
-          stroke="#0f172a"
+          stroke="#ffffff"
           strokeWidth="1.5"
           strokeLinejoin="round"
         />

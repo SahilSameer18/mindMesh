@@ -171,7 +171,7 @@ export default function WorkspaceHeader({
   const isLocalUserPresenter = activePresenter?.socketId === socket?.id;
 
   return (
-    <header className="h-14 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-2 sm:px-4 flex items-center justify-between z-30 shrink-0 select-none gap-2">
+    <header className="h-14 border-b border-border-subtle bg-surface/90 backdrop-blur-xl px-2 sm:px-4 flex items-center justify-between z-30 shrink-0 select-none gap-2 shadow-subtle">
       {/* Brand, Room Info & Meeting Mode Selector */}
       <div className="flex items-center gap-2 sm:gap-3">
         <a
@@ -182,61 +182,83 @@ export default function WorkspaceHeader({
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform">
             <BrandLogo size={18} className="text-white" />
           </div>
-          <span className="font-display font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent hidden sm:inline">
+          <span className="font-display font-bold text-lg tracking-tight text-text-main hidden sm:inline">
             mindMesh
           </span>
         </a>
 
-        <div className="h-4 w-px bg-slate-800 hidden sm:block" />
+        <div className="h-4 w-px bg-border-subtle hidden sm:block" />
 
         {/* Room Badge & Share Trigger */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-xs">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-subtle border border-border-subtle text-xs">
           <span
             className={`w-2 h-2 rounded-full ${
-              isConnected ? "bg-emerald-400 shadow-sm shadow-emerald-400/50 animate-pulse" : "bg-rose-400"
+              isConnected ? "bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse" : "bg-rose-500"
             }`}
           />
-          <span className="text-slate-300 font-mono font-medium max-w-[65px] sm:max-w-none truncate">{roomId}</span>
+          <span className="text-text-main font-mono font-medium max-w-[65px] sm:max-w-none truncate">{roomId}</span>
           <button
             type="button"
             onClick={handleCopyLink}
-            className="p-0.5 text-slate-400 hover:text-white rounded transition-colors ml-0.5"
+            className="p-0.5 text-text-muted hover:text-text-main rounded transition-colors ml-0.5 cursor-pointer"
             title="Copy shareable room link to invite teammates"
           >
             {copiedLink ? (
-              <Check className="w-3 h-3 text-emerald-400" />
+              <Check className="w-3 h-3 text-emerald-600" />
             ) : (
               <Copy className="w-3 h-3" />
             )}
           </button>
         </div>
 
-        {/* Phase 6 Adaptive Mode Selector */}
-        <div className="hidden md:flex items-center p-0.5 rounded-lg bg-slate-900 border border-slate-800 text-xs">
+        {/* Phase 6 Adaptive Mode Selector (Linear-Style Sliding Segmented Control) */}
+        <div className="relative hidden md:grid grid-cols-2 p-0.5 rounded-xl bg-surface-subtle border border-border-subtle text-xs shadow-subtle select-none">
+          {/* Animated Sliding Background Indicator */}
+          <div
+            className={`absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-lg bg-surface shadow-subtle border border-border-subtle transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none will-change-transform ${
+              roomMode === "brainstorm" ? "translate-x-full" : "translate-x-0"
+            }`}
+          />
+
+          {/* Button 1: Operational */}
           <button
             type="button"
             onClick={() => updateRoomMode("operational")}
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-medium transition-all ${
+            className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 rounded-lg text-xs transition-colors duration-200 cursor-pointer ${
               roomMode === "operational"
-                ? "bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 border border-transparent"
+                ? "text-text-main font-semibold"
+                : "text-text-muted hover:text-text-main font-medium"
             }`}
             title="Operational Mode: Structured outline, action items, and topic columns"
           >
-            <Zap className="w-3 h-3 text-sky-400" />
+            <Zap
+              className={`w-3.5 h-3.5 transition-all duration-300 ${
+                roomMode === "operational"
+                  ? "text-sky-500 fill-sky-500/20 scale-110"
+                  : "text-text-muted/60 scale-100"
+              }`}
+            />
             <span>Operational</span>
           </button>
+
+          {/* Button 2: Brainstorm */}
           <button
             type="button"
             onClick={() => updateRoomMode("brainstorm")}
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-medium transition-all ${
+            className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 rounded-lg text-xs transition-colors duration-200 cursor-pointer ${
               roomMode === "brainstorm"
-                ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 border border-transparent"
+                ? "text-text-main font-semibold"
+                : "text-text-muted hover:text-text-main font-medium"
             }`}
             title="Brainstorm Mode: Organic visual clustering and creative association"
           >
-            <Brain className="w-3 h-3 text-purple-400" />
+            <Brain
+              className={`w-3.5 h-3.5 transition-all duration-300 ${
+                roomMode === "brainstorm"
+                  ? "text-purple-500 fill-purple-500/20 scale-110"
+                  : "text-text-muted/60 scale-100"
+              }`}
+            />
             <span>Brainstorm</span>
           </button>
         </div>
@@ -250,10 +272,10 @@ export default function WorkspaceHeader({
             <button
               type="button"
               onClick={() => stopPresenting()}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/50 shadow-sm transition-all animate-pulse"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 shadow-sm transition-all animate-pulse dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:text-rose-300 dark:border-rose-500/50"
               title="You are currently broadcasting your screen to followers. Click to stop."
             >
-              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="w-2 h-2 rounded-full bg-rose-600" />
               <span>Broadcasting (Stop)</span>
             </button>
           ) : activePresenter ? (
@@ -262,12 +284,12 @@ export default function WorkspaceHeader({
               onClick={() => setFollowing(!isFollowing)}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
                 isFollowing
-                  ? "bg-violet-600/30 text-violet-200 border-violet-500/60 shadow-sm shadow-violet-500/20"
-                  : "bg-slate-900/90 text-slate-300 hover:text-white border-slate-800"
+                  ? "bg-violet-100 text-violet-800 border-violet-300 shadow-sm dark:bg-violet-600/30 dark:text-violet-200 dark:border-violet-500/60"
+                  : "bg-surface-subtle text-text-main hover:bg-surface-hover border-border-subtle"
               }`}
               title={isFollowing ? "Click to stop following presenter" : "Click to follow presenter"}
             >
-              <Radio className={`w-3.5 h-3.5 ${isFollowing ? "text-violet-400 animate-pulse" : "text-slate-400"}`} />
+              <Radio className={`w-3.5 h-3.5 ${isFollowing ? "text-violet-600 animate-pulse" : "text-text-muted"}`} />
               <span className="hidden sm:inline">
                 {isFollowing ? `Following ${activePresenter.user?.name?.split(" ")[0] || "Presenter"}` : `Follow ${activePresenter.user?.name?.split(" ")[0] || "Presenter"}`}
               </span>
@@ -277,18 +299,18 @@ export default function WorkspaceHeader({
             <button
               type="button"
               onClick={() => startPresenting()}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-surface-subtle hover:bg-surface-hover text-text-main border border-border-subtle transition-colors cursor-pointer"
               title="Broadcast your screen coordinates to followers"
             >
-              <Radio className="w-3.5 h-3.5 text-slate-400" />
+              <Radio className="w-3.5 h-3.5 text-text-muted" />
               <span className="hidden sm:inline">Follow Me</span>
             </button>
           )}
 
           {/* Inline Contested Presenter Alert Badge */}
           {presenterContestError && (
-            <div className="absolute top-10 right-0 whitespace-nowrap px-2.5 py-1 rounded-md bg-amber-950/95 border border-amber-500/80 text-amber-200 text-[11px] font-medium shadow-xl flex items-center gap-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-              <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />
+            <div className="absolute top-10 right-0 whitespace-nowrap px-2.5 py-1 rounded-md bg-amber-50 border border-amber-300 text-amber-900 dark:bg-amber-950/95 dark:border-amber-500/80 dark:text-amber-200 text-[11px] font-medium shadow-elevated flex items-center gap-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
               <span>{presenterContestError}</span>
             </div>
           )}
@@ -298,22 +320,22 @@ export default function WorkspaceHeader({
         <button
           type="button"
           onClick={onToggleMic}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
             isListening
-              ? "bg-rose-500/20 text-rose-200 border-rose-500/60 shadow-[0_0_15px_rgba(244,63,94,0.35)] animate-pulse"
-              : "text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border-slate-800"
+              ? "bg-rose-50 text-rose-700 border-rose-300 shadow-sm animate-pulse dark:bg-rose-500/20 dark:text-rose-200 dark:border-rose-500/60"
+              : "text-text-main hover:bg-surface-hover bg-surface-subtle border-border-subtle"
           }`}
           title={isListening ? "Mute Live Voice Dictation (Hotkey: M)" : "Start Live Voice Dictation (Hotkey: M)"}
         >
           {isListening ? (
             <>
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-              <Mic className="w-3.5 h-3.5 text-rose-400" />
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping" />
+              <Mic className="w-3.5 h-3.5 text-rose-600" />
               <span className="hidden md:inline">Listening</span>
             </>
           ) : (
             <>
-              <Mic className="w-3.5 h-3.5 text-slate-400" />
+              <Mic className="w-3.5 h-3.5 text-text-muted" />
               <span className="hidden md:inline">Dictate</span>
             </>
           )}
@@ -323,10 +345,10 @@ export default function WorkspaceHeader({
         <button
           type="button"
           onClick={() => setIsCommitModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500 via-rose-500 to-violet-600 hover:from-amber-400 hover:via-rose-400 hover:to-violet-500 text-white shadow-md shadow-violet-500/25 border border-white/20 transition-all duration-200 active:scale-95 group relative shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-subtle border border-violet-500/20 transition-all duration-200 active:scale-95 group relative shrink-0 cursor-pointer"
           title="Commit meeting synthesis, review decisions, and export to Slack / Notion / Email"
         >
-          <CheckCircle2 className="w-3.5 h-3.5 text-amber-200 group-hover:scale-110 transition-transform" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-violet-200 group-hover:scale-110 transition-transform" />
           <span className="font-medium tracking-tight hidden sm:inline">
             {latestMeetingReport ? "Meeting Report" : "Commit Call"}
           </span>
@@ -347,8 +369,8 @@ export default function WorkspaceHeader({
           {/* Active Local User */}
           <div
             title={`You: ${currentUser.name} (${currentUser.role})`}
-            className="w-7 h-7 rounded-full border-2 border-slate-950 flex items-center justify-center text-[10px] font-bold text-slate-900 shadow-sm ring-1 ring-sky-400/80 cursor-default shrink-0"
-            style={{ backgroundColor: currentUser.color || "#38bdf8" }}
+            className="w-7 h-7 rounded-full border-2 border-surface flex items-center justify-center text-[10px] font-bold text-white shadow-subtle ring-1 ring-sky-500/80 cursor-default shrink-0"
+            style={{ backgroundColor: currentUser.color || "#0284c7" }}
           >
             {currentUser.avatar || "ME"}
           </div>
@@ -358,8 +380,8 @@ export default function WorkspaceHeader({
             <div
               key={peer.socketId}
               title={`Collaborator: ${peer.user?.name || "Peer"} (${peer.user?.role || "Member"})`}
-              className="w-7 h-7 rounded-full border-2 border-slate-950 flex items-center justify-center text-[10px] font-bold text-slate-900 shadow-sm ring-1 ring-emerald-400 animate-in fade-in zoom-in-75 duration-200 shrink-0"
-              style={{ backgroundColor: peer.user?.color || "#10b981" }}
+              className="w-7 h-7 rounded-full border-2 border-surface flex items-center justify-center text-[10px] font-bold text-white shadow-subtle ring-1 ring-emerald-500 animate-in fade-in zoom-in-75 duration-200 shrink-0"
+              style={{ backgroundColor: peer.user?.color || "#059669" }}
             >
               {peer.user?.avatar || "P"}
             </div>
@@ -371,7 +393,7 @@ export default function WorkspaceHeader({
           <button
             type="button"
             onClick={onOpenAuth}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition-colors shrink-0"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-text-main bg-surface-subtle hover:bg-surface-hover border border-border-subtle transition-colors shrink-0 cursor-pointer"
             title="Sign in or register an account"
           >
             <span className="hidden sm:inline">Sign In</span>
@@ -382,21 +404,21 @@ export default function WorkspaceHeader({
             <button
               type="button"
               onClick={() => setShowUserMenu((prev) => !prev)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-200 bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-text-main bg-surface-subtle border border-border-subtle hover:border-border-strong transition-colors cursor-pointer"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="max-w-[80px] sm:max-w-[120px] truncate">{currentUser.name}</span>
             </button>
 
             {showUserMenu && (
               <div
                 ref={userMenuRef}
-                className="absolute right-0 top-9 w-52 rounded-xl bg-slate-900 border border-slate-800 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 text-xs space-y-1"
+                className="absolute right-0 top-9 w-52 rounded-xl bg-surface border border-border-subtle shadow-elevated p-2 z-50 animate-in fade-in zoom-in-95 duration-150 text-xs space-y-1"
               >
-                <div className="px-2.5 py-2 border-b border-slate-800">
-                  <div className="font-semibold text-slate-200 truncate">{currentUser.name}</div>
-                  <div className="text-[10px] text-slate-400 truncate">{currentUser.email || "Guest Collaborator"}</div>
-                  <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono">
+                <div className="px-2.5 py-2 border-b border-border-subtle">
+                  <div className="font-semibold text-text-main truncate">{currentUser.name}</div>
+                  <div className="text-[10px] text-text-muted truncate">{currentUser.email || "Guest Collaborator"}</div>
+                  <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 font-mono dark:bg-sky-500/20 dark:text-sky-300">
                     {currentUser.role || "Member"}
                   </span>
                 </div>
@@ -409,20 +431,20 @@ export default function WorkspaceHeader({
                       value={nameInput}
                       onChange={(e) => setNameInput(e.target.value)}
                       placeholder="New display name"
-                      className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-white"
+                      className="w-full px-2 py-1 rounded bg-surface-subtle border border-border-subtle text-xs text-text-main outline-none focus:border-indigo-500"
                       autoFocus
                     />
                     <div className="flex gap-1">
                       <button
                         type="submit"
-                        className="px-2 py-0.5 bg-indigo-600 text-white rounded text-[10px]"
+                        className="px-2 py-0.5 bg-indigo-600 text-white rounded text-[10px] cursor-pointer"
                       >
                         Save
                       </button>
                       <button
                         type="button"
                         onClick={() => setIsEditingName(false)}
-                        className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px]"
+                        className="px-2 py-0.5 bg-surface-subtle text-text-muted hover:text-text-main rounded text-[10px] cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -435,9 +457,9 @@ export default function WorkspaceHeader({
                       setNameInput(currentUser.name);
                       setIsEditingName(true);
                     }}
-                    className="w-full text-left px-2 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-1.5"
+                    className="w-full text-left px-2 py-1.5 rounded-lg text-text-muted hover:bg-surface-hover hover:text-text-main transition-colors flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Edit2 className="w-3 h-3 text-slate-400" />
+                    <Edit2 className="w-3 h-3 text-text-muted" />
                     <span>Change Name</span>
                   </button>
                 )}
@@ -446,7 +468,7 @@ export default function WorkspaceHeader({
                 <button
                   type="button"
                   onClick={handleUserLogout}
-                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors font-medium flex items-center gap-1.5"
+                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-colors font-medium flex items-center gap-1.5 cursor-pointer"
                 >
                   <User className="w-3 h-3" />
                   <span>Log Out / Reset Name</span>
@@ -459,7 +481,7 @@ export default function WorkspaceHeader({
                     setShowUserMenu(false);
                     setShowLeaveModal(true);
                   }}
-                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-300 hover:bg-rose-500/20 transition-colors font-medium flex items-center gap-1.5 border-t border-slate-800/80 pt-1.5"
+                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors font-medium flex items-center gap-1.5 border-t border-border-subtle pt-1.5 cursor-pointer"
                 >
                   <PhoneOff className="w-3 h-3" />
                   <span>Leave Meeting</span>
@@ -474,7 +496,7 @@ export default function WorkspaceHeader({
           <button
             type="button"
             onClick={() => setShowHelp(!showHelp)}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            className="p-1.5 text-text-muted hover:text-text-main hover:bg-surface-hover rounded-lg transition-colors cursor-pointer"
             title="Canvas navigation tips"
           >
             <HelpCircle className="w-4 h-4" />
@@ -484,43 +506,43 @@ export default function WorkspaceHeader({
           {showHelp && (
             <div
               ref={helpMenuRef}
-              className="absolute top-10 right-0 w-80 bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl p-4 backdrop-blur-xl z-50 text-xs animate-in fade-in zoom-in-95 duration-150"
+              className="absolute top-10 right-0 w-80 bg-surface border border-border-subtle rounded-2xl shadow-elevated p-4 backdrop-blur-xl z-50 text-xs animate-in fade-in zoom-in-95 duration-150"
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
-                <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-sky-400" /> Canvas Shortcuts
+              <div className="flex items-center justify-between pb-2 border-b border-border-subtle mb-3">
+                <span className="font-semibold text-text-main flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-sky-600 dark:text-sky-400" /> Canvas Shortcuts
                 </span>
                 <button
                   onClick={() => setShowHelp(false)}
-                  className="text-slate-400 hover:text-white p-1 rounded"
+                  className="text-text-muted hover:text-text-main p-1 rounded cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <ul className="space-y-2 text-slate-300">
+              <ul className="space-y-2 text-text-main">
                 <li className="flex justify-between">
-                  <span className="text-slate-400">Pan canvas:</span>
-                  <span className="font-mono text-slate-200">Space + Drag or Click & Drag</span>
+                  <span className="text-text-muted">Pan canvas:</span>
+                  <span className="font-mono text-text-main">Space + Drag or Click &amp; Drag</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-slate-400">Zoom view:</span>
-                  <span className="font-mono text-slate-200">Mouse Wheel</span>
+                  <span className="text-text-muted">Zoom view:</span>
+                  <span className="font-mono text-text-main">Mouse Wheel</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-slate-400">Edit text:</span>
-                  <span className="font-mono text-slate-200">Double click card</span>
+                  <span className="text-text-muted">Edit text:</span>
+                  <span className="font-mono text-text-main">Double click card</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-slate-400">Link cards:</span>
-                  <span className="font-mono text-slate-200">Drag/click right handle</span>
+                  <span className="text-text-muted">Link cards:</span>
+                  <span className="font-mono text-text-main">Drag/click right handle</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-slate-400">Dictation:</span>
-                  <span className="font-mono text-slate-200">M key</span>
+                  <span className="text-text-muted">Dictation:</span>
+                  <span className="font-mono text-text-main">M key</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-slate-400">Cancel action:</span>
-                  <span className="font-mono text-slate-200">Esc key</span>
+                  <span className="text-text-muted">Cancel action:</span>
+                  <span className="font-mono text-text-main">Esc key</span>
                 </li>
               </ul>
             </div>
@@ -531,7 +553,7 @@ export default function WorkspaceHeader({
         <button
           type="button"
           onClick={() => setShowLeaveModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/40 border border-rose-500/50 transition-all active:scale-95 ml-1 shrink-0 cursor-pointer"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-sm border border-rose-700/30 transition-all active:scale-95 ml-1 shrink-0 cursor-pointer"
           title="Leave meeting and return to home"
         >
           <PhoneOff className="w-3.5 h-3.5" />
@@ -545,14 +567,14 @@ export default function WorkspaceHeader({
           role="dialog"
           aria-modal="true"
           aria-labelledby="leave-modal-title"
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => {
             setShowLeaveModal(false);
             setShowDeleteConfirm(false);
           }}
         >
           <div
-            className="bg-slate-900 border border-slate-700/80 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
+            className="bg-surface border border-border-subtle rounded-2xl p-6 max-w-md w-full shadow-elevated space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -561,38 +583,38 @@ export default function WorkspaceHeader({
                 setShowLeaveModal(false);
                 setShowDeleteConfirm(false);
               }}
-              className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors cursor-pointer"
               aria-label="Close dialog"
             >
               <X className="w-4 h-4" />
             </button>
 
             {showDeleteConfirm ? (
-              /* Step 2: Danger In-App Confirmation Card (No browser confirm popups) */
+              /* Step 2: Danger In-App Confirmation Card */
               <div className="space-y-5 animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0 shadow-lg shadow-rose-500/10 animate-pulse">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 shadow-subtle animate-pulse dark:bg-rose-500/20 dark:border-rose-500/40 dark:text-rose-400">
                     <AlertTriangle className="w-6 h-6" />
                   </div>
                   <div className="space-y-1.5 pt-0.5">
-                    <h3 id="leave-modal-title" className="text-base font-bold text-white tracking-tight">
+                    <h3 id="leave-modal-title" className="text-base font-bold text-text-main tracking-tight">
                       Permanently Delete Workspace?
                     </h3>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      This will permanently wipe workspace <span className="font-mono text-white font-semibold">#{roomId}</span> and remove all cards, connections, transcripts, and summaries for all teammates.
+                    <p className="text-xs text-text-muted leading-relaxed">
+                      This will permanently wipe workspace <span className="font-mono text-text-main font-semibold">#{roomId}</span> and remove all cards, connections, transcripts, and summaries for all teammates.
                     </p>
-                    <p className="text-[11px] text-rose-400 font-medium pt-1">
+                    <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold pt-1">
                       ⚠️ This action is irreversible.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end pt-3 border-t border-slate-800/80 gap-2.5">
+                <div className="flex items-center justify-end pt-3 border-t border-border-subtle gap-2.5">
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={isDeletingRoom}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-text-main hover:bg-surface-hover bg-surface-subtle border border-border-subtle transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -600,7 +622,7 @@ export default function WorkspaceHeader({
                     type="button"
                     onClick={handleExecuteDeleteRoom}
                     disabled={isDeletingRoom}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/40 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>{isDeletingRoom ? "Deleting Workspace..." : "Yes, Delete Everything"}</span>
@@ -611,24 +633,24 @@ export default function WorkspaceHeader({
               /* Step 1: Standard Leave Meeting Dialog */
               <div className="space-y-5">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0 shadow-inner">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-700 shrink-0 shadow-sm shadow-rose-500/10 dark:bg-rose-500/25 dark:border-rose-500/40 dark:text-rose-300">
                     <PhoneOff className="w-6 h-6" />
                   </div>
                   <div className="space-y-1.5 pt-0.5">
-                    <h3 id="leave-modal-title" className="text-base font-bold text-white tracking-tight">
+                    <h3 id="leave-modal-title" className="text-base font-bold text-text-main tracking-tight">
                       Leave Meeting Room?
                     </h3>
-                    <p className="text-xs text-slate-400 leading-relaxed">
+                    <p className="text-xs text-text-muted leading-relaxed">
                       You will disconnect from live audio dictation and collaborative canvas updates. All cards and notes remain saved in this workspace.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-slate-800/80 gap-3">
+                <div className="flex items-center justify-between pt-3 border-t border-border-subtle gap-3">
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-400/80 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 dark:text-rose-400/80 dark:hover:text-rose-300 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
                     title="Permanently delete this workspace and wipe all cards from database"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -639,7 +661,7 @@ export default function WorkspaceHeader({
                     <button
                       type="button"
                       onClick={() => setShowLeaveModal(false)}
-                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-text-main hover:bg-surface-hover bg-surface-subtle border border-border-subtle transition-colors cursor-pointer"
                     >
                       Stay
                     </button>

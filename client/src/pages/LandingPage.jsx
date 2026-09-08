@@ -205,12 +205,12 @@ export default function LandingPage() {
   const userColor = getUserColor(userName || "Guest");
 
   return (
-    <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200 overflow-x-hidden font-sans relative">
+    <div className="min-h-screen w-full bg-app text-text-main flex flex-col selection:bg-indigo-500/15 selection:text-indigo-900 overflow-x-hidden font-sans relative">
       {/* Ambient Background Gradient Glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-indigo-600/15 via-violet-600/10 to-sky-500/15 blur-[120px] rounded-full" />
-        <div className="absolute top-[35%] -left-32 w-[500px] h-[400px] bg-purple-600/10 blur-[130px] rounded-full" />
-        <div className="absolute top-[65%] -right-32 w-[550px] h-[450px] bg-sky-600/10 blur-[130px] rounded-full" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-indigo-200/40 via-violet-100/30 to-sky-100/40 blur-[130px] rounded-full" />
+        <div className="absolute top-[35%] -left-32 w-[500px] h-[400px] bg-purple-100/30 blur-[140px] rounded-full" />
+        <div className="absolute top-[65%] -right-32 w-[550px] h-[450px] bg-sky-100/30 blur-[140px] rounded-full" />
       </div>
 
       {/* 1. Navbar */}
@@ -262,17 +262,17 @@ export default function LandingPage() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[9999] bg-text-main/20 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setIsLaunchModalOpen(false)}
         >
           <div
-            className="bg-slate-900 border border-slate-700/80 rounded-2xl sm:rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
+            className="bg-surface border border-border-subtle rounded-2xl sm:rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-elevated space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setIsLaunchModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-subtle transition-colors cursor-pointer"
               aria-label="Close"
             >
               <X className="w-4 h-4" />
@@ -280,14 +280,14 @@ export default function LandingPage() {
 
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
                   <BrandLogo className="w-4 h-4" />
                 </div>
-                <h3 className="text-lg font-bold text-white tracking-tight">
+                <h3 className="text-lg font-bold text-text-main tracking-tight">
                   Launch a Workspace
                 </h3>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-text-muted">
                 Choose a room name and meeting mode for your team canvas.
               </p>
             </div>
@@ -295,12 +295,12 @@ export default function LandingPage() {
             <form onSubmit={handleExecuteLaunch} className="space-y-4 pt-1">
               {/* 1. Name */}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-text-main mb-1.5">
                   Your Display Name
                 </label>
                 <div className="relative flex items-center">
                   <div
-                    className="absolute left-3 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-950 shadow-sm shrink-0"
+                    className="absolute left-3 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white shadow-xs shrink-0"
                     style={{ backgroundColor: userColor }}
                   >
                     {userInitials}
@@ -315,7 +315,7 @@ export default function LandingPage() {
                       }
                     }}
                     placeholder="Enter your name"
-                    className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-medium"
+                    className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-surface-subtle border border-border-subtle text-sm text-text-main placeholder:text-text-faint focus:outline-none focus:border-indigo-500 font-medium"
                     autoFocus
                   />
                 </div>
@@ -324,59 +324,66 @@ export default function LandingPage() {
               {/* 2. Room Name */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-slate-300">
+                  <label className="text-xs font-semibold text-text-main">
                     Room Name
                   </label>
                   <button
                     type="button"
                     onClick={rollRoomSlug}
-                    className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-[11px] text-text-muted hover:text-indigo-600 transition-colors cursor-pointer"
                   >
                     <Dices className={`w-3.5 h-3.5 ${isRolling ? "animate-spin" : ""}`} />
                     <span>Randomize</span>
                   </button>
                 </div>
                 <div className="relative flex items-center">
-                  <span className="absolute left-3 text-xs text-slate-500 font-mono select-none">#</span>
+                  <span className="absolute left-3 text-xs text-text-faint font-mono select-none">#</span>
                   <input
                     type="text"
                     value={roomName}
                     onChange={(e) => setRoomName(e.target.value)}
                     placeholder="sprint-planning"
-                    className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-surface-subtle border border-border-subtle text-sm text-text-main placeholder:text-text-faint focus:outline-none focus:border-indigo-500 font-mono"
                   />
                 </div>
               </div>
 
               {/* 3. Meeting Mode */}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-text-main mb-1.5">
                   Meeting Mode
                 </label>
-                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800">
+                <div className="relative grid grid-cols-2 p-1 rounded-xl bg-surface-subtle border border-border-subtle select-none">
+                  {/* Sliding Indicator */}
+                  <div
+                    className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-lg bg-surface shadow-subtle border border-border-subtle transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none will-change-transform ${
+                      roomMode === "brainstorm" ? "translate-x-full" : "translate-x-0"
+                    }`}
+                  />
+
                   <button
                     type="button"
                     onClick={() => setRoomMode("operational")}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    className={`relative z-10 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-colors duration-200 cursor-pointer ${
                       roomMode === "operational"
-                        ? "bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm"
-                        : "text-slate-400 hover:text-slate-200"
+                        ? "text-text-main"
+                        : "text-text-muted hover:text-text-main"
                     }`}
                   >
-                    <Zap className="w-3.5 h-3.5 text-sky-400" />
+                    <Zap className={`w-3.5 h-3.5 transition-all duration-300 ${roomMode === "operational" ? "text-sky-500 fill-sky-500/20 scale-110" : "text-text-muted/60 scale-100"}`} />
                     <span>Operational</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setRoomMode("brainstorm")}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    className={`relative z-10 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-colors duration-200 cursor-pointer ${
                       roomMode === "brainstorm"
-                        ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm"
-                        : "text-slate-400 hover:text-slate-200"
+                        ? "text-text-main"
+                        : "text-text-muted hover:text-text-main"
                     }`}
                   >
-                    <Brain className="w-3.5 h-3.5 text-purple-400" />
+                    <Brain className={`w-3.5 h-3.5 transition-all duration-300 ${roomMode === "brainstorm" ? "text-purple-500 fill-purple-500/20 scale-110" : "text-text-muted/60 scale-100"}`} />
                     <span>Brainstorm</span>
                   </button>
                 </div>
@@ -385,7 +392,7 @@ export default function LandingPage() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-500 hover:via-violet-500 hover:to-purple-500 text-white font-semibold text-sm shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                  className="w-full py-3 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-md shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   <span>Enter Workspace</span>
                   <ArrowRight className="w-4 h-4" />
@@ -409,49 +416,49 @@ export default function LandingPage() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[9999] bg-text-main/20 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => !isDeletingRoom && setRoomToDelete(null)}
         >
           <div
-            className="bg-slate-900 border border-slate-700/80 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
+            className="bg-surface border border-border-subtle rounded-2xl p-6 max-w-md w-full shadow-elevated space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => !isDeletingRoom && setRoomToDelete(null)}
-              className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-subtle transition-colors cursor-pointer"
               aria-label="Close"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0 shadow-lg shadow-rose-500/10 animate-pulse">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 shadow-xs animate-pulse">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="space-y-1.5 pt-0.5">
-                <h3 className="text-base font-bold text-white tracking-tight">
+                <h3 className="text-base font-bold text-text-main tracking-tight">
                   Delete Workspace Permanently?
                 </h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-text-muted leading-relaxed">
                   Permanently delete workspace{" "}
-                  <span className="font-mono text-white font-semibold">
+                  <span className="font-mono text-text-main font-semibold">
                     #{roomToDelete.name || roomToDelete.id}
                   </span>
                   ? All cards, relationships, audio transcripts, and meeting summaries will be wiped from the database.
                 </p>
-                <p className="text-[11px] text-rose-400 font-medium pt-1">
+                <p className="text-[11px] text-rose-600 font-medium pt-1">
                   ⚠️ This action cannot be undone.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end pt-3 border-t border-slate-800/80 gap-2.5">
+            <div className="flex items-center justify-end pt-3 border-t border-border-subtle gap-2.5">
               <button
                 type="button"
                 onClick={() => setRoomToDelete(null)}
                 disabled={isDeletingRoom}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-text-muted hover:text-text-main bg-surface-subtle hover:bg-surface-hover border border-border-subtle transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -459,7 +466,7 @@ export default function LandingPage() {
                 type="button"
                 onClick={handleExecuteDeleteRoom}
                 disabled={isDeletingRoom}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/40 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>{isDeletingRoom ? "Deleting Workspace..." : "Delete Permanently"}</span>

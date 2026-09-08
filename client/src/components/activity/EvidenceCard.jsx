@@ -72,15 +72,15 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden text-slate-200 flex flex-col animate-in zoom-in-95 duration-200"
+        className="w-full max-w-lg bg-surface border border-border-subtle rounded-2xl shadow-elevated overflow-hidden text-text-main flex flex-col animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-900/60">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle">
           <div className="flex items-center gap-2.5">
             <div
               className="p-2 rounded-xl border shadow-sm flex items-center justify-center"
@@ -94,17 +94,17 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <Quote className="w-3.5 h-3.5 text-violet-400" />
-                <span className="text-xs font-semibold tracking-wider uppercase text-violet-400">Why This Exists</span>
+                <Quote className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+                <span className="text-xs font-semibold tracking-wider uppercase text-violet-600 dark:text-violet-400">Why This Exists</span>
               </div>
-              <h3 className="text-sm font-semibold text-slate-100 capitalize">{node.type || "Concept"} Explanation</h3>
+              <h3 className="text-sm font-semibold text-text-main capitalize">{node.type || "Concept"} Explanation</h3>
             </div>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -113,15 +113,15 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
         {/* Content Body */}
         <div className="p-5 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
           {/* Target Element Preview */}
-          <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
-            <span className="text-[11px] font-mono uppercase text-slate-500 block mb-1">Canvas Element</span>
-            <p className="text-sm font-medium text-slate-100 leading-snug">{node.text || "Untitled node"}</p>
+          <div className="p-3 rounded-xl bg-surface-subtle border border-border-subtle">
+            <span className="text-[11px] font-mono uppercase text-text-faint block mb-1">Canvas Element</span>
+            <p className="text-sm font-medium text-text-main leading-snug">{node.text || "Untitled node"}</p>
           </div>
 
           {/* AI Rationale from Database AIAction */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">AI Reasoning</span>
-            <p className="text-sm text-slate-300 leading-relaxed bg-violet-950/20 border border-violet-800/30 p-3 rounded-xl text-violet-200/90">
+            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">AI Reasoning</span>
+            <p className="text-sm text-text-main leading-relaxed bg-violet-50 border border-violet-200 p-3 rounded-xl dark:bg-violet-950/20 dark:border-violet-800/30 dark:text-violet-200/90">
               {reason}
             </p>
           </div>
@@ -129,24 +129,24 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
           {/* Source Transcript Quote (rendered only when real quote exists) */}
           {quote ? (
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Source Transcript Evidence</span>
-              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col gap-2.5">
+              <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">Source Transcript Evidence</span>
+              <div className="p-3.5 rounded-xl bg-surface-subtle border border-border-subtle flex flex-col gap-2.5">
                 <div className="flex items-start gap-2.5">
-                  <Quote className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                  <p className="text-sm italic text-cyan-100/90 leading-relaxed font-serif">
+                  <Quote className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+                  <p className="text-sm italic text-text-main leading-relaxed font-serif">
                     "{quote}"
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-900 text-xs text-slate-400">
+                <div className="flex items-center justify-between pt-2 border-t border-border-subtle text-xs text-text-muted">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-full bg-cyan-900/60 text-cyan-300 border border-cyan-500/40 flex items-center justify-center text-[10px] font-bold">
+                    <div className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-800 border border-cyan-300 flex items-center justify-center text-[10px] font-bold dark:bg-cyan-900/60 dark:text-cyan-300 dark:border-cyan-500/40">
                       {speaker.charAt(0)}
                     </div>
-                    <span className="font-medium text-slate-300">{speaker}</span>
+                    <span className="font-medium text-text-main">{speaker}</span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-slate-500">
+                  <div className="flex items-center gap-1 text-text-faint">
                     <Clock className="w-3 h-3" />
                     <span>{timestamp}</span>
                   </div>
@@ -154,10 +154,10 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
               </div>
             </div>
           ) : (
-            <div className="p-3.5 rounded-xl bg-slate-950/40 border border-slate-800/60 text-xs text-slate-400 flex items-center justify-between">
+            <div className="p-3.5 rounded-xl bg-surface-subtle border border-border-subtle text-xs text-text-muted flex items-center justify-between">
               <span>Origin: {node.sourceType || "AI Workspace Action"}</span>
               {aiAction?.confidence && (
-                <span className="text-cyan-400 font-mono">
+                <span className="text-indigo-600 dark:text-cyan-400 font-mono font-medium">
                   Confidence: {Math.round(aiAction.confidence * 100)}%
                 </span>
               )}
@@ -166,23 +166,23 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-slate-800 bg-slate-900/80 flex items-center justify-between">
+        <div className="px-5 py-3 border-t border-border-subtle bg-surface-subtle flex items-center justify-between">
           <button
             type="button"
             onClick={() => {
               onPanToNode?.(node.id);
               onClose?.();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-surface-hover text-xs font-semibold text-text-main border border-border-subtle transition-colors shadow-subtle cursor-pointer"
           >
             <span>Jump to node on canvas</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
+            <ArrowUpRight className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
           </button>
 
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-medium text-white transition-colors shadow-md"
+            className="px-4 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white transition-colors shadow-md cursor-pointer"
           >
             Done
           </button>

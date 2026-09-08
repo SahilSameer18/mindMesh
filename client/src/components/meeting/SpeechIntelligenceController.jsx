@@ -229,12 +229,12 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
     // Show subtle floating live caption ticker at bottom when closed
     if (!latestCaption) return null;
     return (
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 max-w-xl w-[90%] px-4 py-2.5 rounded-xl bg-slate-950/85 border border-slate-800/80 shadow-xl backdrop-blur-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
-        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-        <span className="text-xs font-semibold text-sky-400 shrink-0">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 max-w-xl w-[90%] px-4 py-2.5 rounded-xl bg-surface border border-border-subtle shadow-elevated backdrop-blur-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+        <span className="text-xs font-semibold text-sky-600 dark:text-sky-400 shrink-0">
           {latestCaption.speaker}:
         </span>
-        <span className="text-xs text-slate-200 truncate flex-1 font-sans">
+        <span className="text-xs text-text-main truncate flex-1 font-sans">
           "{latestCaption.text}"
         </span>
         {latestCaption.isFiller && (
@@ -250,30 +250,30 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
     <div
       role="region"
       aria-label="Speech Intelligence Simulator"
-      className={`fixed top-16 left-4 z-40 w-80 sm:w-96 rounded-2xl bg-slate-950/95 border border-slate-800/90 shadow-2xl shadow-indigo-500/10 backdrop-blur-xl transition-all duration-300 ${
+      className={`fixed top-16 left-4 z-40 w-80 sm:w-96 rounded-2xl bg-surface border border-border-subtle shadow-elevated backdrop-blur-xl transition-all duration-300 ${
         isMinimized ? "p-3" : "p-4 sm:p-5"
       }`}
     >
       {/* Dock Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-slate-800/70 pb-3">
+      <div className="flex items-center justify-between gap-2 border-b border-border-subtle pb-3">
         <div className="flex items-center gap-2">
           <div
             className={`w-7 h-7 rounded-lg flex items-center justify-center ${
               isPlaying || isMicActive
                 ? "bg-violet-600 text-white animate-pulse"
-                : "bg-slate-800 text-slate-300"
+                : "bg-surface-subtle text-text-muted border border-border-subtle"
             }`}
           >
             <Radio className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 font-display flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text-main font-display flex items-center gap-1.5">
               Dialogue Sim
               {(isPlaying || isMicActive) && (
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               )}
             </h3>
-            <p className="text-[10px] text-slate-400">Passive Speech Intelligence</p>
+            <p className="text-[10px] text-text-muted">Passive Speech Intelligence</p>
           </div>
         </div>
 
@@ -281,7 +281,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
           <button
             type="button"
             onClick={() => setIsMinimized((prev) => !prev)}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
+            className="p-1 rounded-md text-text-muted hover:text-text-main hover:bg-surface-subtle transition-colors"
             title={isMinimized ? "Expand dock" : "Minimize dock"}
           >
             {isMinimized ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -289,7 +289,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
+            className="p-1 rounded-md text-text-muted hover:text-text-main hover:bg-surface-subtle transition-colors"
             title="Close dock"
           >
             <X className="w-4 h-4" />
@@ -301,7 +301,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
         <div className="mt-3 space-y-3.5">
           {/* Scenario Picker */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">
               Benchmark Scenario
             </label>
             <select
@@ -311,7 +311,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
                 setCurrentChunkIndex(0);
                 setIsPlaying(false);
               }}
-              className="w-full text-xs font-medium bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors"
+              className="w-full text-xs font-medium bg-surface-subtle border border-border-subtle rounded-xl px-2.5 py-1.5 text-text-main focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors"
             >
               {BENCHMARK_SCENARIOS.map((s, idx) => (
                 <option key={s.id} value={idx}>
@@ -319,13 +319,13 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
                 </option>
               ))}
             </select>
-            <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+            <p className="text-[11px] text-text-muted mt-1 leading-relaxed">
               {currentScenario.description}
             </p>
           </div>
 
           {/* Script Step Timeline */}
-          <div className="bg-slate-900/80 rounded-xl border border-slate-800/80 p-2.5 space-y-1.5 max-h-32 overflow-y-auto">
+          <div className="bg-surface-subtle rounded-xl border border-border-subtle p-2.5 space-y-1.5 max-h-32 overflow-y-auto">
             {currentScenario.chunks.map((c, i) => {
               const isPast = i < currentChunkIndex;
               const isCurrent = i === currentChunkIndex;
@@ -334,10 +334,10 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
                   key={i}
                   className={`text-xs p-1.5 rounded-lg flex items-start gap-2 transition-all ${
                     isCurrent
-                      ? "bg-violet-600/25 border border-violet-500/40 text-slate-100 font-medium"
+                      ? "bg-violet-50 dark:bg-violet-600/25 border border-violet-300 dark:border-violet-500/40 text-text-main font-medium"
                       : isPast
-                      ? "opacity-50 text-slate-400"
-                      : "opacity-80 text-slate-300"
+                      ? "opacity-50 text-text-muted"
+                      : "opacity-80 text-text-muted"
                   }`}
                 >
                   <span
@@ -348,7 +348,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
                   </span>
                   <span className="flex-1 text-[11px] leading-snug">"{c.text}"</span>
                   {isCurrent && (
-                    <span className="text-[9px] px-1 py-0.5 rounded bg-violet-500/30 text-violet-300 font-mono shrink-0">
+                    <span className="text-[9px] px-1 py-0.5 rounded bg-violet-100 dark:bg-violet-500/30 text-violet-700 dark:text-violet-300 font-mono shrink-0">
                       NEXT
                     </span>
                   )}
@@ -358,7 +358,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
           </div>
 
           {/* Controls Bar */}
-          <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/60">
+          <div className="flex items-center justify-between gap-2 pt-1 border-t border-border-subtle">
             {/* Play/Pause & Step */}
             <div className="flex items-center gap-1.5">
               <button
@@ -377,7 +377,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
               <button
                 type="button"
                 onClick={handleStepNext}
-                className="p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 transition-colors"
+                className="p-2 rounded-xl bg-surface-subtle hover:bg-surface text-text-main border border-border-subtle transition-colors"
                 title="Step forward 1 dialogue turn"
               >
                 <SkipForward className="w-4 h-4" />
@@ -386,7 +386,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
               <button
                 type="button"
                 onClick={handleReset}
-                className="p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-400 hover:text-slate-200 transition-colors"
+                className="p-2 rounded-xl bg-surface-subtle hover:bg-surface text-text-muted hover:text-text-main border border-border-subtle transition-colors"
                 title="Reset sequence and flush buffer"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -394,7 +394,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
             </div>
 
             {/* Speed Selector */}
-            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg p-0.5">
+            <div className="flex items-center gap-1 bg-surface-subtle border border-border-subtle rounded-lg p-0.5">
               {[1, 2, 3].map((speed) => (
                 <button
                   key={speed}
@@ -403,7 +403,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
                   className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
                     playbackSpeed === speed
                       ? "bg-violet-600 text-white"
-                      : "text-slate-400 hover:text-slate-200"
+                      : "text-text-muted hover:text-text-main"
                   }`}
                 >
                   {speed}x
@@ -418,7 +418,7 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
               className={`p-2 rounded-xl font-medium transition-all ${
                 isMicActive
                   ? "bg-rose-600 text-white animate-pulse shadow-md shadow-rose-600/30"
-                  : "bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-700/90"
+                  : "bg-surface-subtle text-text-muted hover:text-text-main hover:bg-surface border border-border-subtle"
               }`}
               title={isMicActive ? "Stop microphone" : "Speak live via browser microphone"}
             >
@@ -428,12 +428,12 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
 
           {/* AI Extraction Banner Alert if actions occurred */}
           {lastExtractionNotice && (
-            <div className="p-2.5 rounded-xl bg-violet-600/20 border border-violet-500/40 text-violet-200 text-xs flex items-center justify-between animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-600/20 border border-violet-200 dark:border-violet-500/40 text-violet-800 dark:text-violet-200 text-xs flex items-center justify-between animate-in fade-in zoom-in-95 duration-200">
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-violet-400 shrink-0" />
+                <Zap className="w-4 h-4 text-violet-500 shrink-0" />
                 <span className="font-medium truncate">{lastExtractionNotice.summary}</span>
               </div>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/30 font-bold shrink-0">
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-200 dark:bg-violet-500/30 font-bold shrink-0">
                 +{lastExtractionNotice.count} actions
               </span>
             </div>
@@ -441,23 +441,23 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
 
           {/* Live Captions Feed */}
           {latestCaption && (
-            <div className="pt-2 border-t border-slate-800/60">
-              <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+            <div className="pt-2 border-t border-border-subtle">
+              <div className="flex items-center justify-between text-[10px] text-text-muted mb-1">
                 <span className="font-semibold uppercase tracking-wider flex items-center gap-1">
-                  <Volume2 className="w-3 h-3 text-sky-400" />
+                  <Volume2 className="w-3 h-3 text-sky-500" />
                   Live Caption Ticker
                 </span>
                 <span className="font-mono">{latestCaption.timestamp}</span>
               </div>
-              <div className="text-xs bg-slate-900/90 border border-slate-800/80 rounded-xl p-2 text-slate-200 flex items-start gap-2">
-                <span className="font-bold text-sky-400 text-[11px] shrink-0">
+              <div className="text-xs bg-surface-subtle border border-border-subtle rounded-xl p-2 text-text-main flex items-start gap-2">
+                <span className="font-bold text-sky-600 dark:text-sky-400 text-[11px] shrink-0">
                   {latestCaption.speaker}:
                 </span>
                 <span className="flex-1 font-sans text-[11px] leading-relaxed">
                   "{latestCaption.text}"
                 </span>
                 {latestCaption.isFiller && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold shrink-0">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold shrink-0">
                     FILLER
                   </span>
                 )}

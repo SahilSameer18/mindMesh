@@ -58,7 +58,7 @@ function WorkspaceContent({ onLeaveRoom }) {
   }, [toggleListening]);
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none">
+    <div className="w-screen h-screen flex flex-col bg-app text-text-main overflow-hidden select-none">
       <WorkspaceHeader
         onOpenAuth={() => setIsAuthModalOpen(true)}
         isListening={isListening}
@@ -76,10 +76,10 @@ function WorkspaceContent({ onLeaveRoom }) {
 
         {/* Phase 8B: Floating Live Interim Caption Pill */}
         {isListening && interimTranscript && (
-          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-full bg-slate-900/90 border border-emerald-500/50 text-xs text-slate-100 shadow-2xl backdrop-blur-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-150 pointer-events-none">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-            <span className="text-slate-400 font-medium shrink-0">Listening:</span>
-            <span className="text-white italic truncate max-w-md">"{interimTranscript}"</span>
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-full bg-surface/90 border border-emerald-500/40 text-xs text-text-main shadow-elevated backdrop-blur-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-150 pointer-events-none">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+            <span className="text-text-muted font-medium shrink-0">Listening:</span>
+            <span className="text-text-main italic truncate max-w-md">"{interimTranscript}"</span>
           </div>
         )}
 

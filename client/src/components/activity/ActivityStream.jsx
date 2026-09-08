@@ -119,19 +119,19 @@ export default function ActivityStream({
             setIsOpen(true);
             setIsMinimized(false);
           }}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-violet-500/60 backdrop-blur-2xl shadow-2xl text-xs font-semibold text-slate-200 hover:text-white transition-all cursor-pointer group active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-surface/90 hover:bg-surface-hover border border-border-subtle hover:border-violet-300 backdrop-blur-2xl shadow-elevated text-xs font-semibold text-text-main transition-all cursor-pointer group active:scale-95"
           title="Open Live Transcript & Activity"
         >
-          <MessageSquareQuote className="w-4 h-4 text-violet-400 group-hover:scale-110 transition-transform" />
+          <MessageSquareQuote className="w-4 h-4 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform" />
           <span>Transcript</span>
           {transcripts.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-violet-600/30 text-violet-300 border border-violet-500/40">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-violet-100 text-violet-800 border border-violet-200 dark:bg-violet-600/30 dark:text-violet-300 dark:border-violet-500/40">
               {transcripts.length}
             </span>
           )}
           {proposedCount > 0 && (
-            <span className="flex items-center gap-1 text-[10px] text-cyan-300 bg-cyan-950/60 px-1.5 py-0.2 rounded-full border border-cyan-800/50">
-              <Zap className="w-2.5 h-2.5 text-cyan-400" />
+            <span className="flex items-center gap-1 text-[10px] text-cyan-800 bg-cyan-100 px-1.5 py-0.2 rounded-full border border-cyan-200 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-800/50">
+              <Zap className="w-2.5 h-2.5 text-cyan-600 dark:text-cyan-400" />
               <span>{proposedCount}</span>
             </span>
           )}
@@ -145,7 +145,7 @@ export default function ActivityStream({
     return (
       <aside
         aria-label="Activity & Live Transcript (Minimized)"
-        className="fixed top-18 right-6 z-40 flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 backdrop-blur-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-slate-200 pointer-events-auto"
+        className="fixed top-18 right-6 z-40 flex items-center gap-1.5 p-1.5 rounded-2xl bg-surface/90 border border-border-subtle backdrop-blur-2xl shadow-elevated animate-in fade-in zoom-in-95 duration-150 text-text-main pointer-events-auto"
       >
         <button
           type="button"
@@ -153,12 +153,12 @@ export default function ActivityStream({
             setActiveTab("transcript");
             setIsMinimized(false);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-600 text-white text-xs font-semibold shadow-md cursor-pointer active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-600 text-white text-xs font-semibold shadow-subtle cursor-pointer active:scale-95"
         >
           <MessageSquareQuote className="w-3.5 h-3.5" />
           <span>Transcript</span>
           {transcripts.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-950/60 font-mono">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/20 font-mono">
               {transcripts.length}
             </span>
           )}
@@ -170,12 +170,12 @@ export default function ActivityStream({
             setActiveTab("activity");
             setIsMinimized(false);
           }}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-medium cursor-pointer transition-colors active:scale-95"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-hover text-xs font-medium cursor-pointer transition-colors active:scale-95"
         >
-          <Activity className="w-3.5 h-3.5 text-violet-400" />
+          <Activity className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
           <span>Activity</span>
           {proposedCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-500 text-slate-950 font-bold">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-500 text-white font-bold">
               {proposedCount}
             </span>
           )}
@@ -184,7 +184,7 @@ export default function ActivityStream({
         <button
           type="button"
           onClick={() => setIsMinimized(false)}
-          className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+          className="p-1.5 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors cursor-pointer"
           title="Expand floating panel"
         >
           <Maximize2 className="w-3.5 h-3.5" />
@@ -193,7 +193,7 @@ export default function ActivityStream({
         <button
           type="button"
           onClick={() => setIsOpen(false)}
-          className="p-1.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors cursor-pointer"
+          className="p-1.5 rounded-xl text-text-muted hover:text-rose-600 hover:bg-surface-hover transition-colors cursor-pointer"
           title="Close to pill"
         >
           <X className="w-3.5 h-3.5" />
@@ -205,24 +205,24 @@ export default function ActivityStream({
   return (
     <aside
       aria-label="Activity & Live Transcript Floating Panel"
-      className="fixed top-18 right-6 z-40 w-[calc(100%-3rem)] sm:w-92 h-[520px] max-h-[calc(100vh-6rem)] bg-slate-900/90 border border-slate-700/80 rounded-3xl backdrop-blur-2xl shadow-2xl flex flex-col overflow-hidden text-slate-200 animate-in fade-in zoom-in-95 duration-200"
+      className="fixed top-18 right-6 z-40 w-[calc(100%-3rem)] sm:w-92 h-[520px] max-h-[calc(100vh-6rem)] bg-surface/95 border border-border-subtle rounded-3xl backdrop-blur-2xl shadow-elevated flex flex-col overflow-hidden text-text-main animate-in fade-in zoom-in-95 duration-200"
     >
       {/* Primary Floating Header with Tab Switcher & Window Controls */}
-      <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md shrink-0">
-        <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800/80">
+      <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-border-subtle bg-surface-subtle/80 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-1 bg-surface p-1 rounded-2xl border border-border-subtle">
           <button
             type="button"
             onClick={() => setActiveTab("transcript")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "transcript"
-                ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-violet-600 text-white shadow-subtle"
+                : "text-text-muted hover:text-text-main"
             }`}
           >
             <MessageSquareQuote className="w-3.5 h-3.5" />
             <span>Transcript</span>
             {transcripts.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-slate-950/60 text-slate-200 font-mono">
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-black/20 text-white font-mono">
                 {transcripts.length}
               </span>
             )}
@@ -233,14 +233,14 @@ export default function ActivityStream({
             onClick={() => setActiveTab("activity")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "activity"
-                ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-violet-600 text-white shadow-subtle"
+                : "text-text-muted hover:text-text-main"
             }`}
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Activity</span>
             {proposedCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-cyan-400 text-slate-950">
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-cyan-500 text-white">
                 {proposedCount}
               </span>
             )}
@@ -252,7 +252,7 @@ export default function ActivityStream({
             type="button"
             onClick={() => setIsMinimized(true)}
             aria-label="Minimize floating panel"
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors cursor-pointer"
             title="Minimize to floating pill"
           >
             <Minimize2 className="w-3.5 h-3.5" />
@@ -262,7 +262,7 @@ export default function ActivityStream({
             type="button"
             onClick={() => setIsOpen(false)}
             aria-label="Close floating panel"
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors cursor-pointer"
             title="Close"
           >
             <X className="w-3.5 h-3.5" />
@@ -274,12 +274,12 @@ export default function ActivityStream({
       {activeTab === "activity" && (
         <>
           {/* Sub Filter Tabs */}
-          <div className="flex items-center gap-1 px-4 py-2 border-b border-slate-800 bg-slate-950/40 text-xs">
+          <div className="flex items-center gap-1 px-4 py-2 border-b border-border-subtle bg-surface-subtle text-xs">
             <button
               type="button"
               onClick={() => setFilter("all")}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-                filter === "all" ? "bg-slate-800 text-slate-100 shadow-sm" : "text-slate-400 hover:text-slate-200"
+                filter === "all" ? "bg-surface text-text-main shadow-subtle border border-border-subtle" : "text-text-muted hover:text-text-main"
               }`}
             >
               All ({actions.length})
@@ -289,8 +289,8 @@ export default function ActivityStream({
               onClick={() => setFilter("proposed")}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
                 filter === "proposed"
-                  ? "bg-cyan-950/60 text-cyan-300 border border-cyan-800/50"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-cyan-100 text-cyan-800 border border-cyan-300 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-800/50"
+                  : "text-text-muted hover:text-text-main"
               }`}
             >
               Needs Review ({proposedCount})
@@ -299,7 +299,7 @@ export default function ActivityStream({
               type="button"
               onClick={() => setFilter("applied")}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-                filter === "applied" ? "bg-slate-800 text-slate-100 shadow-sm" : "text-slate-400 hover:text-slate-200"
+                filter === "applied" ? "bg-surface text-text-main shadow-subtle border border-border-subtle" : "text-text-muted hover:text-text-main"
               }`}
             >
               Applied
@@ -311,21 +311,21 @@ export default function ActivityStream({
             {isLoading ? (
               <div className="flex flex-col gap-3 animate-pulse">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="p-3.5 rounded-xl bg-slate-800/40 border border-slate-700/30 flex flex-col gap-2">
+                  <div key={i} className="p-3.5 rounded-xl bg-surface-subtle border border-border-subtle flex flex-col gap-2">
                     <div className="flex items-center justify-between">
-                      <div className="h-3 bg-slate-700/60 rounded w-1/3" />
-                      <div className="h-3 bg-slate-700/60 rounded w-1/4" />
+                      <div className="h-3 bg-surface-hover rounded w-1/3" />
+                      <div className="h-3 bg-surface-hover rounded w-1/4" />
                     </div>
-                    <div className="h-4 bg-slate-700/40 rounded w-3/4" />
-                    <div className="h-2 bg-slate-700/30 rounded w-1/2" />
+                    <div className="h-4 bg-surface-hover rounded w-3/4" />
+                    <div className="h-2 bg-surface-hover rounded w-1/2" />
                   </div>
                 ))}
               </div>
             ) : filteredActions.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-500">
-                <Activity className="w-8 h-8 mb-2 opacity-30 text-violet-400" />
-                <p className="text-sm font-medium text-slate-400">No activity recorded yet</p>
-                <p className="text-xs mt-1 text-slate-500">
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-text-faint">
+                <Activity className="w-8 h-8 mb-2 opacity-30 text-violet-600 dark:text-violet-400" />
+                <p className="text-sm font-medium text-text-main">No activity recorded yet</p>
+                <p className="text-xs mt-1 text-text-muted">
                   Run commands via the Command Bar (⌘K) or speak via microphone to populate the canvas.
                 </p>
               </div>
@@ -345,26 +345,26 @@ export default function ActivityStream({
                 return (
                   <div
                     key={item.id}
-                    className={`p-3.5 rounded-xl border transition-all flex flex-col gap-2 shadow-sm ${
+                    className={`p-3.5 rounded-xl border transition-all flex flex-col gap-2 shadow-subtle ${
                       isProposed
                         ? isClarify
-                          ? "bg-amber-950/20 border-amber-800/50 hover:border-amber-700/80"
-                          : "bg-cyan-950/20 border-cyan-800/50 hover:border-cyan-700/80"
+                          ? "bg-amber-50/80 border-amber-300 dark:bg-amber-950/20 dark:border-amber-800/50"
+                          : "bg-cyan-50/80 border-cyan-300 dark:bg-cyan-950/20 dark:border-cyan-800/50"
                         : isRejected
-                        ? "bg-slate-900/40 border-slate-800/50 opacity-60"
-                        : "bg-slate-950/50 border-slate-800/80 hover:border-slate-700/80"
+                        ? "bg-surface-subtle border-border-subtle opacity-60"
+                        : "bg-surface border-border-subtle hover:border-border-strong"
                     }`}
                   >
                     {/* Header Row */}
                     <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1.5 font-medium text-slate-200">
-                        <Icon className="w-3.5 h-3.5 text-violet-400" />
+                      <div className="flex items-center gap-1.5 font-semibold text-text-main">
+                        <Icon className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
                         <span>{formatActionType(item.type)}</span>
                       </div>
 
                       {/* Status / Confidence Badge */}
                       {isApplied && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-950/60 text-emerald-300 border border-emerald-800/50 flex items-center gap-1">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/50 flex items-center gap-1">
                           <Check className="w-2.5 h-2.5" />
                           <span>Applied {item.confidence ? `(${Math.round(item.confidence * 100)}%)` : ""}</span>
                         </span>
@@ -373,8 +373,8 @@ export default function ActivityStream({
                         <span
                           className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${
                             isClarify
-                              ? "bg-amber-950/60 text-amber-300 border-amber-700/60"
-                              : "bg-cyan-950/60 text-cyan-300 border-cyan-700/60"
+                              ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700/60"
+                              : "bg-cyan-100 text-cyan-800 border-cyan-300 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-700/60"
                           }`}
                         >
                           {isClarify
@@ -383,7 +383,7 @@ export default function ActivityStream({
                         </span>
                       )}
                       {isRejected && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-subtle text-text-muted">
                           Dismissed
                         </span>
                       )}
@@ -391,21 +391,21 @@ export default function ActivityStream({
 
                     {/* Content Payload Preview */}
                     {payloadText && (
-                      <p className="text-xs text-slate-300 font-medium leading-snug line-clamp-2">
+                      <p className="text-xs text-text-main font-medium leading-snug line-clamp-2">
                         {payloadText}
                       </p>
                     )}
 
                     {/* Reason Explanation */}
                     {item.reason && (
-                      <p className="text-[11px] text-slate-400 italic">
+                      <p className="text-[11px] text-text-muted italic">
                         "{item.reason}"
                       </p>
                     )}
 
                     {/* Timestamp & Interactive Buttons */}
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 mt-0.5 text-[11px]">
-                      <div className="flex items-center gap-1 text-slate-500">
+                    <div className="flex items-center justify-between pt-2 border-t border-border-subtle mt-0.5 text-[11px]">
+                      <div className="flex items-center gap-1 text-text-faint">
                         <Clock className="w-3 h-3" />
                         <span>
                           {new Date(item.createdAt || Date.now()).toLocaleTimeString([], {
@@ -420,7 +420,7 @@ export default function ActivityStream({
                           <button
                             type="button"
                             onClick={() => canvas?.panToNode?.(item.payload.id)}
-                            className="text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
+                            className="text-text-muted hover:text-indigo-600 transition-colors cursor-pointer"
                             title="Locate on canvas"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
@@ -432,7 +432,7 @@ export default function ActivityStream({
                             <button
                               type="button"
                               onClick={() => handleReject(item.id)}
-                              className="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors text-[10px] font-medium cursor-pointer"
+                              className="px-2 py-1 rounded-md bg-surface-subtle hover:bg-surface-hover text-text-muted hover:text-text-main border border-border-subtle transition-colors text-[10px] font-medium cursor-pointer"
                             >
                               Dismiss
                             </button>
@@ -460,13 +460,13 @@ export default function ActivityStream({
       {activeTab === "transcript" && (
         <div className="flex-1 flex flex-col min-h-0">
           {/* Subheader Status Bar */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-950/40 text-xs">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-border-subtle bg-surface-subtle text-xs">
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${isListening ? "bg-emerald-400 animate-ping" : "bg-slate-600"}`} />
-              <span className="font-medium text-slate-300">
+              <span className={`w-2 h-2 rounded-full ${isListening ? "bg-emerald-500 animate-ping" : "bg-text-faint"}`} />
+              <span className="font-semibold text-text-main">
                 {isListening ? "Listening Live" : "Mic Inactive"}
               </span>
-              <span className="text-[10px] text-slate-500">
+              <span className="text-[10px] text-text-muted">
                 ({transcripts.length} entries)
               </span>
             </div>
@@ -475,7 +475,7 @@ export default function ActivityStream({
               <button
                 type="button"
                 onClick={clearTranscripts}
-                className="text-[11px] text-slate-400 hover:text-rose-400 flex items-center gap-1 transition-colors cursor-pointer"
+                className="text-[11px] text-text-muted hover:text-rose-600 flex items-center gap-1 transition-colors cursor-pointer"
                 title="Clear transcript history"
               >
                 <Trash2 className="w-3 h-3" />
@@ -487,13 +487,13 @@ export default function ActivityStream({
           {/* Transcript Message Scroll View */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {transcripts.length === 0 && !activeInterim ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500">
-                <div className="w-12 h-12 rounded-2xl bg-slate-800/60 border border-slate-700/50 flex items-center justify-center mb-3 text-slate-400">
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-text-faint">
+                <div className="w-12 h-12 rounded-2xl bg-surface-subtle border border-border-subtle flex items-center justify-center mb-3 text-text-muted">
                   <Mic className="w-6 h-6" />
                 </div>
-                <p className="text-sm font-semibold text-slate-300">No speech recorded yet</p>
-                <p className="text-xs mt-1.5 text-slate-400 max-w-xs leading-relaxed">
-                  Turn on your microphone (<kbd className="px-1 py-0.5 text-[10px] bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono">M</kbd>) or type below. Everything spoken by anyone in the room will appear here in real-time.
+                <p className="text-sm font-semibold text-text-main">No speech recorded yet</p>
+                <p className="text-xs mt-1.5 text-text-muted max-w-xs leading-relaxed">
+                  Turn on your microphone (<kbd className="px-1 py-0.5 text-[10px] bg-surface border border-border-subtle rounded text-text-main font-mono">M</kbd>) or type below. Everything spoken by anyone in the room will appear here in real-time.
                 </p>
               </div>
             ) : (
@@ -505,7 +505,7 @@ export default function ActivityStream({
                   return (
                     <div
                       key={entry.id}
-                      className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700/80 transition-all flex flex-col gap-1.5 shadow-sm"
+                      className="p-3 rounded-2xl bg-surface border border-border-subtle hover:border-border-strong transition-all flex flex-col gap-1.5 shadow-subtle"
                     >
                       {/* Speaker header */}
                       <div className="flex items-center justify-between text-xs">
@@ -516,24 +516,24 @@ export default function ActivityStream({
                           >
                             {getUserInitials(entry.speaker || "User")}
                           </div>
-                          <span className="font-semibold text-slate-200 truncate">
+                          <span className="font-semibold text-text-main truncate">
                             {entry.speaker}
                           </span>
                           {isLocalSpeaker && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-surface-subtle border border-border-subtle text-text-muted">
                               You
                             </span>
                           )}
                         </div>
 
-                        <span className="text-[10px] text-slate-500 font-mono shrink-0 flex items-center gap-1">
+                        <span className="text-[10px] text-text-faint font-mono shrink-0 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {entry.timestamp}
                         </span>
                       </div>
 
                       {/* Utterance Text */}
-                      <p className="text-xs text-slate-300 leading-relaxed pl-7 break-words">
+                      <p className="text-xs text-text-muted leading-relaxed pl-7 break-words">
                         {entry.text}
                       </p>
                     </div>
@@ -542,14 +542,14 @@ export default function ActivityStream({
 
                 {/* Real-time Interim Live Speaking Card */}
                 {isListening && activeInterim && (
-                  <div className="p-3 rounded-2xl bg-emerald-950/20 border border-emerald-500/40 text-xs shadow-md animate-pulse">
+                  <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-300 text-xs shadow-subtle animate-pulse dark:bg-emerald-950/20 dark:border-emerald-500/40">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      <span className="font-semibold text-emerald-300">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                      <span className="font-semibold text-emerald-800 dark:text-emerald-300">
                         {currentUser?.name || "You"} (Speaking...)
                       </span>
                     </div>
-                    <p className="text-slate-200 italic font-medium pl-4">
+                    <p className="text-text-main italic font-medium pl-4">
                       "{activeInterim}"
                     </p>
                   </div>
@@ -563,14 +563,14 @@ export default function ActivityStream({
           {/* Quick Note / Transcript Input Bar */}
           <form
             onSubmit={handleSendTypedMessage}
-            className="p-3 border-t border-slate-800 bg-slate-950/80 flex items-center gap-2"
+            className="p-3 border-t border-border-subtle bg-surface-subtle flex items-center gap-2"
           >
             <input
               type="text"
               value={typedMessage}
               onChange={(e) => setTypedMessage(e.target.value)}
               placeholder="Type into transcript or speak (M)..."
-              className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 transition-all"
+              className="flex-1 bg-surface border border-border-subtle rounded-xl px-3 py-2 text-xs text-text-main placeholder:text-text-faint focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 transition-all"
             />
             <button
               type="submit"
