@@ -72,7 +72,14 @@ export function useCanvas() {
             const next = new Map(prev);
             const existing = next.get(payload.id);
             if (existing) {
-              next.set(payload.id, { ...existing, ...payload });
+              next.set(payload.id, {
+                ...existing,
+                ...payload,
+                metadata: {
+                  ...(existing.metadata || {}),
+                  ...(payload.metadata || {}),
+                },
+              });
             }
             return next;
           });
@@ -234,7 +241,14 @@ export function useCanvas() {
         const current = next.get(id);
         if (!current) return prev;
         snapshot = current;
-        next.set(id, { ...current, ...updates });
+        next.set(id, {
+          ...current,
+          ...updates,
+          metadata: {
+            ...(current.metadata || {}),
+            ...(updates.metadata || {}),
+          },
+        });
         return next;
       });
 

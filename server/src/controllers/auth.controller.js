@@ -4,7 +4,6 @@ import prisma from "../lib/prisma.js";
 import { config } from "../config/env.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 
-const JWT_SECRET = config.jwtSecret || "mindmesh-secret-key-change-in-prod-2026";
 const COOKIE_NAME = "session";
 
 function setSessionCookie(res, token) {
@@ -64,7 +63,7 @@ export async function signup(req, res) {
       role: "owner",
     };
 
-    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign(tokenPayload, config.jwtSecret, { expiresIn: "7d" });
     setSessionCookie(res, token);
 
     return sendSuccess(
@@ -116,7 +115,7 @@ export async function login(req, res) {
       role: "owner",
     };
 
-    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign(tokenPayload, config.jwtSecret, { expiresIn: "7d" });
     setSessionCookie(res, token);
 
     return sendSuccess(res, "Login successful", {
@@ -156,6 +155,3 @@ export async function getMe(req, res) {
     role: user.role || "owner",
   });
 }
-
-
-

@@ -184,6 +184,17 @@ export default function InfiniteCanvas({ canvas }) {
     }
   }, [socket, viewport.x, viewport.y, viewport.zoom]);
 
+  // Follow-Me presenter sync: broadcast presenter camera coordinates to followers
+  // Server-side presence.socket.js handles authoritative 30ms rate-limiting with trailing-edge flush
+  useEffect(() => {
+    if (!socket || !activePresenter || activePresenter.socketId !== socket.id) return;
+    socket.emit("presenter:sync", {
+      x: viewport.x,
+      y: viewport.y,
+      zoom: viewport.zoom,
+    });
+  }, [socket, activePresenter, viewport.x, viewport.y, viewport.zoom]);
+
   // Follow-Me camera tracking: smoothly update local viewport when following active presenter
   useEffect(() => {
     if (!socket || !isFollowing || !activePresenter || activePresenter.socketId === socket.id) return;
