@@ -3,6 +3,12 @@ import app from "./src/app.js";
 import { config, validateEnvironment } from "./src/config/env.js";
 import { initSocketServer } from "./src/realtime/socket.js";
 
+// Production security check: ensure JWT_SECRET is explicitly configured before binding port
+if (config.nodeEnv === "production" && !process.env.JWT_SECRET) {
+  console.error("FATAL: JWT_SECRET environment variable must be set in production. Refusing to start.");
+  process.exit(1);
+}
+
 const server = http.createServer(app);
 
 // Initialize Socket.io
@@ -63,5 +69,3 @@ process.on("unhandledRejection", (reason) => {
 process.on("uncaughtException", (err) => {
   console.error("[Server Error] Uncaught Exception:", err);
 });
-
-

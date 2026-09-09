@@ -163,6 +163,10 @@ export class CanvasDocument {
         const updatedNode = {
           ...existingNode,
           ...payload,
+          metadata: {
+            ...(existingNode.metadata || {}),
+            ...(payload.metadata || {}),
+          },
           updatedAt: new Date(),
         };
 

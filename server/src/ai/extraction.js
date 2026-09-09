@@ -44,8 +44,8 @@ export async function processDialogueBatch({ roomId, chunks = [], sourceId, io =
     return { summary: "No dialogue chunks to process", actions: [], chunksCount: 0 };
   }
 
-  // Ensure Room record exists in PostgreSQL upfront to satisfy foreign key constraints
-  await getOrCreateRoom(roomId);
+  // Ensure Room record exists in PostgreSQL and retrieve mode / systemContext
+  const room = await getOrCreateRoom(roomId);
 
   const transcript = formatDialogueTranscript(chunks);
 
@@ -78,7 +78,8 @@ export async function processDialogueBatch({ roomId, chunks = [], sourceId, io =
     transcript,
     existingNodes,
     roster,
-    mode: "operational",
+    mode: room?.mode || "operational",
+    systemContext: room?.systemContext || "",
   });
 
   const rawActions = Array.isArray(aiResult?.actions) ? aiResult.actions : [];

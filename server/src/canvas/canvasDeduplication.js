@@ -141,6 +141,13 @@ export function deduplicateAndLinkActions(actions = [], existingNodes = [], exis
 
       if (targetNode) {
         action.payload.id = targetNode.id;
+        if (metadata) {
+          action.payload.metadata = {
+            ...(targetNode.metadata || {}),
+            ...metadata,
+          };
+          targetNode.metadata = action.payload.metadata;
+        }
         finalActions.push(action);
       } else {
         console.warn(`[Deduplication] Dropped UPDATE_NODE because target could not be found:`, action.payload);

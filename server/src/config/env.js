@@ -6,7 +6,7 @@ export const config = {
   port: Number(process.env.PORT) || 3000,
   nodeEnv: process.env.NODE_ENV || "development",
   clientUrl: process.env.CLIENT_URL || "http://localhost:5173",
-  jwtSecret: process.env.JWT_SECRET || "mindmesh-jwt-secret-session-key-2026",
+  jwtSecret: process.env.JWT_SECRET || (process.env.NODE_ENV === "production" ? undefined : "dev-only-secret-do-not-use-in-prod"),
   groqApiKeys: (process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "")
     .split(",")
     .map((k) => k.trim())

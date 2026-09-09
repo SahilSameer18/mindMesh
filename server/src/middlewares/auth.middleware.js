@@ -29,7 +29,7 @@ export function getCurrentUser(req) {
   try {
     const token = req.cookies?.session;
     if (token) {
-      const decoded = jwt.verify(token, config.jwtSecret || "mindmesh-secret-key-change-in-prod-2026");
+      const decoded = jwt.verify(token, config.jwtSecret);
       return { ...decoded, isDemo: false };
     }
   } catch (err) {
@@ -87,7 +87,7 @@ export function socketAuthMiddleware(socket, next) {
 
     if (token) {
       try {
-        const decoded = jwt.verify(token, config.jwtSecret || "mindmesh-secret-key-change-in-prod-2026");
+        const decoded = jwt.verify(token, config.jwtSecret);
         const authenticatedUser = { ...decoded, isDemo: false };
         socket.user = authenticatedUser;
         socket.data.user = authenticatedUser;
@@ -108,5 +108,4 @@ export function socketAuthMiddleware(socket, next) {
     next();
   }
 }
-
 
