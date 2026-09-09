@@ -50,6 +50,7 @@ const {
 const { routeAction } = await import("../src/ai/validation.js");
 const { executeWorkspaceCommand } = await import("../src/ai/commands.js");
 const { getCanvasDocument } = await import("../src/canvas/canvasDocument.js");
+const { getOrCreateRoom } = await import("../src/services/room.service.js");
 const { default: prisma } = await import("../src/lib/prisma.js");
 
 let passed = 0;
@@ -142,6 +143,9 @@ console.log("\n--- 3. Effector Service & AIAction Persistence ---");
 const testRoomId = "demo-room";
 const uniqueSuffix = Date.now() + "_" + Math.random().toString(36).slice(2, 6);
 const testNodeId = `node-phase4-${uniqueSuffix}`;
+
+// Ensure test room exists in Postgres
+await getOrCreateRoom(testRoomId);
 
 // 3.0 Phantom Resurrection Guard Test (MOVE_NODE on non-existent node)
 const preDoc = await getCanvasDocument(testRoomId);

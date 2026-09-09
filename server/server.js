@@ -1,6 +1,6 @@
 import http from "http";
 import app from "./src/app.js";
-import { config } from "./src/config/env.js";
+import { config, validateEnvironment } from "./src/config/env.js";
 import { initSocketServer } from "./src/realtime/socket.js";
 
 const server = http.createServer(app);
@@ -13,6 +13,7 @@ server.listen(config.port, () => {
   console.log(`🚀 mindMesh server listening on port ${config.port}`);
   console.log(`📡 Environment: ${config.nodeEnv}`);
   console.log(`🔗 Health Check: http://localhost:${config.port}/api/health`);
+  validateEnvironment();
 });
 
 let isShuttingDown = false;
@@ -62,3 +63,5 @@ process.on("unhandledRejection", (reason) => {
 process.on("uncaughtException", (err) => {
   console.error("[Server Error] Uncaught Exception:", err);
 });
+
+

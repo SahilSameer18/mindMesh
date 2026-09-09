@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import { initCanvasSocket } from "./canvas.socket.js";
 import { setupTranscriptSocketHandlers } from "./transcript.socket.js";
 import { setupPresenceSocketHandlers } from "./presence.socket.js";
+import { registerRoomSocketHandlers } from "./room.socket.js";
 import { handleSocketDisconnect } from "../services/presence.service.js";
 import { socketAuthMiddleware } from "../middlewares/auth.middleware.js";
 
@@ -23,6 +24,9 @@ export function initSocketServer(httpServer) {
 
   io.on("connection", (socket) => {
     console.log(`[Socket] Client connected: ${socket.id} (user: ${socket.data?.user?.name || socket.user?.name || "Guest"})`);
+
+    // Register room channel lifecycle handlers (room:join, room:leave)
+    registerRoomSocketHandlers(io, socket);
 
     // Register canvas real-time collaboration handlers (handles canvas:join, actions)
     initCanvasSocket(io, socket);
@@ -49,4 +53,5 @@ export function getIO() {
   }
   return io;
 }
+
 
