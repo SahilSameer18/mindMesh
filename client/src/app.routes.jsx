@@ -1,5 +1,15 @@
 import { createContext, useContext, useCallback, useMemo } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import {
+  useNavigate,
+  useLocation,
+  useSearchParams,
+  Routes,
+  Route,
+  useParams,
+} from "react-router-dom";
+import AppLayout from "./app.layout.jsx";
+import LandingPage from "./pages/LandingPage.jsx";
+import RoomPage from "./pages/RoomPage.jsx";
 
 const RouterContext = createContext(null);
 
@@ -52,3 +62,31 @@ export function useRouter() {
   }
   return context;
 }
+
+function RoomRouteWrapper() {
+  const { roomId } = useParams();
+  const { navigateToHome } = useRouter();
+  return <RoomPage roomId={roomId} onLeaveRoom={navigateToHome} />;
+}
+
+function LegacyQueryRoomWrapper() {
+  const { currentRoute, roomId, navigateToHome } = useRouter();
+  if (currentRoute === "room" && roomId) {
+    return <RoomPage roomId={roomId} onLeaveRoom={navigateToHome} />;
+  }
+  return <LandingPage />;
+}
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<LegacyQueryRoomWrapper />} />
+        <Route path="/room/:roomId" element={<RoomRouteWrapper />} />
+        <Route path="*" element={<LegacyQueryRoomWrapper />} />
+      </Route>
+    </Routes>
+  );
+}
+
+export default AppRoutes;

@@ -1,10 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-
-const API_BASE_URL =
-  import.meta.env.VITE_SERVER_URL ||
-  (typeof window !== "undefined" && window.location.port === "5173"
-    ? `${window.location.protocol}//${window.location.hostname}:3000`
-    : "");
+import authApi from "../api/auth.api.js";
 
 const AuthContext = createContext(null);
 
@@ -20,21 +15,14 @@ export function AuthProvider({ children }) {
     try {
       setIsLoading(true);
       setAuthError(null);
-      const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      const json = await res.json().catch(() => null);
-
-      if (res.ok && json?.success && json?.data) {
-        setUser(json.data);
+      const res = await authApi.getMe();
+      if (res?.success && res?.data) {
+        setUser(res.data);
       } else {
-        // Not authenticated or session expired -> guest mode
         setUser(null);
       }
     } catch {
-      // Offline or network error -> default to guest mode without blocking UI
+      // Offline or unauthenticated -> default to guest mode without blocking UI
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -51,27 +39,23 @@ export function AuthProvider({ children }) {
   const signup = useCallback(async ({ email, password, name }) => {
     setAuthError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
-      });
-
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        const errorMsg = json?.errors?.[0] || json?.message || "Registration failed";
+      const res = await authApi.signup({ email, password, name });
+      if (!res?.success) {
+        const errorMsg = res?.errors?.[0] || res?.message || "Registration failed";
         setAuthError(errorMsg);
         throw new Error(errorMsg);
       }
 
-      setUser(json.data);
+      setUser(res.data);
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("mindmesh:auth-changed", { detail: { action: "signup", user: json.data } }));
+        window.dispatchEvent(
+          new CustomEvent("mindmesh:auth-changed", { detail: { action: "signup", user: res.data } })
+        );
       }
-      return json.data;
+      return res.data;
     } catch (err) {
-      setAuthError(err.message);
+      const msg = err.errors?.[0] || err.message || "Registration failed";
+      setAuthError(msg);
       throw err;
     }
   }, []);
@@ -82,27 +66,23 @@ export function AuthProvider({ children }) {
   const login = useCallback(async ({ email, password }) => {
     setAuthError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        const errorMsg = json?.errors?.[0] || json?.message || "Login failed";
+      const res = await authApi.login({ email, password });
+      if (!res?.success) {
+        const errorMsg = res?.errors?.[0] || res?.message || "Login failed";
         setAuthError(errorMsg);
         throw new Error(errorMsg);
       }
 
-      setUser(json.data);
+      setUser(res.data);
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("mindmesh:auth-changed", { detail: { action: "login", user: json.data } }));
+        window.dispatchEvent(
+          new CustomEvent("mindmesh:auth-changed", { detail: { action: "login", user: res.data } })
+        );
       }
-      return json.data;
+      return res.data;
     } catch (err) {
-      setAuthError(err.message);
+      const msg = err.errors?.[0] || err.message || "Login failed";
+      setAuthError(msg);
       throw err;
     }
   }, []);
@@ -112,10 +92,7 @@ export function AuthProvider({ children }) {
    */
   const logout = useCallback(async () => {
     try {
-      await fetch(`${API_BASE_URL}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await authApi.logout();
     } catch (err) {
       console.warn("[Auth] Error logging out:", err.message);
     } finally {
@@ -148,3 +125,7 @@ export function useAuth() {
   }
   return context;
 }
+
+export default AuthContext;
+
+

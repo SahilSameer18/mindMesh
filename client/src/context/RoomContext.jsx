@@ -1,15 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { io } from "socket.io-client";
 import { DEFAULT_ROOM_ID } from "../utils/canvasConstants.js";
 import { RoomContext } from "./roomContextInstance.js";
 import { useAuth } from "./AuthContext.jsx";
 import { getUserColor, getUserInitials } from "../utils/colors.js";
-
-const SOCKET_SERVER_URL =
-  import.meta.env.VITE_SERVER_URL ||
-  (typeof window !== "undefined" && window.location.port === "5173"
-    ? `${window.location.protocol}//${window.location.hostname}:3000`
-    : "");
+import { roomsApi } from "../api/rooms.api.js";
+import { createSocketClient } from "../api/socket.js";
 
 export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const { user: authUser } = useAuth();
@@ -127,16 +122,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const [transcripts, setTranscripts] = useState([]);
 
   // Synchronous socket initialization eliminates setState inside useEffect
-  const [socket] = useState(() =>
-    io(SOCKET_SERVER_URL, {
-      withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      transports: ["websocket", "polling"],
-    })
-  );
+  const [socket] = useState(() => createSocketClient());
 
   useEffect(() => {
     if (!socket) return;
@@ -325,13 +311,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const updateRoomMode = useCallback(
     async (newMode, systemContext) => {
       try {
-        const res = await fetch(`${SOCKET_SERVER_URL}/api/rooms/${roomId}/mode`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ mode: newMode, systemContext }),
-        });
-        const data = await res.json();
+        const data = await roomsApi.updateMode(roomId, newMode, systemContext);
         if (data?.success) {
           setRoomMode(newMode);
         }
@@ -363,13 +343,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       setIsCommitting(true);
       setCommitError(null);
       try {
-        const res = await fetch(`${SOCKET_SERVER_URL}/api/rooms/${roomId}/commit`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ title }),
-        });
-        const json = await res.json();
+        const json = await roomsApi.commit(roomId, { title });
         if (json?.success && json?.data) {
           setLatestMeetingReport(json.data);
           setCommitError(null);
@@ -393,16 +367,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const exportReport = useCallback(
     async (reportId, payload) => {
       try {
-        const res = await fetch(
-          `${SOCKET_SERVER_URL}/api/rooms/${roomId}/reports/${reportId}/export`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(payload),
-          }
-        );
-        return await res.json();
+        return await roomsApi.exportReport(roomId, reportId, payload);
       } catch (err) {
         console.error("[RoomContext] Export report error:", err);
         return {
@@ -416,10 +381,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
 
   const fetchLatestReport = useCallback(async () => {
     try {
-      const res = await fetch(`${SOCKET_SERVER_URL}/api/rooms/${roomId}/reports/latest`, {
-        credentials: "include",
-      });
-      const json = await res.json();
+      const json = await roomsApi.getLatestReport(roomId);
       if (json?.success && json?.data) {
         setLatestMeetingReport(json.data);
         return json.data;
@@ -433,10 +395,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
 
   const fetchRoomIntegrations = useCallback(async () => {
     try {
-      const res = await fetch(`${SOCKET_SERVER_URL}/api/rooms/${roomId}/integrations`, {
-        credentials: "include",
-      });
-      const json = await res.json();
+      const json = await roomsApi.getIntegrations(roomId);
       if (json?.success && Array.isArray(json.data)) {
         return json.data;
       }

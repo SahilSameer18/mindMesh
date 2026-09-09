@@ -1,28 +1,24 @@
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useRoom } from "../../hooks/useRoom.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { roomsApi } from "../../api/rooms.api.js";
 import {
   CheckCircle2,
-  ExternalLink,
   HelpCircle,
-  X,
-  Layers,
   Radio,
   Zap,
   Brain,
   AlertCircle,
-  AlertTriangle,
   Mic,
   PhoneOff,
   Check,
   Copy,
-  User,
-  Edit2,
-  Trash2,
 } from "lucide-react";
 import BrandLogo from "./BrandLogo.jsx";
+import UserProfileMenu from "./menus/UserProfileMenu.jsx";
+import CanvasShortcutsModal from "./modals/CanvasShortcutsModal.jsx";
+import LeaveMeetingModal from "./modals/LeaveMeetingModal.jsx";
 
 export default function WorkspaceHeader({
   onOpenAuth,
@@ -56,10 +52,8 @@ export default function WorkspaceHeader({
   const [showHelp, setShowHelp] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState("");
+  const [isDeletingRoom, setIsDeletingRoom] = useState(false);
 
   const userMenuRef = useRef(null);
   const helpMenuRef = useRef(null);
@@ -71,7 +65,6 @@ export default function WorkspaceHeader({
         setShowLeaveModal(false);
         setShowUserMenu(false);
         setShowHelp(false);
-        setIsEditingName(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -83,7 +76,6 @@ export default function WorkspaceHeader({
     const handleClickOutside = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setShowUserMenu(false);
-        setIsEditingName(false);
       }
       if (helpMenuRef.current && !helpMenuRef.current.contains(e.target)) {
         setShowHelp(false);
@@ -106,15 +98,6 @@ export default function WorkspaceHeader({
     }
   };
 
-  const handleSaveName = (e) => {
-    e.preventDefault();
-    if (nameInput.trim()) {
-      updateDisplayName(nameInput.trim());
-      setIsEditingName(false);
-      toast.success(`Display name updated to ${nameInput.trim()}`);
-    }
-  };
-
   const handleUserLogout = () => {
     setShowUserMenu(false);
     if (typeof localStorage !== "undefined") {
@@ -128,7 +111,6 @@ export default function WorkspaceHeader({
 
   const handleLeaveCall = () => {
     setShowLeaveModal(false);
-    setShowDeleteConfirm(false);
     if (typeof onLeaveRoom === "function") {
       onLeaveRoom();
     } else {
@@ -136,33 +118,16 @@ export default function WorkspaceHeader({
     }
   };
 
-  const [isDeletingRoom, setIsDeletingRoom] = useState(false);
-
   const handleExecuteDeleteRoom = async () => {
     setIsDeletingRoom(true);
     try {
-      const apiBase =
-        import.meta.env.VITE_SERVER_URL ||
-        (typeof window !== "undefined" && window.location.port === "5173"
-          ? `${window.location.protocol}//${window.location.hostname}:3000`
-          : "");
-
-      const res = await fetch(`${apiBase}/api/rooms/${encodeURIComponent(roomId)}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        toast.success(`Workspace "${roomId}" permanently deleted.`);
-        setShowLeaveModal(false);
-        setShowDeleteConfirm(false);
-        handleLeaveCall();
-      } else {
-        toast.error("Failed to delete room from server.");
-      }
+      await roomsApi.delete(roomId);
+      toast.success(`Workspace "${roomId}" permanently deleted.`);
+      setShowLeaveModal(false);
+      handleLeaveCall();
     } catch (err) {
       console.error("[WorkspaceHeader] Error deleting room:", err);
-      toast.error("Network error while deleting room.");
+      toast.error(err.response?.data?.message || "Failed to delete workspace.");
     } finally {
       setIsDeletingRoom(false);
     }
@@ -400,7 +365,7 @@ export default function WorkspaceHeader({
             <span className="sm:hidden">Login</span>
           </button>
         ) : (
-          <div className="relative shrink-0">
+          <div ref={userMenuRef} className="relative shrink-0">
             <button
               type="button"
               onClick={() => setShowUserMenu((prev) => !prev)}
@@ -410,89 +375,22 @@ export default function WorkspaceHeader({
               <span className="max-w-[80px] sm:max-w-[120px] truncate">{currentUser.name}</span>
             </button>
 
-            {showUserMenu && (
-              <div
-                ref={userMenuRef}
-                className="absolute right-0 top-9 w-52 rounded-xl bg-surface border border-border-subtle shadow-elevated p-2 z-50 animate-in fade-in zoom-in-95 duration-150 text-xs space-y-1"
-              >
-                <div className="px-2.5 py-2 border-b border-border-subtle">
-                  <div className="font-semibold text-text-main truncate">{currentUser.name}</div>
-                  <div className="text-[10px] text-text-muted truncate">{currentUser.email || "Guest Collaborator"}</div>
-                  <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 font-mono dark:bg-sky-500/20 dark:text-sky-300">
-                    {currentUser.role || "Member"}
-                  </span>
-                </div>
-
-                {/* Edit Display Name */}
-                {isEditingName ? (
-                  <form onSubmit={handleSaveName} className="p-1.5 space-y-1.5">
-                    <input
-                      type="text"
-                      value={nameInput}
-                      onChange={(e) => setNameInput(e.target.value)}
-                      placeholder="New display name"
-                      className="w-full px-2 py-1 rounded bg-surface-subtle border border-border-subtle text-xs text-text-main outline-none focus:border-indigo-500"
-                      autoFocus
-                    />
-                    <div className="flex gap-1">
-                      <button
-                        type="submit"
-                        className="px-2 py-0.5 bg-indigo-600 text-white rounded text-[10px] cursor-pointer"
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsEditingName(false)}
-                        className="px-2 py-0.5 bg-surface-subtle text-text-muted hover:text-text-main rounded text-[10px] cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNameInput(currentUser.name);
-                      setIsEditingName(true);
-                    }}
-                    className="w-full text-left px-2 py-1.5 rounded-lg text-text-muted hover:bg-surface-hover hover:text-text-main transition-colors flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Edit2 className="w-3 h-3 text-text-muted" />
-                    <span>Change Name</span>
-                  </button>
-                )}
-
-                {/* Log Out & Clear Identity */}
-                <button
-                  type="button"
-                  onClick={handleUserLogout}
-                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-colors font-medium flex items-center gap-1.5 cursor-pointer"
-                >
-                  <User className="w-3 h-3" />
-                  <span>Log Out / Reset Name</span>
-                </button>
-
-                {/* Leave Meeting from Menu */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    setShowLeaveModal(true);
-                  }}
-                  className="w-full text-left px-2 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors font-medium flex items-center gap-1.5 border-t border-border-subtle pt-1.5 cursor-pointer"
-                >
-                  <PhoneOff className="w-3 h-3" />
-                  <span>Leave Meeting</span>
-                </button>
-              </div>
-            )}
+            <UserProfileMenu
+              isOpen={showUserMenu}
+              onClose={() => setShowUserMenu(false)}
+              currentUser={currentUser}
+              onSaveName={(name) => {
+                updateDisplayName(name);
+                toast.success(`Display name updated to ${name}`);
+              }}
+              onLogout={handleUserLogout}
+              onOpenLeaveModal={() => setShowLeaveModal(true)}
+            />
           </div>
         )}
 
         {/* Help shortcuts button */}
-        <div className="relative shrink-0">
+        <div ref={helpMenuRef} className="relative shrink-0">
           <button
             type="button"
             onClick={() => setShowHelp(!showHelp)}
@@ -502,51 +400,10 @@ export default function WorkspaceHeader({
             <HelpCircle className="w-4 h-4" />
           </button>
 
-          {/* Help Modal Popup */}
-          {showHelp && (
-            <div
-              ref={helpMenuRef}
-              className="absolute top-10 right-0 w-80 bg-surface border border-border-subtle rounded-2xl shadow-elevated p-4 backdrop-blur-xl z-50 text-xs animate-in fade-in zoom-in-95 duration-150"
-            >
-              <div className="flex items-center justify-between pb-2 border-b border-border-subtle mb-3">
-                <span className="font-semibold text-text-main flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-sky-600 dark:text-sky-400" /> Canvas Shortcuts
-                </span>
-                <button
-                  onClick={() => setShowHelp(false)}
-                  className="text-text-muted hover:text-text-main p-1 rounded cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <ul className="space-y-2 text-text-main">
-                <li className="flex justify-between">
-                  <span className="text-text-muted">Pan canvas:</span>
-                  <span className="font-mono text-text-main">Space + Drag or Click &amp; Drag</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="text-text-muted">Zoom view:</span>
-                  <span className="font-mono text-text-main">Mouse Wheel</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="text-text-muted">Edit text:</span>
-                  <span className="font-mono text-text-main">Double click card</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="text-text-muted">Link cards:</span>
-                  <span className="font-mono text-text-main">Drag/click right handle</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="text-text-muted">Dictation:</span>
-                  <span className="font-mono text-text-main">M key</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="text-text-muted">Cancel action:</span>
-                  <span className="font-mono text-text-main">Esc key</span>
-                </li>
-              </ul>
-            </div>
-          )}
+          <CanvasShortcutsModal
+            isOpen={showHelp}
+            onClose={() => setShowHelp(false)}
+          />
         </div>
 
         {/* Google Meet-Style Leave Call Button (Always Visible) */}
@@ -561,126 +418,15 @@ export default function WorkspaceHeader({
         </button>
       </div>
 
-      {/* Google Meet-Style Leave Confirmation Modal (Rendered to body via createPortal to prevent clipping) */}
-      {showLeaveModal && typeof document !== "undefined" && createPortal(
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="leave-modal-title"
-          className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-150"
-          onClick={() => {
-            setShowLeaveModal(false);
-            setShowDeleteConfirm(false);
-          }}
-        >
-          <div
-            className="bg-surface border border-border-subtle rounded-2xl p-6 max-w-md w-full shadow-elevated space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                setShowLeaveModal(false);
-                setShowDeleteConfirm(false);
-              }}
-              className="absolute top-4 right-4 p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors cursor-pointer"
-              aria-label="Close dialog"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            {showDeleteConfirm ? (
-              /* Step 2: Danger In-App Confirmation Card */
-              <div className="space-y-5 animate-in fade-in zoom-in-95 duration-150">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 shadow-subtle animate-pulse dark:bg-rose-500/20 dark:border-rose-500/40 dark:text-rose-400">
-                    <AlertTriangle className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1.5 pt-0.5">
-                    <h3 id="leave-modal-title" className="text-base font-bold text-text-main tracking-tight">
-                      Permanently Delete Workspace?
-                    </h3>
-                    <p className="text-xs text-text-muted leading-relaxed">
-                      This will permanently wipe workspace <span className="font-mono text-text-main font-semibold">#{roomId}</span> and remove all cards, connections, transcripts, and summaries for all teammates.
-                    </p>
-                    <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold pt-1">
-                      ⚠️ This action is irreversible.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-end pt-3 border-t border-border-subtle gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setShowDeleteConfirm(false)}
-                    disabled={isDeletingRoom}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-text-main hover:bg-surface-hover bg-surface-subtle border border-border-subtle transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleExecuteDeleteRoom}
-                    disabled={isDeletingRoom}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>{isDeletingRoom ? "Deleting Workspace..." : "Yes, Delete Everything"}</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* Step 1: Standard Leave Meeting Dialog */
-              <div className="space-y-5">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-700 shrink-0 shadow-sm shadow-rose-500/10 dark:bg-rose-500/25 dark:border-rose-500/40 dark:text-rose-300">
-                    <PhoneOff className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1.5 pt-0.5">
-                    <h3 id="leave-modal-title" className="text-base font-bold text-text-main tracking-tight">
-                      Leave Meeting Room?
-                    </h3>
-                    <p className="text-xs text-text-muted leading-relaxed">
-                      You will disconnect from live audio dictation and collaborative canvas updates. All cards and notes remain saved in this workspace.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-border-subtle gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 dark:text-rose-400/80 dark:hover:text-rose-300 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
-                    title="Permanently delete this workspace and wipe all cards from database"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete Room</span>
-                  </button>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowLeaveModal(false)}
-                      className="px-4 py-2 rounded-xl text-xs font-semibold text-text-main hover:bg-surface-hover bg-surface-subtle border border-border-subtle transition-colors cursor-pointer"
-                    >
-                      Stay
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleLeaveCall}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 transition-all active:scale-95 cursor-pointer"
-                    >
-                      <PhoneOff className="w-3.5 h-3.5" />
-                      <span>Leave Call</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* Google Meet-Style Leave Confirmation Modal */}
+      <LeaveMeetingModal
+        isOpen={showLeaveModal}
+        onClose={() => setShowLeaveModal(false)}
+        roomId={roomId}
+        onConfirmLeave={handleLeaveCall}
+        onConfirmDelete={handleExecuteDeleteRoom}
+        isDeleting={isDeletingRoom}
+      />
     </header>
   );
 }
