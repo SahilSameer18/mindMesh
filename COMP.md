@@ -282,11 +282,11 @@ sequenceDiagram
 
 | Sequence | File Path | Action | Status | Description |
 | :---: | :--- | :---: | :---: | :--- |
-| **1.1** | `server/src/realtime/webrtc.socket.js` | **NEW** | ⏳ PENDING (NEXT) | WebRTC signaling relay pipe (`offer`, `answer`, `candidate`, `media-state`, `disconnect`) |
-| **1.2** | `server/src/realtime/socket.js` | **MODIFY** | ⏳ PENDING | Mount `registerWebRTCSocketHandlers(io, socket)` |
-| **1.3** | `client/src/hooks/useWebRTC.js` | **NEW** | ⏳ PENDING | P2P mesh connection pool, Google STUN, input-safe hotkeys `M`/`V` |
-| **1.4** | `client/src/components/meeting/VideoConferenceBar.jsx` | **MODIFY** | ⏳ PENDING | Floating glassmorphic video bar, local/remote video tiles, ambient avatar fallback |
-| **1.5** | `client/src/pages/RoomPage.jsx` | **MODIFY** | ⏳ PENDING | Mount `VideoConferenceBar` |
+| **1.1** | `server/src/realtime/webrtc.socket.js` | **NEW** | ✅ ALREADY DONE | WebRTC signaling relay pipe (`offer`, `answer`, `candidate`, `media-state`, `disconnect`) |
+| **1.2** | `server/src/realtime/socket.js` | **MODIFY** | ✅ ALREADY DONE | Mount `registerWebRTCSocketHandlers(io, socket)` |
+| **1.3** | `client/src/hooks/useWebRTC.js` | **NEW** | ✅ ALREADY DONE | P2P mesh connection pool, Google STUN, candidate buffering, synchronous lock |
+| **1.4** | `client/src/components/meeting/VideoConferenceBar.jsx` | **MODIFY** | ✅ ALREADY DONE | Floating glassmorphic video bar, local/remote video tiles, ambient avatar fallback |
+| **1.5** | `client/src/pages/RoomPage.jsx` | **MODIFY** | ✅ ALREADY DONE | Mount `VideoConferenceBar` |
 | **2.1** | `server/src/ai/agenda.js` | **NEW** | ⏳ PENDING | `extractAgendaTopics()` via Groq/Gemini fallback |
 | **2.2** | `server/src/controllers/ai.controller.js` | **NEW** | ⏳ PENDING | AI controller with agenda generator endpoint handler |
 | **2.3** | `server/src/routes/ai.routes.js` | **MODIFY** | ⏳ PENDING | Bind `POST /api/rooms/:roomId/agenda` to `aiController.generateAgenda` |

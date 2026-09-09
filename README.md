@@ -61,7 +61,7 @@ mindMesh Flow:
 - **Interim Caption Stream (<10ms)**: Watch your spoken words stream into an ethereal floating pill right above the active command bar before they materialize into graph cards.
 - **Background Speech Simulator**: Test real-time intelligence with 4 pre-loaded benchmark scenarios (*Canonical Onboarding Debate*, *Live Reassignment & In-Place Correction*, *Architecture & Risk Mitigation*, *Fluff Filter vs. Action Marker*).
 
-### 2. ⚡ Dual-Provider AI Intelligence (<100ms Failover)
+### 2. ⚡ Dual-Provider AI Intelligence (Automatic Zero-Downtime Failover)
 - **Primary Engine**: Groq LPU running **Llama 3.3 70B Versatile** for lightning-fast structured JSON inference (~300 tokens/sec).
 - **Secondary Fallback**: Google **Gemini 2.5 Flash** transparently catches network anomalies or quota limits with zero user disruption.
 - **Confidence Routing**:
@@ -89,13 +89,20 @@ mindMesh Flow:
   - **Operational**: Structured columns, task assignments, and chronological deliverables.
   - **Brainstorm**: Organic visual clustering and associative idea maps.
 
-### 6. 🏁 Dual-Source Meeting Commit & External Integrations
+### 6. 📹 Peer-to-Peer WebRTC Video Calling
+- **Low-Latency P2P Mesh**: Audio and video streams flow directly between attendee browsers via Google STUN servers with zero server media bandwidth overhead.
+- **Dockable Video Conference Bar**: Floating glassmorphic dock positioned above the canvas, featuring mirrored local video, remote peer tiles, and live mic status indicators.
+- **Ambient Avatar Fallbacks**: Graceful fallback to initialed colored avatars if cameras are disabled or permission is denied, ensuring attendees are always visually represented.
+- **Synchronous Signaling Locks**: Hardened against duplicate offer collisions and out-of-order ICE candidate trickling.
+
+### 7. 🏁 Dual-Source Meeting Commit & External Integrations
 - Click **Commit Call** to synthesize both the **final canvas knowledge graph** and **raw conversational dialogue** into an executive `MeetingReport`.
 - Celebratory dual-cannon confetti animation upon commit confirmation.
 - Direct outward dispatches:
   - 💬 **Slack**: Formatted Block Kit payload.
   - 📝 **Notion**: Complete database page and block hierarchy.
-### 7. 🌐 Enterprise Landing Page & Brand Architecture
+
+### 8. 🌐 Enterprise Landing Page & Brand Architecture
 - **Proprietary Geometric Brand Mark**: Interconnected neural knowledge mesh SVG icon scalable across browser favicons, navigation bars, and authentication dialogs.
 - **Fixed Glassmorphic Navigation**: Sticky top navigation that shifts from minimalist glass to an elevated translucent backdrop (`backdrop-blur-xl`) upon scroll.
 - **Silky-Smooth Q&A Accordion**: Zero-jitter CSS Grid fractional height transitions (`grid-template-rows: 0fr ↔ 1fr`) with coordinated chevron rotations.
@@ -385,12 +392,22 @@ All endpoints strictly adhere to the unified JSON schema:
 | `presence:presenter-start` | `C ──► S` | Requests atomic single-presenter broadcast lock. |
 | `ai:activity` | `S ──► C` | Real-time broadcast of newly applied `AIAction` row. |
 | `ai:proposed` | `S ──► C` | Broadcast of action requiring user review and approval. |
+| `webrtc:offer` | `C ◄──► S` | Relays SDP offer to target peer socket ID. |
+| `webrtc:answer` | `C ◄──► S` | Relays SDP answer to offering peer socket ID. |
+| `webrtc:ice-candidate` | `C ◄──► S` | Relays trickling ICE candidates to target peer. |
+| `webrtc:media-state` | `C ──► S` | Broadcasts mic mute and camera toggle status to room. |
+| `webrtc:peer-left` | `S ──► C` | Notifies room peers on disconnect to clean up video elements. |
 
 ---
 
-## 🔮 Future Horizons: WebRTC Video Calling
+## 📹 WebRTC Video Calling: Live & Operational
 
-The architectural specification for adding **Peer-to-Peer WebRTC Video Conferencing** (featuring mesh topology, zero-server-cost signaling, and ambient avatar fallbacks) is fully documented in [**`WEBRTC.md`**](file:///c:/Users/HP/Desktop/mindMesh/WEBRTC.md).
+Peer-to-peer WebRTC video conferencing is fully operational in mindMesh:
+- **Low-Latency P2P Mesh**: Audio/video streams exchange directly between peer browsers via public Google STUN servers.
+- **Zero Server Media Overhead**: Node.js backend acts purely as an ephemeral signaling relay for SDP offers, answers, and ICE candidates.
+- **Ambient Presence**: Integrated with room presence; auto-reconnects and cleanly unmounts video elements on disconnect with zero ghost tiles.
+
+For the full architectural specification and signaling sequence, see [**`WEBRTC.md`**](WEBRTC.md).
 
 ---
 

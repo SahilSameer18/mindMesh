@@ -30,7 +30,7 @@ const FAQS = [
     id: "ai-failover",
     question: "What happens if there are network latency spikes or heavy discussion?",
     answer:
-      "mindMesh features a transparent dual-engine failover architecture. If primary inference experiences any latency spikes, secondary verification takes over in under 100 milliseconds, guaranteeing zero dropped thoughts during intense product discussions.",
+      "mindMesh features an automatic zero-downtime dual-engine failover architecture. If primary inference experiences any latency spikes or provider rate limits, secondary verification takes over transparently, guaranteeing zero dropped thoughts during intense product discussions.",
   },
 ];
 
