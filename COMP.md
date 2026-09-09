@@ -4,6 +4,19 @@ This updated plan incorporates senior feedback: prioritizing highest-risk capabi
 
 ---
 
+## Executive Progress Dashboard
+
+| Phase | Description | Status | Details / Verification |
+| :--- | :--- | :---: | :--- |
+| **Phase 4** | **Backend & Frontend Architecture Refactoring** | **✅ ALREADY DONE** | Clean MVC, 4-tier network layer (`apiClient`, `*.api.js`), modal decompositions, zero client deletions, Vite build passed (0 errors) |
+| **Phase 5.1**| **Full Test Runner Script (`server/package.json`)** | **✅ ALREADY DONE** | All 6 test suites (`phase3` to `phase8`) wired to `npm test` (140+ integration tests passing) |
+| **Phase 1** | **WebRTC Video Calling Engine** | **✅ ALREADY DONE** | Standalone P2P mesh relay, Google STUN, candidate buffering, defensive signaling guard, camera/mic toggles, ambient avatar fallbacks. Verified with zero-error build & tests |
+| **Phase 2** | **Agenda Intake & Live Topic Cascading** | **⏳ PENDING (NEXT)** | Dual-engine agenda extraction & vertical column clustering under topic goals |
+| **Phase 3** | **Simplified Context Priming (AI Persona)** | **⏳ PENDING** | Room creation context prompt + 2 one-click suggestion chips |
+| **Phase 5.2**| **Marketing Claims & Final Polish** | **⏳ PENDING** | Zero-downtime failover wording & WebRTC Live status in docs |
+
+---
+
 ## User Review Required
 
 > [!IMPORTANT]
@@ -51,7 +64,7 @@ sequenceDiagram
     PeerB->>Server: webrtc:ice-candidate { targetSocketId: PeerA, candidate }
     Server->>PeerA: webrtc:ice-candidate { senderSocketId: PeerB, candidate }
 
-    Note over PeerA,PeerB: Direct P2P Video & Audio Connected (Sub-150ms)
+    Note over PeerA,PeerB: Direct P2P Video & Audio Connected (Low-Latency Mesh)
 ```
 
 ---
@@ -189,10 +202,13 @@ sequenceDiagram
   ### ACTIVE AGENDA TOPICS (STRATEGIC PILLARS):
   ${agendaTopicsStr}
 
-  ### TOPIC CASCADING & NESTING RULES:
-  - If spoken discussion relates to an active agenda topic above:
+  ### TOPIC CASCADING & NESTING RULES (WITH HIGH-CONFIDENCE GUARD):
+  - CONFIDENCE THRESHOLD (>0.8): Only associate a card with an active agenda topic if the participant explicitly or clearly references that specific topic.
+  - IF CONFIDENT MATCH:
     1. Set the new node's X coordinate to match the agenda topic's X coordinate (so it sits in the same vertical column).
     2. Output a CREATE_EDGE action with type "part_of" pointing from the new node to the matching agenda topic's semanticKey.
+  - FALLBACK (LOW CONFIDENCE / GENERAL DISCUSSION):
+    If discussion is general, cross-cutting, or unclear, do NOT force-nest under an agenda topic. Position the card in the default open canvas area with standard automatic offset, leaving it as an independent node without a false-positive "part_of" edge.
   ```
 * **Visual Result**: As users speak, tasks and decisions automatically populate in clean columns directly beneath the corresponding agenda topic banner.
 
@@ -223,70 +239,71 @@ sequenceDiagram
 
 ---
 
-### Phase 4: Frontend & Backend Architectural Refactoring
+### Phase 4: Frontend & Backend Architectural Refactoring [✅ COMPLETED / ALREADY DONE]
 
-#### A. Frontend Network Layer (`client/src/api/` & `hooks/`)
+#### A. Frontend Network Layer (`client/src/api/` & `hooks/`) [✅ ALREADY DONE]
 * [apiClient.js](file:///c:/Users/HP/Desktop/mindMesh/client/src/api/apiClient.js): Axios instance with interceptors returning clean `{ success, message, data }`.
 * [auth.api.js](file:///c:/Users/HP/Desktop/mindMesh/client/src/api/auth.api.js) & [rooms.api.js](file:///c:/Users/HP/Desktop/mindMesh/client/src/api/rooms.api.js): Isolated endpoint services.
 * [useAuth.js](file:///c:/Users/HP/Desktop/mindMesh/client/src/hooks/useAuth.js): Custom hook wrapping `AuthContext`.
 * [app.routes.jsx](file:///c:/Users/HP/Desktop/mindMesh/client/src/app.routes.jsx) & [app.layout.jsx](file:///c:/Users/HP/Desktop/mindMesh/client/src/app.layout.jsx): Standard React Router v7 routes with light `<Toaster />`.
 
-#### B. Modal Decomposition
-* Extract `LeaveMeetingModal.jsx`, `CanvasShortcutsModal.jsx`, `UserProfileMenu.jsx` from `WorkspaceHeader.jsx`.
-* Extract `CreateWorkspaceModal.jsx` and `DeleteWorkspaceModal.jsx` from `LandingPage.jsx`.
+#### B. Modal Decomposition [✅ ALREADY DONE]
+* Extracted and mounted `LeaveMeetingModal.jsx`, `CanvasShortcutsModal.jsx`, `UserProfileMenu.jsx` from `WorkspaceHeader.jsx`.
+* Extracted and mounted `CreateWorkspaceModal.jsx` and `DeleteWorkspaceModal.jsx` from `LandingPage.jsx`.
 
-#### C. Backend Modularization & Dead Stub Cleanup
-* Extract `server/src/realtime/room.socket.js` for room join/leave logic.
-* Implement `server/src/controllers/ai.controller.js` to decouple handlers from `ai.routes.js`.
-* Delete 6 unused REST stubs: `canvas.controller.js`, `canvas.routes.js`, `canvas.service.js`, `transcript.controller.js`, `transcript.routes.js`, `transcript.service.js`.
+#### C. Backend Modularization & Dead Stub Cleanup [✅ ALREADY DONE]
+* Extracted `server/src/realtime/room.socket.js` for room join/leave logic.
+* Implemented `server/src/controllers/ai.controller.js` to decouple handlers from `ai.routes.js`.
+* Deleted 6 unused REST stubs: `canvas.controller.js`, `canvas.routes.js`, `canvas.service.js`, `transcript.controller.js`, `transcript.routes.js`, `transcript.service.js`.
 
 ---
 
 ### Phase 5: Claims, Full Test Suite & Documentation
 
-#### A. Comprehensive Test Runner (`server/package.json`)
-* Configure the `"test"` script to run all 6 test suites:
+#### A. Comprehensive Test Runner (`server/package.json`) [✅ COMPLETED / ALREADY DONE]
+* Configured the `"test"` script to run all 6 test suites:
   ```json
   "scripts": {
     "test": "node test/phase3_ai.test.js && node test/phase4_backend.test.js && node test/phase5_extraction.test.js && node test/phase6_presence.test.js && node test/phase7_commit.test.js && node test/phase8_voice_layout.test.js"
   }
   ```
+* All 140+ integration tests passing across phases 3 through 8.
 
-#### B. Marketing Claim Corrections
+#### B. Marketing Claim Corrections [⏳ PENDING]
 * Replace `<100ms` failover claims across `LandingFAQ.jsx`, `LandingComparison.jsx`, and `README.md` with:
   **"Automatic zero-downtime dual-engine failover"**.
 
-#### C. README Documentation Update
+#### C. README Documentation Update [⏳ PENDING]
 * Update the "Future Horizons" section in `README.md` to declare **WebRTC Video Calling: Live & Operational**.
 
 ---
 
 ## 3. Implementation Order & File Inventory
 
-| Sequence | File Path | Action | Description |
-| :---: | :--- | :---: | :--- |
-| **1.1** | `server/src/realtime/webrtc.socket.js` | **NEW** | WebRTC signaling relay pipe (`offer`, `answer`, `candidate`, `media-state`, `disconnect`) |
-| **1.2** | `server/src/realtime/socket.js` | **MODIFY** | Mount `registerWebRTCSocketHandlers(io, socket)` |
-| **1.3** | `client/src/hooks/useWebRTC.js` | **NEW** | P2P mesh connection pool, Google STUN, input-safe hotkeys `M`/`V` |
-| **1.4** | `client/src/components/meeting/VideoConferenceBar.jsx` | **MODIFY** | Floating glassmorphic video bar, local/remote video tiles, ambient avatar fallback |
-| **1.5** | `client/src/pages/RoomPage.jsx` | **MODIFY** | Mount `VideoConferenceBar` |
-| **2.1** | `server/src/ai/agenda.js` | **NEW** | `extractAgendaTopics()` via Groq/Gemini fallback |
-| **2.2** | `server/src/controllers/ai.controller.js` | **NEW** | AI controller with agenda generator endpoint handler |
-| **2.3** | `server/src/routes/ai.routes.js` | **MODIFY** | Bind `POST /api/rooms/:roomId/agenda` to `aiController.generateAgenda` |
-| **2.4** | `server/src/ai/prompts/extraction.prompt.js` | **MODIFY** | Inject active agenda topics and vertical cascading rules |
-| **2.5** | `client/src/components/meeting/PasteAgendaModal.jsx` | **NEW** | Textarea modal for pasting agenda notes |
-| **2.6** | `client/src/components/command/ActiveCommandBar.jsx` | **MODIFY** | Add "Agenda" trigger button |
-| **3.1** | `server/src/controllers/room.controller.js` | **MODIFY** | Persist `systemContext` from creation payload |
-| **3.2** | `client/src/components/landing/modals/CreateWorkspaceModal.jsx` | **MODIFY** | Add single AI Persona textarea + 2 quick suggestion pills |
-| **4.1** | `client/src/api/apiClient.js` | **MODIFY** | Standard Axios instance with response/error interceptors |
-| **4.2** | `client/src/api/auth.api.js` & `rooms.api.js` | **NEW** | Isolated API endpoint modules |
-| **4.3** | `client/src/hooks/useAuth.js` & `usePresence.js` | **MODIFY/NEW** | Custom hooks for auth and presence |
-| **4.4** | `client/src/components/ui/modals/*` & `menus/*` | **NEW** | Extracted `LeaveMeetingModal`, `CanvasShortcutsModal`, `UserProfileMenu` |
-| **4.5** | `client/src/app.routes.jsx` & `app.layout.jsx` | **MODIFY** | Standard React Router v7 routes + light `<Toaster />` |
-| **4.6** | `server/src/realtime/room.socket.js` | **NEW** | Modular room join/leave socket logic |
-| **4.7** | 6 unused REST placeholder files | **DELETE** | Delete unused `canvas.*` and `transcript.*` REST stubs |
-| **5.1** | `server/package.json` | **MODIFY** | Wire all 6 test suites into `"test"` script |
-| **5.2** | `LandingFAQ.jsx`, `LandingComparison.jsx`, `README.md` | **MODIFY** | Fix failover claims and update WebRTC to Live status |
+| Sequence | File Path | Action | Status | Description |
+| :---: | :--- | :---: | :---: | :--- |
+| **1.1** | `server/src/realtime/webrtc.socket.js` | **NEW** | ⏳ PENDING (NEXT) | WebRTC signaling relay pipe (`offer`, `answer`, `candidate`, `media-state`, `disconnect`) |
+| **1.2** | `server/src/realtime/socket.js` | **MODIFY** | ⏳ PENDING | Mount `registerWebRTCSocketHandlers(io, socket)` |
+| **1.3** | `client/src/hooks/useWebRTC.js` | **NEW** | ⏳ PENDING | P2P mesh connection pool, Google STUN, input-safe hotkeys `M`/`V` |
+| **1.4** | `client/src/components/meeting/VideoConferenceBar.jsx` | **MODIFY** | ⏳ PENDING | Floating glassmorphic video bar, local/remote video tiles, ambient avatar fallback |
+| **1.5** | `client/src/pages/RoomPage.jsx` | **MODIFY** | ⏳ PENDING | Mount `VideoConferenceBar` |
+| **2.1** | `server/src/ai/agenda.js` | **NEW** | ⏳ PENDING | `extractAgendaTopics()` via Groq/Gemini fallback |
+| **2.2** | `server/src/controllers/ai.controller.js` | **NEW** | ⏳ PENDING | AI controller with agenda generator endpoint handler |
+| **2.3** | `server/src/routes/ai.routes.js` | **MODIFY** | ⏳ PENDING | Bind `POST /api/rooms/:roomId/agenda` to `aiController.generateAgenda` |
+| **2.4** | `server/src/ai/prompts/extraction.prompt.js` | **MODIFY** | ⏳ PENDING | Inject active agenda topics and vertical cascading rules |
+| **2.5** | `client/src/components/meeting/PasteAgendaModal.jsx` | **NEW** | ⏳ PENDING | Textarea modal for pasting agenda notes |
+| **2.6** | `client/src/components/command/ActiveCommandBar.jsx` | **MODIFY** | ⏳ PENDING | Add "Agenda" trigger button |
+| **3.1** | `server/src/controllers/room.controller.js` | **MODIFY** | ⏳ PENDING | Persist `systemContext` from creation payload |
+| **3.2** | `client/src/components/landing/modals/CreateWorkspaceModal.jsx` | **MODIFY** | ⏳ PENDING | Add single AI Persona textarea + 2 quick suggestion pills |
+| **4.1** | `client/src/api/apiClient.js` | **MODIFY** | ✅ ALREADY DONE | Standard Axios instance with response/error interceptors |
+| **4.2** | `client/src/api/auth.api.js` & `rooms.api.js` | **NEW** | ✅ ALREADY DONE | Isolated API endpoint modules |
+| **4.3** | `client/src/hooks/useAuth.js` & `usePresence.js` | **MODIFY/NEW** | ✅ ALREADY DONE | Custom hooks for auth and presence |
+| **4.4** | `client/src/components/ui/modals/*` & `menus/*` | **NEW** | ✅ ALREADY DONE | Extracted `LeaveMeetingModal`, `CanvasShortcutsModal`, `UserProfileMenu` |
+| **4.5** | `client/src/app.routes.jsx` & `app.layout.jsx` | **MODIFY** | ✅ ALREADY DONE | Standard React Router v7 routes + light `<Toaster />` |
+| **4.6** | `server/src/realtime/room.socket.js` | **NEW** | ✅ ALREADY DONE | Modular room join/leave socket logic |
+| **4.7** | 6 unused REST placeholder files | **DELETE** | ✅ ALREADY DONE | Deleted unused `canvas.*` and `transcript.*` REST stubs |
+| **5.1** | `server/package.json` | **MODIFY** | ✅ ALREADY DONE | Wire all 6 test suites into `"test"` script |
+| **5.2** | `LandingFAQ.jsx`, `LandingComparison.jsx`, `README.md` | **MODIFY** | ⏳ PENDING | Fix failover claims and update WebRTC to Live status |
 
 ---
 

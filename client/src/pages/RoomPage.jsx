@@ -12,6 +12,7 @@ import EvidenceCard from "../components/activity/EvidenceCard.jsx";
 import AuthModal from "../components/auth/AuthModal.jsx";
 import CommitCallModal from "../components/meeting/CommitCallModal.jsx";
 import VisualLightboxModal from "../components/canvas/VisualLightboxModal.jsx";
+import VideoConferenceBar from "../components/meeting/VideoConferenceBar.jsx";
 
 function WorkspaceContent({ onLeaveRoom }) {
   const { roomId, socket, currentUser, isCommitModalOpen, setIsCommitModalOpen } = useRoom();
@@ -121,6 +122,9 @@ function WorkspaceContent({ onLeaveRoom }) {
           onClose={() => setIsCommitModalOpen(false)}
           canvas={canvas}
         />
+
+        {/* Phase 1: Real-time WebRTC Mesh Video Conference Bar */}
+        <VideoConferenceBar />
       </main>
     </div>
   );

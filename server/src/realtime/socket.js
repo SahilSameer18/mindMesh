@@ -3,6 +3,7 @@ import { initCanvasSocket } from "./canvas.socket.js";
 import { setupTranscriptSocketHandlers } from "./transcript.socket.js";
 import { setupPresenceSocketHandlers } from "./presence.socket.js";
 import { registerRoomSocketHandlers } from "./room.socket.js";
+import { registerWebRTCSocketHandlers } from "./webrtc.socket.js";
 import { handleSocketDisconnect } from "../services/presence.service.js";
 import { socketAuthMiddleware } from "../middlewares/auth.middleware.js";
 
@@ -36,6 +37,9 @@ export function initSocketServer(httpServer) {
 
     // Register real-time presence, cursor, viewport, and presenter handlers
     setupPresenceSocketHandlers(io, socket);
+
+    // Register WebRTC P2P mesh signaling handlers
+    registerWebRTCSocketHandlers(io, socket);
 
     // Consolidated single disconnect handler: releases presenter lock and cleans up presence
     socket.on("disconnect", () => {
