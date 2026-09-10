@@ -11,8 +11,8 @@ This updated plan incorporates senior feedback: prioritizing highest-risk capabi
 | **Phase 4** | **Backend & Frontend Architecture Refactoring** | **✅ ALREADY DONE** | Clean MVC, 4-tier network layer (`apiClient`, `*.api.js`), modal decompositions, zero client deletions, Vite build passed (0 errors) |
 | **Phase 5.1**| **Full Test Runner Script (`server/package.json`)** | **✅ ALREADY DONE** | All 6 test suites (`phase3` to `phase8`) wired to `npm test` (140+ integration tests passing) |
 | **Phase 1** | **WebRTC Video Calling Engine** | **✅ ALREADY DONE** | Standalone P2P mesh relay, Google STUN, candidate buffering, defensive signaling guard, camera/mic toggles, ambient avatar fallbacks. Verified with zero-error build & tests |
-| **Phase 2** | **Agenda Intake & Live Topic Cascading** | **⏳ PENDING (NEXT)** | Dual-engine agenda extraction & vertical column clustering under topic goals |
-| **Phase 3** | **Simplified Context Priming (AI Persona)** | **⏳ PENDING** | Room creation context prompt + 2 one-click suggestion chips |
+| **Phase 2** | **Agenda Intake & Live Topic Cascading** | **✅ ALREADY DONE** | Dual-engine agenda extraction, horizontal anchor layout (y = -150), vertical column clustering, and PasteAgendaModal in command bar |
+| **Phase 3** | **Simplified Context Priming (AI Persona)** | **⏳ PENDING (NEXT)** | Room creation context prompt + 2 one-click suggestion chips |
 | **Phase 5.2**| **Marketing Claims & Final Polish** | **⏳ PENDING** | Zero-downtime failover wording & WebRTC Live status in docs |
 
 ---
@@ -287,12 +287,13 @@ sequenceDiagram
 | **1.3** | `client/src/hooks/useWebRTC.js` | **NEW** | ✅ ALREADY DONE | P2P mesh connection pool, Google STUN, candidate buffering, synchronous lock |
 | **1.4** | `client/src/components/meeting/VideoConferenceBar.jsx` | **MODIFY** | ✅ ALREADY DONE | Floating glassmorphic video bar, local/remote video tiles, ambient avatar fallback |
 | **1.5** | `client/src/pages/RoomPage.jsx` | **MODIFY** | ✅ ALREADY DONE | Mount `VideoConferenceBar` |
-| **2.1** | `server/src/ai/agenda.js` | **NEW** | ⏳ PENDING | `extractAgendaTopics()` via Groq/Gemini fallback |
-| **2.2** | `server/src/controllers/ai.controller.js` | **NEW** | ⏳ PENDING | AI controller with agenda generator endpoint handler |
-| **2.3** | `server/src/routes/ai.routes.js` | **MODIFY** | ⏳ PENDING | Bind `POST /api/rooms/:roomId/agenda` to `aiController.generateAgenda` |
-| **2.4** | `server/src/ai/prompts/extraction.prompt.js` | **MODIFY** | ⏳ PENDING | Inject active agenda topics and vertical cascading rules |
-| **2.5** | `client/src/components/meeting/PasteAgendaModal.jsx` | **NEW** | ⏳ PENDING | Textarea modal for pasting agenda notes |
-| **2.6** | `client/src/components/command/ActiveCommandBar.jsx` | **MODIFY** | ⏳ PENDING | Add "Agenda" trigger button |
+| **2.1** | `server/src/ai/agenda.js` | **NEW** | ✅ ALREADY DONE | `extractAgendaTopics()` via Groq/Gemini fallback |
+| **2.2** | `server/src/controllers/ai.controller.js` | **MODIFY** | ✅ ALREADY DONE | AI controller with `generateAgenda` endpoint handler |
+| **2.3** | `server/src/routes/ai.routes.js` | **MODIFY** | ✅ ALREADY DONE | Bound `POST /api/rooms/:roomId/agenda` to `aiController.generateAgenda` |
+| **2.4** | `server/src/ai/prompts/extraction.prompt.js` | **MODIFY** | ✅ ALREADY DONE | Injected active agenda topics and vertical cascading rules |
+| **2.5** | `client/src/components/meeting/PasteAgendaModal.jsx` | **NEW** | ✅ ALREADY DONE | Textarea modal for pasting agenda notes & 1-click sample |
+| **2.6** | `client/src/components/command/ActiveCommandBar.jsx` | **MODIFY** | ✅ ALREADY DONE | Added "Agenda" trigger button & mounted modal |
+| **2.7** | `client/src/api/ai.api.js` | **NEW** | ✅ ALREADY DONE | Added client API service for agenda generation |
 | **3.1** | `server/src/controllers/room.controller.js` | **MODIFY** | ⏳ PENDING | Persist `systemContext` from creation payload |
 | **3.2** | `client/src/components/landing/modals/CreateWorkspaceModal.jsx` | **MODIFY** | ⏳ PENDING | Add single AI Persona textarea + 2 quick suggestion pills |
 | **4.1** | `client/src/api/apiClient.js` | **MODIFY** | ✅ ALREADY DONE | Standard Axios instance with response/error interceptors |

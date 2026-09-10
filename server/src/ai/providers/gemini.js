@@ -180,8 +180,74 @@ export async function summarizeMeeting({ transcripts = [], nodes = [], edges = [
   };
 }
 
+/**
+ * Extract 3-5 strategic topic pillars from raw meeting agenda using Gemini Flash
+ */
+export async function extractAgendaTopics({ agendaText } = {}) {
+  const ai = getClient();
+  const prompt = `Analyze the following meeting agenda/notes and extract between 3 to 5 top-level strategic topic pillars.
+Return valid JSON adhering strictly to this schema:
+{
+  "topics": [
+    {
+      "title": "Short Topic Title (Max 5 words)",
+      "semanticKey": "lowercase_snake_case_key",
+      "description": "One sentence expected outcome or scope"
+    }
+  ]
+}
+
+Meeting Agenda:
+"""
+${agendaText.slice(0, 4000)}
+"""`;
+
+  const candidateModels = [
+    config.geminiModel,
+    "gemini-flash-lite-latest",
+    "gemini-2.5-flash",
+  ].filter(Boolean);
+
+  let response = null;
+  let usedModel = config.geminiModel;
+
+  for (const model of candidateModels) {
+    try {
+      response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      });
+      usedModel = model;
+      break;
+    } catch (mErr) {
+      if (mErr.message && mErr.message.includes("404")) {
+        continue;
+      }
+      throw mErr;
+    }
+  }
+
+  if (!response) {
+    throw new Error("All Gemini model candidates failed for extractAgendaTopics.");
+  }
+
+  const rawText = response.text || "{}";
+  const parsed = JSON.parse(rawText);
+
+  return {
+    topics: Array.isArray(parsed.topics) ? parsed.topics : [],
+    provider: "gemini",
+    model: usedModel,
+  };
+}
+
 export const gemini = {
   extractMeetingElements,
   executeCanvasCommand,
   summarizeMeeting,
+  extractAgendaTopics,
 };

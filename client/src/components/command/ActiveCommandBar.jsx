@@ -12,9 +12,11 @@ import {
   Link2,
   GitFork,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  ListOrdered,
 } from "lucide-react";
 import { useRoom } from "../../hooks/useRoom.js";
+import PasteAgendaModal from "../meeting/PasteAgendaModal.jsx";
 
 const PROMPT_PILLS = [
   { label: "Tidy architecture", desc: "Organize nodes cleanly", icon: GitFork, prompt: "Tidy architecture" },
@@ -31,6 +33,7 @@ export default function ActiveCommandBar({ canvas }) {
   const [isThinking, setIsThinking] = useState(false);
   const [lastResponse, setLastResponse] = useState(null);
   const [isPromptsOpen, setIsPromptsOpen] = useState(false);
+  const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
   const inputRef = useRef(null);
   const popoverRef = useRef(null);
   const promptBtnRef = useRef(null);
@@ -235,6 +238,17 @@ export default function ActiveCommandBar({ canvas }) {
             )}
           </button>
 
+          {/* Agenda Intake Button */}
+          <button
+            type="button"
+            onClick={() => setIsAgendaModalOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-surface-subtle hover:bg-surface-hover text-text-main border border-border-subtle hover:border-violet-300 transition-all cursor-pointer shrink-0"
+            title="Import meeting agenda & topic anchors"
+          >
+            <ListOrdered className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+            <span className="hidden sm:inline">Agenda</span>
+          </button>
+
           <input
             ref={inputRef}
             type="text"
@@ -261,6 +275,13 @@ export default function ActiveCommandBar({ canvas }) {
           </div>
         </form>
       </div>
+
+      {/* Import Agenda Modal */}
+      <PasteAgendaModal
+        isOpen={isAgendaModalOpen}
+        onClose={() => setIsAgendaModalOpen(false)}
+        roomId={roomId}
+      />
     </aside>
   );
 }

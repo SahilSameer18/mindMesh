@@ -252,8 +252,97 @@ export async function summarizeMeeting({ transcripts = [], nodes = [], edges = [
   throw lastError;
 }
 
+/**
+ * Extract 3-5 strategic topic pillars from raw meeting agenda or outline text
+ */
+export async function extractAgendaTopics({ agendaText } = {}) {
+  const keys = config.groqApiKeys;
+  const attempts = Math.max(1, keys.length);
+  let lastError = null;
+
+  const prompt = `Analyze the following meeting agenda/notes and extract between 3 to 5 top-level strategic topic pillars.
+Return valid JSON adhering strictly to this schema:
+{
+  "topics": [
+    {
+      "title": "Short Topic Title (Max 5 words)",
+      "semanticKey": "lowercase_snake_case_key",
+      "description": "One sentence expected outcome or scope"
+    }
+  ]
+}
+
+Meeting Agenda:
+"""
+${agendaText.slice(0, 4000)}
+"""`;
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const { client, keyMask } = getClient();
+    try {
+      const candidateModels = [
+        config.groqModel,
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "llama-3.3-70b-versatile",
+      ].filter(Boolean);
+
+      let completion = null;
+      let usedModel = config.groqModel;
+
+      for (const model of candidateModels) {
+        try {
+          completion = await client.chat.completions.create({
+            model,
+            messages: [
+              {
+                role: "system",
+                content: "You are the mindMesh Agenda Strategic Decomposition Engine. Return only valid JSON adhering to the requested schema.",
+              },
+              { role: "user", content: prompt },
+            ],
+            response_format: { type: "json_object" },
+            max_tokens: 1500,
+            temperature: 0.1,
+          });
+          usedModel = model;
+          break;
+        } catch (mErr) {
+          if (mErr.status === 404) continue;
+          throw mErr;
+        }
+      }
+
+      if (!completion) {
+        throw new Error("All Groq model candidates failed for extractAgendaTopics.");
+      }
+
+      const rawContent = completion.choices[0]?.message?.content || "{}";
+      const parsed = JSON.parse(rawContent);
+
+      return {
+        topics: Array.isArray(parsed.topics) ? parsed.topics : [],
+        provider: "groq",
+        model: usedModel,
+        key: keyMask,
+      };
+    } catch (err) {
+      lastError = err;
+      const isRateLimit = err.status === 429 || (err.message && err.message.includes("429"));
+      if (isRateLimit && attempts > 1) {
+        console.warn(`[Groq] Key ${keyMask} rate limited (429) during agenda extraction. Rotating key (attempt ${attempt + 1}/${attempts})...`);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw lastError;
+}
+
 export const groq = {
   extractMeetingElements,
   executeCanvasCommand,
   summarizeMeeting,
+  extractAgendaTopics,
 };
