@@ -199,7 +199,7 @@ class ExtractionQueueManager {
       }
     } catch (err) {
       console.error(`[ExtractionQueue] Error flushing dialogue for room ${roomId}:`, err.message);
-      throw err;
+      return null;
     } finally {
       queue.isInFlight = false;
       queue.lastFlushTime = Date.now();

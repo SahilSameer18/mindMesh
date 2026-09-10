@@ -12,12 +12,22 @@ export function shouldFallback(error) {
 
   return (
     status === 429 ||
+    status === 401 ||
+    status === 403 ||
     status === 500 ||
     status === 503 ||
     status === "ETIMEDOUT" ||
     status === "ECONNRESET" ||
+    status === "ECONNREFUSED" ||
+    status === "ENOTFOUND" ||
+    status === "EAI_AGAIN" ||
     name === "SyntaxError" ||
     msg.includes("429") ||
+    msg.includes("401") ||
+    msg.includes("403") ||
+    msg.includes("invalid api key") ||
+    msg.includes("unauthorized") ||
+    msg.includes("forbidden") ||
     msg.includes("rate limit") ||
     msg.includes("quota") ||
     msg.includes("overloaded") ||
