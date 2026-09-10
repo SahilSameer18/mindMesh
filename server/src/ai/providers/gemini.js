@@ -26,10 +26,13 @@ export async function extractMeetingElements({ transcript, existingNodes = [], r
   const fullPrompt = `${systemPrompt}\n\nMeeting dialogue to analyze:\n\n${transcript}`;
 
   const candidateModels = [
-    config.geminiModel,
-    "gemini-flash-lite-latest",
-    "gemini-2.5-flash",
-  ].filter(Boolean);
+    ...new Set([
+      config.geminiModel,
+      "gemini-3.5-flash-lite",
+      "gemini-3.1-flash-lite",
+      "gemini-flash-lite-latest",
+    ].filter(Boolean)),
+  ];
 
   let response = null;
   let usedModel = config.geminiModel;
@@ -78,10 +81,13 @@ export async function executeCanvasCommand({ prompt, nodes = [], edges = [], par
   const fullPrompt = `${systemPrompt}\n\nUser Workspace Command: "${prompt}"`;
 
   const candidateModels = [
-    config.geminiModel,
-    "gemini-flash-lite-latest",
-    "gemini-2.5-flash",
-  ].filter(Boolean);
+    ...new Set([
+      config.geminiModel,
+      "gemini-3.5-flash-lite",
+      "gemini-3.1-flash-lite",
+      "gemini-flash-lite-latest",
+    ].filter(Boolean)),
+  ];
 
   let response = null;
   let usedModel = config.geminiModel;
@@ -134,10 +140,13 @@ export async function summarizeMeeting({ transcripts = [], nodes = [], edges = [
   const fullPrompt = buildMeetingCommitPrompt({ transcripts, nodes, edges, roomMode });
 
   const candidateModels = [
-    config.geminiModel,
-    "gemini-flash-lite-latest",
-    "gemini-2.5-flash",
-  ].filter(Boolean);
+    ...new Set([
+      config.geminiModel,
+      "gemini-3.5-flash-lite",
+      "gemini-3.1-flash-lite",
+      "gemini-flash-lite-latest",
+    ].filter(Boolean)),
+  ];
 
   let response = null;
   let usedModel = config.geminiModel;
@@ -203,10 +212,13 @@ ${agendaText.slice(0, 4000)}
 """`;
 
   const candidateModels = [
-    config.geminiModel,
-    "gemini-flash-lite-latest",
-    "gemini-2.5-flash",
-  ].filter(Boolean);
+    ...new Set([
+      config.geminiModel,
+      "gemini-3.5-flash-lite",
+      "gemini-3.1-flash-lite",
+      "gemini-flash-lite-latest",
+    ].filter(Boolean)),
+  ];
 
   let response = null;
   let usedModel = config.geminiModel;

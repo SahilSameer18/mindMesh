@@ -23,8 +23,8 @@
 [![Socket.io](https://img.shields.io/badge/Socket.io-4.8-010101.svg?style=flat-square&logo=socket.io)](https://socket.io/)
 [![Neon PostgreSQL](https://img.shields.io/badge/Neon-PostgreSQL-00E599.svg?style=flat-square&logo=postgresql)](https://neon.tech/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-7.0-2D3748.svg?style=flat-square&logo=prisma)](https://www.prisma.io/)
-[![Groq LPU](https://img.shields.io/badge/Groq-Llama_3.3_70B-F55036.svg?style=flat-square)](https://groq.com/)
-[![Google Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4.svg?style=flat-square&logo=google)](https://ai.google.dev/)
+[![Groq LPU](https://img.shields.io/badge/Groq-Dual_Key_Pool-F55036.svg?style=flat-square)](https://groq.com/)
+[![Google Gemini](https://img.shields.io/badge/Gemini-3.5_Flash_Lite_(500_RPD)-4285F4.svg?style=flat-square&logo=google)](https://ai.google.dev/)
 [![Tests Passing](https://img.shields.io/badge/Tests-130%2B_Passing-success.svg?style=flat-square)](https://github.com/SahilSameer18/mindMesh)
 
 [Quick Start](#-quick-start) • [Product Tour](#-product-tour) • [System Architecture](#-system-architecture) • [Engineering Invariants](#-hardened-engineering-invariants) • [Ontology](#-the-canvas-knowledge-ontology) • [API Reference](#-api--websocket-reference)
@@ -61,27 +61,34 @@ mindMesh Flow:
 - **Interim Caption Stream (<10ms)**: Watch your spoken words stream into an ethereal floating pill right above the active command bar before they materialize into graph cards.
 - **Background Speech Simulator**: Test real-time intelligence with 4 pre-loaded benchmark scenarios (*Canonical Onboarding Debate*, *Live Reassignment & In-Place Correction*, *Architecture & Risk Mitigation*, *Fluff Filter vs. Action Marker*).
 
-### 2. ⚡ Dual-Provider AI Intelligence (Automatic Zero-Downtime Failover)
-- **Primary Engine**: Groq LPU running **Llama 3.3 70B Versatile** for lightning-fast structured JSON inference (~300 tokens/sec).
-- **Secondary Fallback**: Google **Gemini 2.5 Flash** transparently catches network anomalies or quota limits with zero user disruption.
+### 2. ⚡ Multi-Key Resilient AI Grid (Zero-Downtime Failover)
+- **Primary Engine**: Dual-Key Groq LPU pool running **Llama 3.3 70B / GPT-OSS 120B & 20B** for lightning-fast structured JSON inference (500–1,000 tokens/sec, ~300ms latency). Key rotation and burst failover provide **60 RPM** and **2,000 RPD** (1,000 RPD per key).
+- **Secondary Safety Net**: Google **Gemini 3.5 Flash Lite** transparently absorbs high-volume dialogue spikes with **500 RPD**, **250,000 TPM**, and sub-second latency (benchmarked locally at ~926ms).
+- **Zero-Crash Graceful Degradation**: If all upstream LLMs are unavailable, live speech extraction degrades safely without crashing the room (`status: "failed"` with empty action set), while the Meeting Commit Engine falls back to an authoritative deterministic qualitative summary (`generateDeterministicSummary`).
 - **Confidence Routing**:
   - High confidence ($\ge 0.85$): Auto-applied to the canvas instantly.
   - Medium confidence ($0.50 - 0.85$): Displayed in the collapsible AI Activity Stream with one-click **Apply** / **Dismiss** chips.
   - Low confidence ($< 0.50$): Highlighted with an amber review warning.
 
-### 3. 📐 Server-Authoritative Dagre Layout Engine
+### 3. 📋 Strategic Agenda Intake & Live Topic Cascading
+- **Pre-Meeting & Live Agenda Ingestion**: Click the **Agenda** button in the workspace header to open the glassmorphic **Paste Agenda Modal**. Paste raw markdown bullets, sprint notes, or Jira deliverables.
+- **Automatic Pillar Extraction**: The AI extracts 3–5 top-level strategic topic pillars (`type: "goal"`), positioning them horizontally as anchor roots across the top of the canvas ($y = 0$).
+- **Live Dialogue Cascading (Vertical Hierarchical Trees)**: As attendees speak, newly extracted tasks, decisions, and risks automatically link to their parent agenda pillar via `part_of` or `depends_on` directed edges, forming clear downward visual trees.
+- **Three-Layer Defense-in-Depth**: Engineered with strict schema validation (`fromSemanticKey`/`toSemanticKey`), action validation key normalization, and canvas deduplication fallback so parent-child relationships never break.
+
+### 4. 📐 Server-Authoritative Dagre Layout Engine
 - **Kahn's Topological Sort (Diamond-Safe)**: Ensures prerequisite parent cards are fully ranked before dependent children ($A \to B, A \to C, B \to D, C \to D \implies \text{rank}(D) = 2$).
 - **3-Color DFS Cycle Breaking**: Safely detects back-edges (`WHITE`, `GRAY`, `BLACK`) to eliminate circular dependencies without recursion crashes.
 - **Barycentric Crossing Minimization**: Orders nodes horizontally within each tier by averaging predecessor X coordinates.
 - **Collision-Free Geometry**: Spaced strictly by $360\text{px} \times 200\text{px}$ strides ($280\times140\text{px}$ cards), mathematically guaranteeing zero overlap.
 - **One-Click Tidy**: Click the **Tidy Graph** button on the floating toolbar or type `/layout hierarchical` in the command bar.
 
-### 4. 🎨 Generative Visual Concepts (Pollinations.ai)
+### 5. 🎨 Generative Visual Concepts (Pollinations.ai)
 - Visual cards (`node.type === "image"`) render high-resolution architectural diagrams and creative concept artwork inline on the canvas.
 - Click any visual card to launch the **Visual Lightbox Inspection Modal** for full-resolution view, prompt inspection, and downloads.
 - Automatic retry lifecycle with jitter and fallback rendering on slow network connections.
 
-### 5. 👥 Multiplayer Presence & Radar Minimap
+### 6. 👥 Multiplayer Presence & Radar Minimap
 - **60fps Cursors**: Canvas-space transformed cursors throttled to 35ms with smooth CSS transform interpolation and name badges.
 - **Radar Minimap**: Bottom-right interactive radar projecting all canvas cards and peer viewports; click or drag anywhere to jump instantly.
 - **Follow Me Presenter Broadcast**: Single-presenter concurrency lock allows a speaker to guide all attendees' viewports with trailing-edge sync.
@@ -89,20 +96,20 @@ mindMesh Flow:
   - **Operational**: Structured columns, task assignments, and chronological deliverables.
   - **Brainstorm**: Organic visual clustering and associative idea maps.
 
-### 6. 📹 Peer-to-Peer WebRTC Video Calling
+### 7. 📹 Peer-to-Peer WebRTC Video Calling
 - **Low-Latency P2P Mesh**: Audio and video streams flow directly between attendee browsers via Google STUN servers with zero server media bandwidth overhead.
 - **Dockable Video Conference Bar**: Floating glassmorphic dock positioned above the canvas, featuring mirrored local video, remote peer tiles, and live mic status indicators.
 - **Ambient Avatar Fallbacks**: Graceful fallback to initialed colored avatars if cameras are disabled or permission is denied, ensuring attendees are always visually represented.
 - **Synchronous Signaling Locks**: Hardened against duplicate offer collisions and out-of-order ICE candidate trickling.
 
-### 7. 🏁 Dual-Source Meeting Commit & External Integrations
+### 8. 🏁 Dual-Source Meeting Commit & External Integrations
 - Click **Commit Call** to synthesize both the **final canvas knowledge graph** and **raw conversational dialogue** into an executive `MeetingReport`.
 - Celebratory dual-cannon confetti animation upon commit confirmation.
 - Direct outward dispatches:
   - 💬 **Slack**: Formatted Block Kit payload.
   - 📝 **Notion**: Complete database page and block hierarchy.
 
-### 8. 🌐 Enterprise Landing Page & Brand Architecture
+### 9. 🌐 Enterprise Landing Page & Brand Architecture
 - **Proprietary Geometric Brand Mark**: Interconnected neural knowledge mesh SVG icon scalable across browser favicons, navigation bars, and authentication dialogs.
 - **Fixed Glassmorphic Navigation**: Sticky top navigation that shifts from minimalist glass to an elevated translucent backdrop (`backdrop-blur-xl`) upon scroll.
 - **Silky-Smooth Q&A Accordion**: Zero-jitter CSS Grid fractional height transitions (`grid-template-rows: 0fr ↔ 1fr`) with coordinated chevron rotations.
@@ -143,10 +150,12 @@ flowchart TD
         Router["Confidence Routing Engine (validation.js)"]
     end
 
-    subgraph Intelligence["Dual-Provider AI Intelligence Engine"]
-        Fallback["withFallback (Transparent <100ms Failover)"]
-        Groq["Primary: Groq LPU (Llama 3.3 70B Versatile)"]
-        Gemini["Secondary: Google Gemini Flash (2.5 Flash)"]
+    subgraph Intelligence["Multi-Tier Resilient AI Grid"]
+        Fallback["withFallback (Transparent Multi-Key Failover)"]
+        Groq1["Primary: Groq Key 1 (gpt-oss-120b / 20b ~300ms)"]
+        Groq2["Pool Failover: Groq Key 2 (Instant Key Rotation)"]
+        Gemini["Safety Net: Google Gemini 3.5 Flash Lite (500 RPD, 250k TPM)"]
+        SafeDegrade["Safe Floor: Non-Crashing Graceful Degradation"]
         Flux["Visual Engine: Pollinations Flux"]
     end
 
@@ -183,8 +192,10 @@ flowchart TD
 
     SockRelay <--> Intelligence
     Intelligence --> Fallback
-    Fallback --> Groq
+    Fallback --> Groq1
+    Fallback --> Groq2
     Fallback --> Gemini
+    Fallback --> SafeDegrade
     Fallback --> Flux
     Fallback --> Dedup
     Dedup --> Effector
@@ -305,10 +316,9 @@ npm install
 
 # Configure environment variables
 cp .env.example .env
-# Edit .env and supply:
 # DATABASE_URL="postgresql://..."
-# GROQ_API_KEYS="gsk_..."
-# GEMINI_API_KEYS="AIzaSy..."
+# GROQ_API_KEYS="gsk_key1,gsk_key2"       # Comma-separated multi-key pool (round-robin + burst failover)
+# GEMINI_API_KEYS="AIzaSy..."             # Gemini 3.5 Flash Lite (500 RPD safety net)
 
 # Apply Prisma database schema
 npx prisma migrate dev --name init
@@ -377,6 +387,7 @@ All endpoints strictly adhere to the unified JSON schema:
 | `GET` | `/api/rooms/:roomId/ai-actions` | Fetches historical `AIAction` feed for Activity Stream hydration. |
 | `POST` | `/api/rooms/:roomId/ai-actions/:id/approve` | Approves and executes a proposed action via REST. |
 | `POST` | `/api/rooms/:roomId/ai-actions/:id/reject` | Dismisses a proposed action and marks it `rejected`. |
+| `POST` | `/api/rooms/:roomId/agenda` | Ingests meeting agenda, extracts 3–5 strategic pillars, and seeds anchor roots. |
 | `POST` | `/api/auth/login` | Issues 7-day `httpOnly` JWT session cookie. |
 
 ### Real-Time Socket.io Events
@@ -423,7 +434,8 @@ mindMesh/
 │   │   │   ├── canvas/                   # InfiniteCanvas, CanvasNode, CanvasEdge, VisualLightboxModal
 │   │   │   ├── command/                  # ActiveCommandBar (Floating OS bar)
 │   │   │   ├── activity/                 # ActivityStream & EvidenceCard
-│   │   │   ├── meeting/                  # SpeechIntelligenceController, CommitCallModal
+│   │   │   ├── meeting/                  # SpeechIntelligenceController, CommitCallModal, PasteAgendaModal
+│   │   │   ├── webrtc/                   # VideoConferenceDock (Floating P2P video mesh bar)
 │   │   │   └── ui/                       # BrandLogo, WorkspaceHeader, Minimap, Avatar
 │   │   ├── context/                      # RoomContext, AuthContext
 │   │   ├── hooks/                        # useCanvas, useAIActions, useSpeechRecognition, useWebRTC
@@ -439,10 +451,12 @@ mindMesh/
 │   ├── src/
 │   │   ├── ai/
 │   │   │   ├── applyAIActions.js         # Authoritative Effector service & DB persistence
+│   │   │   ├── agenda.js                 # Strategic agenda pillar extraction service
+│   │   │   ├── extraction.js             # Live speech-to-graph extraction engine
 │   │   │   ├── commands.js               # Workspace command execution engine
-│   │   │   ├── validation.js             # Confidence routing & action sanitization
-│   │   │   ├── prompts/                  # Extraction & Command system prompts
-│   │   │   └── providers/                # Groq & Gemini with transparent failover
+│   │   │   ├── validation.js             # Confidence routing & 3-layer key sanitization
+│   │   │   ├── prompts/                  # extraction, agenda, command & summary prompts
+│   │   │   └── providers/                # Groq (Dual-Key) & Gemini (3.5 Flash Lite) with failover
 │   │   ├── canvas/
 │   │   │   ├── canvasDocument.js         # In-memory single source of truth
 │   │   │   ├── canvasLayout.js           # Dagre & Geometric spatial layout engine
@@ -475,8 +489,6 @@ mindMesh/
 ## 👨‍💻 Author & Acknowledgments
 
 Engineered by **Sahil Sameer** ([@SahilSameer18](https://github.com/SahilSameer18)).
-
-Built with [React](https://react.dev/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/), [Socket.io](https://socket.io/), [Neon](https://neon.tech/), [Prisma](https://www.prisma.io/), [Groq](https://groq.com/), [Google Gemini](https://ai.google.dev/), and [Lucide Icons](https://lucide.dev/).
 
 ---
 

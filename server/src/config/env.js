@@ -2,19 +2,34 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+function collectApiKeys(prefix) {
+  const keys = new Set();
+  const regex = new RegExp(`^${prefix}_API_KEYS?(_?\\d+)?$`, "i");
+  Object.keys(process.env).forEach((k) => {
+    if (regex.test(k) && process.env[k]) {
+      process.env[k]
+        .split(",")
+        .map((val) => val.trim())
+        .filter(Boolean)
+        .forEach((key) => keys.add(key));
+    }
+  });
+  return Array.from(keys);
+}
+
+const groqKeys = collectApiKeys("GROQ");
+const geminiKeys = collectApiKeys("GEMINI");
+
 export const config = {
   port: Number(process.env.PORT) || 3000,
   nodeEnv: process.env.NODE_ENV || "development",
   clientUrl: process.env.CLIENT_URL || "http://localhost:5173",
   jwtSecret: process.env.JWT_SECRET || (process.env.NODE_ENV === "production" ? undefined : "dev-only-secret-do-not-use-in-prod"),
-  groqApiKeys: (process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || "")
-    .split(",")
-    .map((k) => k.trim())
-    .filter(Boolean),
-  groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
-  geminiApiKey: (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "")
-    .split(",")[0]?.trim() || "",
-  geminiModel: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+  groqApiKeys: groqKeys,
+  groqModel: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
+  geminiApiKey: geminiKeys[0] || "",
+  geminiApiKeys: geminiKeys,
+  geminiModel: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
   slackWebhookUrl: process.env.SLACK_WEBHOOK_URL || "",
   notionToken: process.env.NOTION_TOKEN || "",
   resendApiKey: process.env.RESEND_API_KEY || "",

@@ -38,11 +38,13 @@ export async function extractMeetingElements({ transcript, existingNodes = [], r
       const systemPrompt = buildExtractionSystemPrompt({ roster, existingNodes, mode, systemContext });
 
       const candidateModels = [
-        config.groqModel,
-        "openai/gpt-oss-120b",
-        "openai/gpt-oss-20b",
-        "llama-3.3-70b-versatile",
-      ].filter(Boolean);
+        ...new Set([
+          config.groqModel,
+          "openai/gpt-oss-120b",
+          "openai/gpt-oss-20b",
+          "llama-3.3-70b-versatile",
+        ].filter(Boolean)),
+      ];
 
       let completion = null;
       let usedModel = config.groqModel;
@@ -113,11 +115,13 @@ export async function executeCanvasCommand({ prompt, nodes = [], edges = [], par
       const systemPrompt = buildCommandSystemPrompt({ nodes, edges, participants, workspaceContext });
 
       const candidateModels = [
-        config.groqModel,
-        "openai/gpt-oss-120b",
-        "openai/gpt-oss-20b",
-        "llama-3.3-70b-versatile",
-      ].filter(Boolean);
+        ...new Set([
+          config.groqModel,
+          "openai/gpt-oss-120b",
+          "openai/gpt-oss-20b",
+          "llama-3.3-70b-versatile",
+        ].filter(Boolean)),
+      ];
 
       let completion = null;
       let usedModel = config.groqModel;
@@ -189,11 +193,13 @@ export async function summarizeMeeting({ transcripts = [], nodes = [], edges = [
       const fullPrompt = buildMeetingCommitPrompt({ transcripts, nodes, edges, roomMode });
 
       const candidateModels = [
-        config.groqModel,
-        "openai/gpt-oss-120b",
-        "openai/gpt-oss-20b",
-        "llama-3.3-70b-versatile",
-      ].filter(Boolean);
+        ...new Set([
+          config.groqModel,
+          "openai/gpt-oss-120b",
+          "openai/gpt-oss-20b",
+          "llama-3.3-70b-versatile",
+        ].filter(Boolean)),
+      ];
 
       let completion = null;
       let usedModel = config.groqModel;
@@ -281,11 +287,13 @@ ${agendaText.slice(0, 4000)}
     const { client, keyMask } = getClient();
     try {
       const candidateModels = [
-        config.groqModel,
-        "openai/gpt-oss-120b",
-        "openai/gpt-oss-20b",
-        "llama-3.3-70b-versatile",
-      ].filter(Boolean);
+        ...new Set([
+          config.groqModel,
+          "openai/gpt-oss-120b",
+          "openai/gpt-oss-20b",
+          "llama-3.3-70b-versatile",
+        ].filter(Boolean)),
+      ];
 
       let completion = null;
       let usedModel = config.groqModel;
@@ -346,3 +354,4 @@ export const groq = {
   summarizeMeeting,
   extractAgendaTopics,
 };
+
