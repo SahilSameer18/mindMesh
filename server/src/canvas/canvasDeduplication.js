@@ -152,21 +152,42 @@ export function deduplicateAndLinkActions(actions = [], existingNodes = [], exis
       } else {
         console.warn(`[Deduplication] Dropped UPDATE_NODE because target could not be found:`, action.payload);
       }
+    } else if (action.type === "DELETE_NODE") {
+      const { id, semanticKey, text } = action.payload || {};
+      let targetNode = id
+        ? resolvedNodes.find((n) => n.id === id)
+        : null;
+      if (!targetNode && semanticKey) {
+        targetNode = findMatchingNode(resolvedNodes, semanticKey, text || "");
+      }
+
+      if (targetNode) {
+        action.payload.id = targetNode.id;
+        finalActions.push(action);
+        // Keep the shadow array consistent for any later action in this same batch
+        const idx = resolvedNodes.indexOf(targetNode);
+        if (idx !== -1) resolvedNodes.splice(idx, 1);
+      } else {
+        console.warn(`[Deduplication] Dropped DELETE_NODE because target could not be found:`, action.payload);
+      }
     } else if (action.type === "CREATE_EDGE") {
       const payload = action.payload;
       let fromNode = null;
       let toNode = null;
 
+      const fromKey = payload.fromSemanticKey || payload.from;
+      const toKey = payload.toSemanticKey || payload.to;
+
       if (payload.fromId) {
         fromNode = resolvedNodes.find((n) => n.id === payload.fromId);
-      } else if (payload.fromSemanticKey) {
-        fromNode = findMatchingNode(resolvedNodes, payload.fromSemanticKey);
+      } else if (fromKey) {
+        fromNode = findMatchingNode(resolvedNodes, fromKey);
       }
 
       if (payload.toId) {
         toNode = resolvedNodes.find((n) => n.id === payload.toId);
-      } else if (payload.toSemanticKey) {
-        toNode = findMatchingNode(resolvedNodes, payload.toSemanticKey);
+      } else if (toKey) {
+        toNode = findMatchingNode(resolvedNodes, toKey);
       }
 
       if (fromNode && toNode && fromNode.id !== toNode.id) {

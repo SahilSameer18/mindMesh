@@ -117,7 +117,20 @@ export function validateAIAction(raw) {
     if (payload.type && !VALID_NODE_TYPES.includes(payload.type.toLowerCase())) {
       delete payload.type;
     }
+  } else if (type === "DELETE_NODE") {
+    if (!payload.semanticKey && !payload.id) {
+      return null;
+    }
+    if (payload.semanticKey) {
+      payload.semanticKey = slugifyText(payload.semanticKey);
+    }
   } else if (type === "CREATE_EDGE") {
+    if (payload.from && !payload.fromSemanticKey && !payload.fromId) {
+      payload.fromSemanticKey = payload.from;
+    }
+    if (payload.to && !payload.toSemanticKey && !payload.toId) {
+      payload.toSemanticKey = payload.to;
+    }
     const hasFrom = payload.fromSemanticKey || payload.fromId;
     const hasTo = payload.toSemanticKey || payload.toId;
     if (!hasFrom || !hasTo) return null;

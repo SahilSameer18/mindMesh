@@ -12,6 +12,15 @@ export function buildExtractionSystemPrompt({ roster = [], existingNodes = [], m
     ? existingNodes.map((n) => `- [${n.type.toUpperCase()}] key="${n.semanticKey || n.id}": "${n.text}" ${n.metadata?.assignee ? `(Assigned: ${n.metadata.assignee})` : ""}`).join("\n")
     : "None (Canvas is currently empty)";
 
+  // Identify active agenda topic pillars anchored on canvas (horizontal goal nodes at y <= -100 or with isAgendaTopic)
+  const agendaTopics = existingNodes.filter(
+    (n) => n.metadata?.isAgendaTopic || (n.type === "goal" && typeof n.y === "number" && n.y <= -100)
+  );
+
+  const agendaTopicsStr = agendaTopics.length > 0
+    ? agendaTopics.map((t) => `- [PILLAR] "${t.text}" (semanticKey: "${t.semanticKey || t.id}", columnX: ${t.x})${t.metadata?.description ? ` — ${t.metadata.description}` : ""}`).join("\n")
+    : "None (No agenda topic pillars active)";
+
   return `You are the AI Intelligence Engine for mindMesh — a real-time collaborative workspace where "the conversation becomes the canvas".
 Your purpose is to transform meeting speech and discussions into an accurate, connected knowledge graph.
 
@@ -24,6 +33,19 @@ ${rosterStr}
 
 ### EXISTING CANVAS ENTITIES:
 ${existingNodesStr}
+
+### ACTIVE AGENDA TOPIC PILLARS:
+${agendaTopicsStr}
+
+### TOPIC CASCADING & VERTICAL CLUSTERING RULES:
+${agendaTopics.length > 0 ? `Active agenda pillars are anchored horizontally at the top of the canvas.
+1. CONFIDENCE GUARD (>0.80): When participant dialogue directly discusses an active agenda topic pillar above, associate the new node with that pillar.
+2. VERTICAL COLUMN CLUSTERING: Set the new node's payload coordinate "x" to match that topic pillar's columnX coordinate (so cards cascade neatly downward in that topic's vertical column).
+3. HIERARCHICAL CONNECTION: Output a CREATE_EDGE action connecting the new node to the topic pillar:
+   - type: "CREATE_EDGE"
+   - confidence: 0.95
+   - payload: { fromSemanticKey: "<new_node_semantic_key>", toSemanticKey: "<pillar_semantic_key>", type: "part_of" }
+4. GENERAL / CROSS-CUTTING TOPICS: If spoken discussion is general or does not clearly match an active agenda pillar (confidence <= 0.80), do NOT force-nest it. Let it position freely without a false-positive "part_of" edge.` : "If no agenda topic pillars exist, place entities naturally in the main canvas area."}
 
 ### PHONETIC AUTO-CORRECTION & CONTEXT PRIMING RULES:
 The transcript comes from real-time microphone speech-to-text. It often contains phonetic mishears, phonetic transcriptions, or software jargon errors:

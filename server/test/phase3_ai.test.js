@@ -178,6 +178,33 @@ const duplicatedDashboard = correctionResult.actions.filter(
 
 assert(Boolean(updateAction), `Produced in-place UPDATE_NODE targeting id="${updateAction?.payload?.id}" (New assignee: ${updateAction?.payload?.metadata?.assignee})`);
 assert(duplicatedDashboard.length === 0, "Deduplication prevented duplicate dashboard node from being created");
+
+// Test 4B: Destructive Deletion Resolution via semanticKey
+const deleteAction = {
+  type: "DELETE_NODE",
+  confidence: 0.95,
+  payload: { semanticKey: "improve_onboarding" },
+};
+const deduplicatedDelete = deduplicateAndLinkActions(
+  [deleteAction],
+  [{ id: "node-goal-1", semanticKey: "improve_onboarding", text: "Improve onboarding" }]
+);
+assert(deduplicatedDelete[0]?.payload?.id === "node-goal-1", "DELETE_NODE via semanticKey resolves to target node id");
+
+// Test 4C: Full End-to-End Pipeline (validateAIAction -> deduplicateAndLinkActions)
+const rawDelete = {
+  type: "DELETE_NODE",
+  confidence: 0.95,
+  payload: { semanticKey: "Improve  Onboarding!!" },
+};
+const validated = validateAIAction(rawDelete);
+assert(validated !== null, "DELETE_NODE passes schema validation");
+assert(validated.payload.semanticKey === "improve_onboarding", "DELETE_NODE semanticKey slugified consistently");
+const pipelineResult = deduplicateAndLinkActions(
+  [validated],
+  [{ id: "node-goal-1", semanticKey: "improve_onboarding", text: "Improve onboarding" }]
+);
+assert(pipelineResult[0]?.payload?.id === "node-goal-1", "Full pipeline end-to-end resolves DELETE_NODE to target node id");
 console.log("");
 
 // ----------------------------------------------------
