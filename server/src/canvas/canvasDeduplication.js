@@ -65,6 +65,49 @@ export function findMatchingNode(existingNodes = [], targetKey = "", targetText 
 }
 
 /**
+ * Detect if a CREATE_NODE belongs to an active agenda topic pillar on the canvas.
+ * Matches via explicit matchedTopicKey or semantic token similarity.
+ */
+export function findMatchingAgendaPillar(action, resolvedNodes = []) {
+  if (!action || !action.payload) return null;
+  const pillars = resolvedNodes.filter(
+    (n) => n.metadata?.isAgendaTopic || (n.type === "goal" && typeof n.y === "number" && n.y <= -100)
+  );
+  if (pillars.length === 0) return null;
+
+  const { matchedTopicKey, semanticKey, text, metadata } = action.payload;
+  const reason = action.reason || "";
+  const targetTokens = tokenize(`${text} ${semanticKey || ""} ${reason}`);
+
+  // 1. Explicit AI matchedTopicKey match
+  const explicitKey = matchedTopicKey || metadata?.matchedTopicKey || metadata?.parentTopicKey;
+  if (explicitKey && typeof explicitKey === "string") {
+    const keyNorm = explicitKey.toLowerCase().trim();
+    const exactPillar = pillars.find(
+      (p) => (p.semanticKey && p.semanticKey.toLowerCase() === keyNorm) ||
+             (p.id && p.id.toLowerCase() === keyNorm)
+    );
+    if (exactPillar) return exactPillar;
+  }
+
+  // 2. High semantic token overlap with a pillar's title or description
+  let bestPillar = null;
+  let highestScore = 0;
+
+  for (const pillar of pillars) {
+    const pillarTokens = tokenize(`${pillar.text} ${pillar.semanticKey || ""} ${pillar.metadata?.description || ""}`);
+    const score = tokenSimilarity(targetTokens, pillarTokens);
+    // Threshold (> 0.20 on meaningful words) guarantees real thematic connection while blocking general fluff
+    if (score > highestScore && score >= 0.20) {
+      highestScore = score;
+      bestPillar = pillar;
+    }
+  }
+
+  return bestPillar;
+}
+
+/**
  * Process a batch of validated AIActions against active canvas state:
  * - Turns duplicate CREATE_NODE into in-place UPDATE_NODE when user corrects/amends details
  * - Resolves semanticKeys in CREATE_EDGE to concrete node IDs
@@ -120,14 +163,68 @@ export function deduplicateAndLinkActions(actions = [], existingNodes = [], exis
         }
       } else {
         // Brand new concept
-        finalActions.push(action);
-        resolvedNodes.push({
-          id: action.payload.id,
-          semanticKey: action.payload.semanticKey,
-          text: action.payload.text,
-          type: action.payload.type,
-          metadata: action.payload.metadata,
-        });
+        // Check if this node belongs to an active agenda topic pillar
+        const matchedPillar = findMatchingAgendaPillar(action, resolvedNodes);
+        if (matchedPillar) {
+          // 1. Deterministically snap X coordinate to pillar's column
+          action.payload.x = matchedPillar.x;
+
+          // 2. Cascade Y coordinate vertically under existing nodes in this column
+          const columnNodes = resolvedNodes.filter(
+            (n) => n.id !== matchedPillar.id && typeof n.x === "number" && Math.abs(n.x - matchedPillar.x) <= 60 && n.y > matchedPillar.y
+          );
+          const maxY = columnNodes.length > 0 ? Math.max(...columnNodes.map((n) => n.y)) : matchedPillar.y;
+          action.payload.y = maxY + 180;
+
+          if (!action.payload.metadata) action.payload.metadata = {};
+          action.payload.metadata.parentTopicKey = matchedPillar.semanticKey || matchedPillar.id;
+
+          finalActions.push(action);
+          resolvedNodes.push({
+            id: action.payload.id,
+            semanticKey: action.payload.semanticKey,
+            text: action.payload.text,
+            type: action.payload.type,
+            metadata: action.payload.metadata,
+            x: action.payload.x,
+            y: action.payload.y,
+          });
+
+          // 3. Synthesize the hierarchical part_of relationship edge
+          const edgeId = `edge-${action.payload.id}-${matchedPillar.id}`;
+          const edgeAction = {
+            type: "CREATE_EDGE",
+            confidence: 0.95,
+            status: "auto",
+            reason: `Hierarchical cascade: part_of ${matchedPillar.text}`,
+            payload: {
+              id: edgeId,
+              fromId: action.payload.id,
+              toId: matchedPillar.id,
+              fromSemanticKey: action.payload.semanticKey,
+              toSemanticKey: matchedPillar.semanticKey || matchedPillar.id,
+              type: "part_of",
+              label: "part_of",
+            },
+          };
+
+          const edgeSig = `${action.payload.id}->${matchedPillar.id}:part_of`;
+          if (!edgeSet.has(edgeSig)) {
+            edgeSet.add(edgeSig);
+            finalActions.push(edgeAction);
+          }
+        } else {
+          finalActions.push(action);
+          resolvedNodes.push({
+            id: action.payload.id,
+            semanticKey: action.payload.semanticKey,
+            text: action.payload.text,
+            type: action.payload.type,
+            metadata: action.payload.metadata,
+            x: action.payload.x,
+            y: action.payload.y,
+          });
+        }
       }
     } else if (action.type === "UPDATE_NODE") {
       const { id, semanticKey, metadata, text } = action.payload;
