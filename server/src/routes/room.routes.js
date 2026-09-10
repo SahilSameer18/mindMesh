@@ -7,6 +7,7 @@ const router = Router();
 
 // Room lifecycle & mode routes
 router.get("/", roomController.listRooms);
+router.post("/", roomController.createRoom);
 router.get("/:roomId", requireRoomAccess, roomController.getRoom);
 router.post("/:roomId", requireRoomAccess, roomController.getOrCreateRoom);
 router.patch("/:roomId", requireRoomAccess, roomController.updateRoom);
@@ -27,3 +28,4 @@ router.get("/:roomId/integrations", requireRoomAccess, reportController.getRoomI
 router.put("/:roomId/integrations/:provider", requireRoomAccess, reportController.upsertRoomIntegration);
 
 export default router;
+

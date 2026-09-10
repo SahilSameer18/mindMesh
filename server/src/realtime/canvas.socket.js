@@ -31,7 +31,7 @@ export function initCanvasSocket(io, socket) {
       socket.data.user = socket.user;
 
       // Ensure room and membership records exist upfront in PostgreSQL
-      await getOrCreateRoom(roomId, { userId: socket.user?.id });
+      const room = await getOrCreateRoom(roomId, { userId: socket.user?.id });
 
       const doc = await getCanvasDocument(roomId);
       const state = doc.getState();
@@ -40,8 +40,14 @@ export function initCanvasSocket(io, socket) {
       addPeer(roomId, socket.id, socket.user);
       const activePresenter = getActivePresenter(roomId);
 
-      // Emit canvas state and active presenter to joining client
-      socket.emit("canvas:init", { roomId, state, activePresenter });
+      // Emit canvas state, active presenter, and AI Persona context to joining client
+      socket.emit("canvas:init", {
+        roomId,
+        state,
+        activePresenter,
+        mode: room?.mode || "operational",
+        systemContext: room?.systemContext || null,
+      });
 
       // Notify other peers in room of presence
       socket.to(roomId).emit("presence:peer-joined", {
@@ -50,7 +56,13 @@ export function initCanvasSocket(io, socket) {
       });
 
       if (typeof callback === "function") {
-        callback({ success: true, state, activePresenter });
+        callback({
+          success: true,
+          state,
+          activePresenter,
+          mode: room?.mode || "operational",
+          systemContext: room?.systemContext || null,
+        });
       }
     } catch (err) {
       console.error(`[CanvasSocket] Error in canvas:join for room ${roomId}:`, err.message);

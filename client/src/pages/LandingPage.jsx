@@ -55,6 +55,7 @@ export default function LandingPage() {
     return COOL_ROOM_SLUGS[randomIndex];
   });
   const [roomMode, setRoomMode] = useState("operational");
+  const [systemContext, setSystemContext] = useState("");
   const [isRolling, setIsRolling] = useState(false);
 
   // Recent Rooms State & Deletion State
@@ -112,7 +113,7 @@ export default function LandingPage() {
   };
 
   // Launch Workspace Handler
-  const handleExecuteLaunch = (e) => {
+  const handleExecuteLaunch = async (e) => {
     e?.preventDefault();
     const finalRoomId =
       roomName.trim().toLowerCase().replace(/[^a-z0-9-_]/g, "-") || "workspace-1";
@@ -121,6 +122,19 @@ export default function LandingPage() {
     }
     setIsLaunchModalOpen(false);
     toast.info(`Entering workspace #${finalRoomId}...`);
+
+    // Seed room in PostgreSQL with mode and AI persona
+    try {
+      await roomsApi.create({
+        roomId: finalRoomId,
+        name: roomName.trim() || finalRoomId,
+        mode: roomMode,
+        systemContext: systemContext.trim() || null,
+      });
+    } catch (err) {
+      console.warn("[LandingPage] Pre-seeding room info warning:", err?.message || err);
+    }
+
     navigateToRoom(finalRoomId);
   };
 
@@ -243,6 +257,8 @@ export default function LandingPage() {
         setRoomName={setRoomName}
         roomMode={roomMode}
         setRoomMode={setRoomMode}
+        systemContext={systemContext}
+        setSystemContext={setSystemContext}
         onRandomize={rollRoomSlug}
         isRolling={isRolling}
         onSubmit={handleExecuteLaunch}

@@ -1,10 +1,10 @@
 import { createPortal } from "react-dom";
-import { X, Dices, Zap, Brain, ArrowRight } from "lucide-react";
+import { X, Dices, Zap, Brain, ArrowRight, Sparkles } from "lucide-react";
 import BrandLogo from "../../ui/BrandLogo.jsx";
 
 /**
  * Focused Launch Workspace Modal.
- * Prompts display name, room slug, and meeting mode.
+ * Prompts display name, room slug, meeting mode, and AI Persona.
  */
 export function CreateWorkspaceModal({
   isOpen,
@@ -15,6 +15,8 @@ export function CreateWorkspaceModal({
   setRoomName,
   roomMode,
   setRoomMode,
+  systemContext = "",
+  setSystemContext = () => {},
   onRandomize,
   isRolling = false,
   onSubmit,
@@ -162,6 +164,61 @@ export function CreateWorkspaceModal({
                   }`}
                 />
                 <span>Brainstorm</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4. AI Persona & Instructions */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-text-main">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                <span>AI Persona & Instructions</span>
+                <span className="text-[10px] font-normal text-text-faint">(Optional)</span>
+              </label>
+              {systemContext && (
+                <button
+                  type="button"
+                  onClick={() => setSystemContext("")}
+                  className="text-[11px] text-text-faint hover:text-rose-500 transition-colors cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <textarea
+              value={systemContext}
+              onChange={(e) => setSystemContext(e.target.value)}
+              rows={2}
+              placeholder="e.g., Act as an Agile Producer. Prioritize actionable tasks, owners, and delivery blockers."
+              className="w-full px-3.5 py-2 rounded-xl bg-surface-subtle border border-border-subtle text-xs text-text-main placeholder:text-text-faint focus:outline-none focus:border-indigo-500 font-medium resize-none transition-all leading-relaxed"
+            />
+
+            {/* Helper Preset Chips */}
+            <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
+              <span className="text-[10px] text-text-faint font-medium">Presets:</span>
+              <button
+                type="button"
+                onClick={() =>
+                  setSystemContext(
+                    "Act as an Agile Producer. Prioritize actionable tasks, assignees, deadlines, and delivery blockers."
+                  )
+                }
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer dark:text-amber-400"
+              >
+                <span>⚡ Agile Producer</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setSystemContext(
+                    "Act as a software architect. Prioritize data contracts, system boundaries, security risks, and APIs."
+                  )
+                }
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20 border border-cyan-500/20 transition-all cursor-pointer dark:text-cyan-400"
+              >
+                <span>📐 Software Architect</span>
               </button>
             </div>
           </div>

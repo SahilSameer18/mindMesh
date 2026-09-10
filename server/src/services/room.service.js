@@ -19,7 +19,7 @@ async function ensureDefaultWorkspace() {
   }
 }
 
-export async function getOrCreateRoom(roomId, { name, mode = "operational", systemContext = null, userId = null } = {}) {
+export async function getOrCreateRoom(roomId, { name, mode, systemContext, userId = null } = {}) {
   try {
     await ensureDefaultWorkspace();
 
@@ -42,8 +42,8 @@ export async function getOrCreateRoom(roomId, { name, mode = "operational", syst
           id: roomId,
           workspaceId: DEFAULT_WORKSPACE_ID,
           name: name || `Room ${roomId.slice(0, 8)}`,
-          mode,
-          systemContext,
+          mode: mode || "operational",
+          systemContext: systemContext ?? null,
           ...(validUser
             ? {
                 members: {
@@ -55,6 +55,24 @@ export async function getOrCreateRoom(roomId, { name, mode = "operational", syst
               }
             : {}),
         },
+        include: {
+          members: { include: { user: true } },
+          integrations: true,
+        },
+      });
+    } else if (
+      (systemContext !== undefined) ||
+      (mode !== undefined && mode !== room.mode) ||
+      (name !== undefined && name !== room.name)
+    ) {
+      const updateData = {};
+      if (systemContext !== undefined) updateData.systemContext = systemContext;
+      if (mode !== undefined && mode !== room.mode) updateData.mode = mode;
+      if (name !== undefined && name !== room.name) updateData.name = name;
+
+      room = await prisma.room.update({
+        where: { id: roomId },
+        data: updateData,
         include: {
           members: { include: { user: true } },
           integrations: true,

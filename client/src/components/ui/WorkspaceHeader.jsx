@@ -14,6 +14,7 @@ import {
   PhoneOff,
   Check,
   Copy,
+  Sparkles,
 } from "lucide-react";
 import BrandLogo from "./BrandLogo.jsx";
 import UserProfileMenu from "./menus/UserProfileMenu.jsx";
@@ -34,6 +35,7 @@ export default function WorkspaceHeader({
     peers,
     socket,
     roomMode,
+    systemContext,
     updateRoomMode,
     activePresenter,
     isFollowing,
@@ -227,6 +229,19 @@ export default function WorkspaceHeader({
             <span>Brainstorm</span>
           </button>
         </div>
+
+        {/* Active AI Persona Badge */}
+        {systemContext && (
+          <div
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-50/80 border border-indigo-200/60 text-indigo-700 text-xs font-medium dark:bg-indigo-950/30 dark:border-indigo-800/40 dark:text-indigo-300 max-w-[260px] shadow-xs cursor-help select-none"
+            title={`Active AI Persona: "${systemContext}"`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+            <span className="truncate">
+              {systemContext.length > 28 ? `${systemContext.slice(0, 26)}…` : systemContext}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Center / Right Controls */}

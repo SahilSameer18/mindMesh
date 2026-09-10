@@ -111,6 +111,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [presenterContestError, setPresenterContestError] = useState(null);
   const [roomMode, setRoomMode] = useState("operational");
+  const [systemContext, setSystemContext] = useState(null);
 
   // Phase 7: Meeting Commit & Report State
   const [latestMeetingReport, setLatestMeetingReport] = useState(null);
@@ -133,8 +134,10 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       socket.emit("canvas:join", { roomId, user: currentUser }, (ack) => {
         if (!ack?.success) {
           console.warn("[Socket] Join acknowledgment error:", ack?.error);
-        } else if (ack.activePresenter) {
-          setActivePresenter(ack.activePresenter);
+        } else {
+          if (ack.activePresenter) setActivePresenter(ack.activePresenter);
+          if (ack.mode) setRoomMode(ack.mode);
+          if (ack.systemContext) setSystemContext(ack.systemContext);
         }
       });
     };
@@ -216,7 +219,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       setIsFollowing(false);
     };
 
-    const handleCanvasInit = ({ activePresenter: initialPresenter }) => {
+    const handleCanvasInit = ({ activePresenter: initialPresenter, mode, systemContext: initialContext }) => {
       if (initialPresenter) {
         const presenterSocketId = initialPresenter.socketId || initialPresenter.presenterId;
         setActivePresenter({
@@ -225,6 +228,8 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
           presenterId: presenterSocketId,
         });
       }
+      if (mode) setRoomMode(mode);
+      if (initialContext) setSystemContext(initialContext);
     };
 
     socket.on("connect", handleConnect);
@@ -309,18 +314,20 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   }, []);
 
   const updateRoomMode = useCallback(
-    async (newMode, systemContext) => {
+    async (newMode, newContext) => {
       try {
-        const data = await roomsApi.updateMode(roomId, newMode, systemContext);
+        const targetContext = newContext !== undefined ? newContext : systemContext;
+        const data = await roomsApi.updateMode(roomId, newMode, targetContext);
         if (data?.success) {
           setRoomMode(newMode);
+          if (newContext !== undefined) setSystemContext(newContext);
         }
         return data;
       } catch (err) {
         console.error("[RoomContext] Error updating room mode:", err);
       }
     },
-    [roomId]
+    [roomId, systemContext]
   );
 
   // Re-run Socket.io HTTP handshake when auth status changes (login, signup, logout)
@@ -433,6 +440,8 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       startPresenting,
       stopPresenting,
       setFollowing,
+      roomMode,
+      systemContext,
       updateRoomMode,
       updateDisplayName,
       clearPresenterContestError: () => setPresenterContestError(null),
@@ -483,6 +492,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       updateRoomMode,
       updateDisplayName,
       transcripts,
+      systemContext,
     ]
   );
 

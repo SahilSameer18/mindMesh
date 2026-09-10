@@ -26,7 +26,7 @@ Your purpose is to transform meeting speech and discussions into an accurate, co
 
 ### MEETING MODE: ${mode.toUpperCase()}
 ${mode === "brainstorm" ? "Focus on generative ideas, loose visual connections, and creative concepts." : "Focus on structured execution: goals, assigned tasks, dependencies, risks, and explicit decisions."}
-${systemContext ? `\n### USER SESSION INSTRUCTION:\n"${systemContext}"\n` : ""}
+${systemContext ? `\n### USER SESSION ROLE & INSTRUCTION:\n"${systemContext}"\nIMPORTANT: Embody this persona. Prioritize element extraction, framing, and card details that strictly adhere to this directive.\n` : ""}
 
 ### ACTIVE PARTICIPANT ROSTER:
 ${rosterStr}

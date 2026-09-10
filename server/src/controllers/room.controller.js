@@ -1,6 +1,23 @@
 import { sendSuccess, sendError } from "../utils/response.js";
 import * as roomService from "../services/room.service.js";
 
+export async function createRoom(req, res, next) {
+  try {
+    const { roomId, name, mode, systemContext } = req.body || {};
+    const rawId = roomId || name || `workspace-${Date.now().toString(36)}`;
+    const finalRoomId = rawId.trim().toLowerCase().replace(/[^a-z0-9-_]/g, "-") || `workspace-${Date.now()}`;
+    const room = await roomService.getOrCreateRoom(finalRoomId, {
+      name: name || `Room ${finalRoomId}`,
+      mode: mode || "operational",
+      systemContext: systemContext || null,
+      userId: req.user?.id || null,
+    });
+    return sendSuccess(res, "Room created successfully", room, 201);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getOrCreateRoom(req, res, next) {
   try {
     const { roomId } = req.params;

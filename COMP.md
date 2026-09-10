@@ -12,8 +12,8 @@ This updated plan incorporates senior feedback: prioritizing highest-risk capabi
 | **Phase 5.1**| **Full Test Runner Script (`server/package.json`)** | **✅ ALREADY DONE** | All 6 test suites (`phase3` to `phase8`) wired to `npm test` (140+ integration tests passing) |
 | **Phase 1** | **WebRTC Video Calling Engine** | **✅ ALREADY DONE** | Standalone P2P mesh relay, Google STUN, candidate buffering, defensive signaling guard, camera/mic toggles, ambient avatar fallbacks. Verified with zero-error build & tests |
 | **Phase 2** | **Agenda Intake & Live Topic Cascading** | **✅ ALREADY DONE** | Dual-engine agenda extraction, horizontal anchor layout (y = -150), vertical column clustering, and PasteAgendaModal in command bar |
-| **Phase 3** | **Simplified Context Priming (AI Persona)** | **⏳ PENDING (NEXT)** | Room creation context prompt + 2 one-click suggestion chips |
-| **Phase 5.2**| **Marketing Claims & Final Polish** | **⏳ PENDING** | Zero-downtime failover wording & WebRTC Live status in docs |
+| **Phase 3** | **Simplified Context Priming (AI Persona)** | **✅ ALREADY DONE** | Room creation context prompt + 2 one-click suggestion chips (`Agile Producer`, `Software Architect`), header persona pill, and extraction guidance. Verified with integration tests |
+| **Phase 5.2**| **Marketing Claims & Final Polish** | **✅ ALREADY DONE** | Zero-downtime failover wording in LandingFAQ/Comparison & WebRTC Live status in README.md |
 
 ---
 
@@ -269,12 +269,12 @@ sequenceDiagram
   ```
 * All 140+ integration tests passing across phases 3 through 8.
 
-#### B. Marketing Claim Corrections [⏳ PENDING]
-* Replace `<100ms` failover claims across `LandingFAQ.jsx`, `LandingComparison.jsx`, and `README.md` with:
+#### B. Marketing Claim Corrections [✅ ALREADY DONE]
+* Replaced `<100ms` failover claims across `LandingFAQ.jsx`, `LandingComparison.jsx`, and `README.md` with:
   **"Automatic zero-downtime dual-engine failover"**.
 
-#### C. README Documentation Update [⏳ PENDING]
-* Update the "Future Horizons" section in `README.md` to declare **WebRTC Video Calling: Live & Operational**.
+#### C. README Documentation Update [✅ ALREADY DONE]
+* Updated `README.md` to declare **WebRTC Video Calling: Live & Operational**.
 
 ---
 
@@ -294,8 +294,8 @@ sequenceDiagram
 | **2.5** | `client/src/components/meeting/PasteAgendaModal.jsx` | **NEW** | ✅ ALREADY DONE | Textarea modal for pasting agenda notes & 1-click sample |
 | **2.6** | `client/src/components/command/ActiveCommandBar.jsx` | **MODIFY** | ✅ ALREADY DONE | Added "Agenda" trigger button & mounted modal |
 | **2.7** | `client/src/api/ai.api.js` | **NEW** | ✅ ALREADY DONE | Added client API service for agenda generation |
-| **3.1** | `server/src/controllers/room.controller.js` | **MODIFY** | ⏳ PENDING | Persist `systemContext` from creation payload |
-| **3.2** | `client/src/components/landing/modals/CreateWorkspaceModal.jsx` | **MODIFY** | ⏳ PENDING | Add single AI Persona textarea + 2 quick suggestion pills |
+| **3.1** | `server/src/controllers/room.controller.js` | **MODIFY** | ✅ ALREADY DONE | Persist `systemContext` from creation payload |
+| **3.2** | `client/src/components/landing/modals/CreateWorkspaceModal.jsx` | **MODIFY** | ✅ ALREADY DONE | Add single AI Persona textarea + 2 quick suggestion pills |
 | **4.1** | `client/src/api/apiClient.js` | **MODIFY** | ✅ ALREADY DONE | Standard Axios instance with response/error interceptors |
 | **4.2** | `client/src/api/auth.api.js` & `rooms.api.js` | **NEW** | ✅ ALREADY DONE | Isolated API endpoint modules |
 | **4.3** | `client/src/hooks/useAuth.js` & `usePresence.js` | **MODIFY/NEW** | ✅ ALREADY DONE | Custom hooks for auth and presence |
@@ -304,7 +304,7 @@ sequenceDiagram
 | **4.6** | `server/src/realtime/room.socket.js` | **NEW** | ✅ ALREADY DONE | Modular room join/leave socket logic |
 | **4.7** | 6 unused REST placeholder files | **DELETE** | ✅ ALREADY DONE | Deleted unused `canvas.*` and `transcript.*` REST stubs |
 | **5.1** | `server/package.json` | **MODIFY** | ✅ ALREADY DONE | Wire all 6 test suites into `"test"` script |
-| **5.2** | `LandingFAQ.jsx`, `LandingComparison.jsx`, `README.md` | **MODIFY** | ⏳ PENDING | Fix failover claims and update WebRTC to Live status |
+| **5.2** | `LandingFAQ.jsx`, `LandingComparison.jsx`, `README.md` | **MODIFY** | ✅ ALREADY DONE | Fix failover claims and update WebRTC to Live status |
 
 ---
 
