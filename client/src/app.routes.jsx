@@ -11,6 +11,9 @@ import AppLayout from "./app.layout.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import RoomPage from "./pages/RoomPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
+import LoginPage from "./pages/auth/LoginPage.jsx";
+import RegisterPage from "./pages/auth/RegisterPage.jsx";
+import GuestJoinPage from "./pages/GuestJoinPage.jsx";
 
 const RouterContext = createContext(null);
 
@@ -26,7 +29,17 @@ export function RouterProvider({ children }) {
   const queryRoomId = searchParams.get("room")?.trim() || "";
   const roomId = pathRoomId || queryRoomId;
   const isDashboard = location.pathname === "/dashboard";
-  const currentRoute = roomId ? "room" : isDashboard ? "dashboard" : "home";
+  const isLogin = location.pathname === "/login";
+  const isRegister = location.pathname === "/register";
+  const currentRoute = roomId
+    ? "room"
+    : isDashboard
+    ? "dashboard"
+    : isLogin
+    ? "login"
+    : isRegister
+    ? "register"
+    : "home";
 
   const navigateToRoom = useCallback(
     (targetRoomId, { replace = false } = {}) => {
@@ -51,6 +64,20 @@ export function RouterProvider({ children }) {
     [navigate]
   );
 
+  const navigateToLogin = useCallback(
+    ({ replace = false } = {}) => {
+      navigate("/login", { replace });
+    },
+    [navigate]
+  );
+
+  const navigateToRegister = useCallback(
+    ({ replace = false } = {}) => {
+      navigate("/register", { replace });
+    },
+    [navigate]
+  );
+
   const value = useMemo(
     () => ({
       currentRoute,
@@ -58,8 +85,18 @@ export function RouterProvider({ children }) {
       navigateToRoom,
       navigateToHome,
       navigateToDashboard,
+      navigateToLogin,
+      navigateToRegister,
     }),
-    [currentRoute, roomId, navigateToRoom, navigateToHome, navigateToDashboard]
+    [
+      currentRoute,
+      roomId,
+      navigateToRoom,
+      navigateToHome,
+      navigateToDashboard,
+      navigateToLogin,
+      navigateToRegister,
+    ]
   );
 
   return <RouterContext.Provider value={value}>{children}</RouterContext.Provider>;
@@ -90,6 +127,9 @@ function LegacyQueryRoomWrapper() {
 export function AppRoutes() {
   return (
     <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/join/:token" element={<GuestJoinPage />} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<LegacyQueryRoomWrapper />} />
         <Route path="/dashboard" element={<DashboardPage />} />

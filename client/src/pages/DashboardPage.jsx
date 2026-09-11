@@ -25,7 +25,6 @@ import LandingNavbar from "../components/landing/LandingNavbar.jsx";
 import LandingFooter from "../components/landing/LandingFooter.jsx";
 import CreateWorkspaceModal from "../components/landing/modals/CreateWorkspaceModal.jsx";
 import DeleteWorkspaceModal from "../components/landing/modals/DeleteWorkspaceModal.jsx";
-import AuthModal from "../components/auth/AuthModal.jsx";
 import { getUserInitials, getUserColor } from "../utils/colors.js";
 
 const COOL_ROOM_SLUGS = [
@@ -38,7 +37,7 @@ const MODE_FILTERS = ["all", "operational", "brainstorm", "solo"];
 
 export default function WorkspacePage() {
   const { user } = useAuth();
-  const { navigateToRoom, navigateToHome } = useRouter();
+  const { navigateToRoom, navigateToHome, navigateToLogin } = useRouter();
 
   // Room list state
   const [rooms, setRooms] = useState([]);
@@ -65,9 +64,6 @@ export default function WorkspacePage() {
   // Delete modal
   const [roomToDelete, setRoomToDelete] = useState(null);
   const [isDeletingRoom, setIsDeletingRoom] = useState(false);
-
-  // Auth modal (for guests)
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Fetch rooms
   const fetchRooms = useCallback(async (showRefresh = false) => {
@@ -215,7 +211,7 @@ export default function WorkspacePage() {
             ) : (
               <button
                 type="button"
-                onClick={() => setIsAuthModalOpen(true)}
+                onClick={() => navigateToLogin()}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <LogIn className="w-4 h-4" />
@@ -459,13 +455,6 @@ export default function WorkspacePage() {
         isDeleting={isDeletingRoom}
         onConfirm={handleExecuteDelete}
         onClose={() => setRoomToDelete(null)}
-      />
-
-      {/* Auth Modal for guests */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        initialTab="login"
       />
     </div>
   );

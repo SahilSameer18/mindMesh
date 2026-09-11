@@ -5,7 +5,6 @@ import BrandLogo from "../ui/BrandLogo.jsx";
 import { getUserInitials, getUserColor } from "../../utils/colors.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useRouter } from "../../app.routes.jsx";
-import AuthModal from "../auth/AuthModal.jsx";
 
 const NAV_LINKS = [
   { href: "#how-it-works", label: "How It Works" },
@@ -22,12 +21,10 @@ const NAV_LINKS = [
  */
 export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
   const { user, logout } = useAuth();
-  const { navigateToDashboard } = useRouter();
+  const { navigateToDashboard, navigateToLogin, navigateToRegister } = useRouter();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authTab, setAuthTab] = useState("login");
 
   const userInitials = user ? getUserInitials(user.name || "User") : "";
   const userColor = user ? getUserColor(user.name || "User") : "#6366f1";
@@ -41,12 +38,6 @@ export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleOpenAuth = (tab = "login") => {
-    setAuthTab(tab);
-    setIsAuthModalOpen(true);
-    setIsMobileMenuOpen(false);
-  };
 
   const handleLogout = async () => {
     try {
@@ -139,7 +130,7 @@ export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => handleOpenAuth("login")}
+                onClick={() => navigateToLogin()}
                 className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-text-muted hover:text-text-main hover:bg-surface-subtle transition-all duration-200 active:scale-95 cursor-pointer"
               >
                 Sign In
@@ -147,7 +138,7 @@ export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
 
               <button
                 type="button"
-                onClick={onLaunchNewWorkspace}
+                onClick={() => navigateToRegister()}
                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/20 border border-indigo-500/20 transition-all duration-200 active:scale-95 cursor-pointer group"
               >
                 <span>Start Free</span>
@@ -170,7 +161,7 @@ export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
           ) : (
             <button
               type="button"
-              onClick={onLaunchNewWorkspace}
+              onClick={() => navigateToRegister()}
               className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-all active:scale-95"
             >
               Start
@@ -255,7 +246,10 @@ export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
               <>
                 <button
                   type="button"
-                  onClick={() => handleOpenAuth("login")}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    navigateToLogin();
+                  }}
                   className="w-full py-2.5 rounded-xl text-xs font-semibold text-text-main bg-surface-subtle hover:bg-surface-hover border border-border-subtle transition-all active:scale-[0.99] cursor-pointer"
                 >
                   Sign In
@@ -264,7 +258,7 @@ export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    onLaunchNewWorkspace?.();
+                    navigateToRegister();
                   }}
                   className="w-full py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-all active:scale-[0.99] cursor-pointer"
                 >
@@ -283,13 +277,6 @@ export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
           isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         aria-hidden="true"
-      />
-
-      {/* Auth Modal — self-managed by navbar */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        initialTab={authTab}
       />
     </>
   );

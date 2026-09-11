@@ -2,7 +2,7 @@ import apiClient from "./apiClient.js";
 
 /**
  * Isolated Authentication API service.
- * Handles current session check, login, signup, profile updates, and logout.
+ * Handles current session check, login, signup, refresh, session management, and logout.
  */
 export const authApi = {
   /**
@@ -27,6 +27,13 @@ export const authApi = {
   },
 
   /**
+   * Rotate access and refresh tokens
+   */
+  async refresh() {
+    return apiClient.post("/api/auth/refresh");
+  },
+
+  /**
    * Update current user profile (e.g. name)
    */
   async updateProfile({ name }) {
@@ -34,10 +41,31 @@ export const authApi = {
   },
 
   /**
-   * Log out and terminate session cookie
+   * Log out and terminate current session
    */
   async logout() {
     return apiClient.post("/api/auth/logout");
+  },
+
+  /**
+   * Log out all sessions across all devices
+   */
+  async logoutAll() {
+    return apiClient.post("/api/auth/logout-all");
+  },
+
+  /**
+   * List all active sessions
+   */
+  async getSessions() {
+    return apiClient.get("/api/auth/sessions");
+  },
+
+  /**
+   * Revoke a specific active session
+   */
+  async revokeSession(id) {
+    return apiClient.delete(`/api/auth/sessions/${id}`);
   },
 };
 

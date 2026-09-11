@@ -21,7 +21,7 @@ export default function LandingWorkspaces({
   onNavigateToRoom,
   onLaunchDemo,
 }) {
-  const { navigateToDashboard } = useRouter();
+  const { navigateToDashboard, navigateToRegister } = useRouter();
 
   // Show only 4 rooms as a preview — full list is on /dashboard
   const previewRooms = rooms.slice(0, 4);
@@ -190,7 +190,7 @@ export default function LandingWorkspaces({
             <div className="flex flex-col gap-2.5 sm:min-w-[220px] shrink-0">
               <button
                 type="button"
-                onClick={() => {}}
+                onClick={() => navigateToRegister()}
                 className="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-500 hover:via-violet-500 hover:to-purple-500 text-white font-semibold text-xs sm:text-sm shadow-xl shadow-indigo-600/20 border border-white/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />

@@ -9,7 +9,6 @@ import WorkspaceHeader from "../components/ui/WorkspaceHeader.jsx";
 import ActiveCommandBar from "../components/command/ActiveCommandBar.jsx";
 import ActivityStream from "../components/activity/ActivityStream.jsx";
 import EvidenceCard from "../components/activity/EvidenceCard.jsx";
-import AuthModal from "../components/auth/AuthModal.jsx";
 import CommitCallModal from "../components/meeting/CommitCallModal.jsx";
 import VisualLightboxModal from "../components/canvas/VisualLightboxModal.jsx";
 import VideoConferenceBar from "../components/meeting/VideoConferenceBar.jsx";
@@ -18,7 +17,6 @@ function WorkspaceContent({ onLeaveRoom }) {
   const { roomId, socket, currentUser, isCommitModalOpen, setIsCommitModalOpen } = useRoom();
   const canvas = useCanvas();
   const aiActivity = useAIActions();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Phase 8B: Live Voice Dictation Engine
   const {
@@ -61,7 +59,6 @@ function WorkspaceContent({ onLeaveRoom }) {
   return (
     <div className="w-screen h-screen flex flex-col bg-app text-text-main overflow-hidden select-none">
       <WorkspaceHeader
-        onOpenAuth={() => setIsAuthModalOpen(true)}
         isListening={isListening}
         onToggleMic={toggleListening}
         micStatus={micStatus}
@@ -102,12 +99,6 @@ function WorkspaceContent({ onLeaveRoom }) {
           />
         )}
 
-        {/* Phase 5: Custom Auth Modal */}
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-        />
-
         {/* Phase 7.1: Generative Visual Lightbox Inspection Modal */}
         {canvas.inspectingVisualNode && (
           <VisualLightboxModal
@@ -137,3 +128,4 @@ export default function RoomPage({ roomId, onLeaveRoom }) {
     </RoomProvider>
   );
 }
+
