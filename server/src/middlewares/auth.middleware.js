@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { config } from "../config/env.js";
 import { sendError } from "../utils/response.js";
+import prisma from "../lib/prisma.js";
 
 export const DEMO_USER = {
   id: "demo-user-1",
@@ -57,7 +58,40 @@ export function requireAuth(req, res, next) {
 export async function requireRoomAccess(req, res, next) {
   const user = getCurrentUser(req);
   req.user = user;
-  req.roomRole = user.role || "member";
+
+  // Demo / guest users always get access — open prototype flow
+  if (user.isDemo) {
+    req.roomRole = user.role || "member";
+    return next();
+  }
+
+  // For real authenticated users, verify they are a member of this specific room
+  const { roomId } = req.params;
+  if (roomId) {
+    try {
+      const membership = await prisma.roomMember.findUnique({
+        where: {
+          roomId_userId: {
+            roomId,
+            userId: user.id,
+          },
+        },
+      });
+
+      if (!membership) {
+        return sendError(res, "Access denied", ["You are not a member of this room"], 403);
+      }
+
+      req.roomRole = membership.role;
+    } catch (err) {
+      // Fail open on DB error — log and continue to avoid blocking legitimate users
+      console.error("[requireRoomAccess] DB error:", err.message);
+      req.roomRole = "member";
+    }
+  } else {
+    req.roomRole = user.role || "member";
+  }
+
   next();
 }
 

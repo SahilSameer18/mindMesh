@@ -2,6 +2,7 @@
  * In-memory presence and presenter registry for mindMesh rooms.
  * Manages connected peers, viewports, and atomic single-presenter locks.
  */
+import { closeCanvasDocument } from "../canvas/canvasDocument.js";
 
 // roomId -> Map<socketId, { user, viewport, lastSeen }>
 const roomPeers = new Map();
@@ -204,6 +205,14 @@ export function handleSocketDisconnect(io, socket, reason = "disconnected") {
 
   // 2. Remove peer from room registry
   const remainingPeers = removePeer(roomId, socket.id);
+
+  // 2b. If room is now empty, evict the CanvasDocument from memory to prevent leak.
+  // closeCanvasDocument flushes any pending debounced writes to DB before evicting.
+  if (remainingPeers.length === 0) {
+    closeCanvasDocument(roomId).catch((err) => {
+      console.warn(`[presence.service] Failed to close canvas doc for ${roomId}:`, err.message);
+    });
+  }
 
   // 3. Broadcast departure to room peers
   socket.to(roomId).emit("presence:peer-left", {
