@@ -1,5 +1,4 @@
-import jwt from "jsonwebtoken";
-import { config } from "../config/env.js";
+import { verifyAccessToken, verifyGuestToken } from "../utils/tokens.js";
 import { sendError } from "../utils/response.js";
 import prisma from "../lib/prisma.js";
 
@@ -23,18 +22,31 @@ export const SECONDARY_DEMO_USER = {
   isDemo: true,
 };
 
+function parseCookies(cookieHeader = "") {
+  const list = {};
+  if (!cookieHeader) return list;
+  cookieHeader.split(";").forEach((cookie) => {
+    let [name, ...rest] = cookie.split("=");
+    name = name?.trim();
+    if (!name) return;
+    const value = rest.join("=").trim();
+    list[name] = decodeURIComponent(value);
+  });
+  return list;
+}
+
 /**
- * Extract authenticated user or return demo identity
+ * Extract authenticated user or return null / demo identity
  */
 export function getCurrentUser(req) {
   try {
     const token = req.cookies?.session;
     if (token) {
-      const decoded = jwt.verify(token, config.jwtSecret);
+      const decoded = verifyAccessToken(token);
       return { ...decoded, isDemo: false };
     }
-  } catch (err) {
-    // Token invalid or expired, continue to fallback demo identity
+  } catch {
+    // Token invalid or expired
   }
 
   // Header override for multi-user simulation testing (e.g. x-demo-user: "marcus")
@@ -43,7 +55,7 @@ export function getCurrentUser(req) {
     return SECONDARY_DEMO_USER;
   }
 
-  return DEMO_USER;
+  return null;
 }
 
 export function requireAuth(req, res, next) {
@@ -56,57 +68,73 @@ export function requireAuth(req, res, next) {
 }
 
 export async function requireRoomAccess(req, res, next) {
+  const { roomId } = req.params;
   const user = getCurrentUser(req);
-  req.user = user;
 
-  // Demo / guest users always get access — open prototype flow
-  if (user.isDemo) {
-    req.roomRole = user.role || "member";
+  // 1. Check if user is authenticated member
+  if (user && !user.isDemo) {
+    req.user = user;
+    if (roomId) {
+      try {
+        const membership = await prisma.roomMember.findUnique({
+          where: {
+            roomId_userId: {
+              roomId,
+              userId: user.id,
+            },
+          },
+        });
+
+        if (membership) {
+          req.roomRole = membership.role;
+          return next();
+        }
+      } catch (err) {
+        console.error("[requireRoomAccess] DB error:", err.message);
+      }
+    } else {
+      req.roomRole = user.role || "member";
+      return next();
+    }
+  }
+
+  // 2. Check if user has a valid guest session for this room
+  const guestToken = req.cookies?.guest_session;
+  if (guestToken) {
+    try {
+      const guest = verifyGuestToken(guestToken);
+      if (!roomId || guest.roomId === roomId) {
+        req.user = { id: `guest-${guest.name}`, name: guest.name, isGuest: true, isDemo: false };
+        req.roomRole = "member";
+        return next();
+      }
+    } catch {
+      // Invalid guest token
+    }
+  }
+
+  // 3. Fallback to demo identity for developer prototype testing
+  const demoHeader = req.headers?.["x-demo-user"];
+  if (demoHeader) {
+    const demo = demoHeader === "marcus" || demoHeader === "2" ? SECONDARY_DEMO_USER : DEMO_USER;
+    req.user = demo;
+    req.roomRole = demo.role;
     return next();
   }
 
-  // For real authenticated users, verify they are a member of this specific room
-  const { roomId } = req.params;
-  if (roomId) {
-    try {
-      const membership = await prisma.roomMember.findUnique({
-        where: {
-          roomId_userId: {
-            roomId,
-            userId: user.id,
-          },
-        },
-      });
-
-      if (!membership) {
-        return sendError(res, "Access denied", ["You are not a member of this room"], 403);
-      }
-
-      req.roomRole = membership.role;
-    } catch (err) {
-      // Fail open on DB error — log and continue to avoid blocking legitimate users
-      console.error("[requireRoomAccess] DB error:", err.message);
-      req.roomRole = "member";
-    }
-  } else {
-    req.roomRole = user.role || "member";
-  }
-
-  next();
+  return sendError(res, "Access denied", ["You do not have access to this room"], 403);
 }
 
 /**
  * Socket.io Handshake Authentication Middleware
- * Validates JWT cookie if present; applies query ?as=marcus demo override;
- * populates socket.user and socket.data.user
+ * Validates JWT access token or guest session cookie.
  */
 export function socketAuthMiddleware(socket, next) {
   try {
-    const rawCookie = socket.handshake.headers?.cookie || "";
-    const match = rawCookie.match(/(?:^|;\s*)session=([^;]*)/);
-    const token = match ? decodeURIComponent(match[1]) : null;
+    const cookieHeader = socket.handshake.headers?.cookie || "";
+    const cookies = parseCookies(cookieHeader);
 
-    // Check explicit demo mode override in query string (?as=marcus)
+    // Query demo override for multi-agent simulation (?as=marcus)
     const asParam = socket.handshake.query?.as?.toLowerCase();
     if (asParam === "marcus") {
       socket.user = SECONDARY_DEMO_USER;
@@ -119,27 +147,48 @@ export function socketAuthMiddleware(socket, next) {
       return next();
     }
 
-    if (token) {
+    // 1. Authenticated user access token
+    if (cookies.session) {
       try {
-        const decoded = jwt.verify(token, config.jwtSecret);
-        const authenticatedUser = { ...decoded, isDemo: false };
+        const decoded = verifyAccessToken(cookies.session);
+        const authenticatedUser = { ...decoded, isGuest: false, isDemo: false };
         socket.user = authenticatedUser;
         socket.data.user = authenticatedUser;
         return next();
       } catch {
-        // Token invalid, fall through to demo guest
+        // Fall through to guest check
       }
     }
 
-    // Default guest identity
+    // 2. Guest room session
+    if (cookies.guest_session) {
+      try {
+        const guest = verifyGuestToken(cookies.guest_session);
+        const queryRoomId = socket.handshake.query?.roomId;
+        if (guest.roomId && queryRoomId && guest.roomId !== queryRoomId) {
+          return next(new Error("Guest token is not authorized for this room"));
+        }
+        const guestUser = {
+          id: `guest-${guest.name}`,
+          name: guest.name,
+          roomId: guest.roomId,
+          isGuest: true,
+          isDemo: false,
+        };
+        socket.user = guestUser;
+        socket.data.user = guestUser;
+        return next();
+      } catch {
+        return next(new Error("Invalid or expired guest session"));
+      }
+    }
+
+    // Fallback for demo connection
     socket.user = DEMO_USER;
     socket.data.user = DEMO_USER;
-    next();
+    return next();
   } catch (err) {
     console.error("[SocketAuth] Error in socket handshake auth:", err.message);
-    socket.user = DEMO_USER;
-    socket.data.user = DEMO_USER;
-    next();
+    return next(new Error("Authentication failed"));
   }
 }
-

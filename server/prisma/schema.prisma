@@ -14,7 +14,20 @@ model User {
   name         String
   createdAt    DateTime @default(now())
 
-  memberships RoomMember[]
+  memberships   RoomMember[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model RoomMember {
@@ -34,6 +47,8 @@ model InviteLink {
   id        String    @id @default(cuid())
   roomId    String
   token     String    @unique
+  role      String    @default("member")
+  createdBy String?
   expiresAt DateTime?
   createdAt DateTime  @default(now())
 
@@ -169,3 +184,4 @@ model MeetingReport {
 
   @@index([roomId])
 }
+

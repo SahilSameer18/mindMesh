@@ -7,6 +7,7 @@ import { sendSuccess } from "./utils/response.js";
 import roomRoutes from "./routes/room.routes.js";
 import aiRoutes from "./routes/ai.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import inviteRoutes from "./routes/invite.routes.js";
 
 const app = express();
 
@@ -38,10 +39,10 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/rooms", aiRoutes);
+app.use("/api", inviteRoutes);
 
 // 404 and Global Error Handlers
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 export default app;
-

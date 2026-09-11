@@ -4,10 +4,20 @@ import { requireAuth } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
+// Public Authentication Endpoints
 router.post("/signup", authController.signup);
 router.post("/login", authController.login);
-router.post("/logout", authController.logout);
+
+// CRITICAL GUARD: /refresh MUST NOT have requireAuth middleware!
+// The access token is expired by definition when this endpoint is requested.
+// Adding requireAuth creates an unrecoverable 401 infinite loop.
+router.post("/refresh", authController.refresh);
+
+// Protected Endpoints
 router.get("/me", requireAuth, authController.getMe);
+router.post("/logout", requireAuth, authController.logout);
+router.post("/logout-all", requireAuth, authController.logoutAll);
+router.get("/sessions", requireAuth, authController.listSessions);
+router.delete("/sessions/:id", requireAuth, authController.revokeSession);
 
 export default router;
-

@@ -2,6 +2,7 @@ import http from "http";
 import app from "./src/app.js";
 import { config, validateEnvironment } from "./src/config/env.js";
 import { initSocketServer } from "./src/realtime/socket.js";
+import { startTokenCleanup } from "./src/utils/tokenCleanup.js";
 
 // Production security check: ensure JWT_SECRET is explicitly configured before binding port
 if (config.nodeEnv === "production" && !process.env.JWT_SECRET) {
@@ -20,6 +21,7 @@ server.listen(config.port, () => {
   console.log(`📡 Environment: ${config.nodeEnv}`);
   console.log(`🔗 Health Check: http://localhost:${config.port}/api/health`);
   validateEnvironment();
+  startTokenCleanup();
 });
 
 let isShuttingDown = false;
