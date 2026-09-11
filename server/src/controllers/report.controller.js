@@ -98,7 +98,25 @@ export async function getRoomIntegrations(req, res, next) {
       where: { roomId },
     });
 
-    return sendSuccess(res, "Room integrations retrieved", integrations, 200);
+    const sanitized = integrations.map((item) => {
+      const conf = typeof item.config === "object" && item.config !== null ? item.config : {};
+      return {
+        id: item.id,
+        roomId: item.roomId,
+        provider: item.provider,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        configured: Boolean(conf.webhookUrl || conf.apiKey || conf.token || conf.botToken),
+        config: {
+          webhookUrl: conf.webhookUrl ? `...${conf.webhookUrl.slice(-8)}` : undefined,
+          channel: conf.channel || undefined,
+          databaseName: conf.databaseName || undefined,
+          databaseId: conf.databaseId ? `...${conf.databaseId.slice(-6)}` : undefined,
+        },
+      };
+    });
+
+    return sendSuccess(res, "Room integrations retrieved", sanitized, 200);
   } catch (error) {
     next(error);
   }

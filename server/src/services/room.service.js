@@ -178,11 +178,21 @@ export async function updateRoomMode(roomId, { mode, systemContext }) {
   }
 }
 
-export async function listRooms() {
+export async function listRooms(userId = null) {
   try {
+    // Unauthenticated callers or callers without userId see zero private rooms
+    if (!userId) {
+      return [];
+    }
+
     return await prisma.room.findMany({
+      where: {
+        members: {
+          some: { userId },
+        },
+      },
       orderBy: { createdAt: "desc" },
-      take: 12,
+      take: 20,
       include: {
         _count: {
           select: {
@@ -211,6 +221,3 @@ export async function deleteRoom(roomId) {
     throw err;
   }
 }
-
-
-

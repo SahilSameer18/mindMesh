@@ -1,12 +1,13 @@
 import { Router } from "express";
 import * as authController from "../controllers/auth.controller.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
+import { authRateLimiter } from "../middlewares/rateLimit.middleware.js";
 
 const router = Router();
 
-// Public Authentication Endpoints
-router.post("/signup", authController.signup);
-router.post("/login", authController.login);
+// Public Authentication Endpoints (rate-limited against brute-force attacks)
+router.post("/signup", authRateLimiter, authController.signup);
+router.post("/login", authRateLimiter, authController.login);
 
 // CRITICAL GUARD: /refresh MUST NOT have requireAuth middleware!
 // The access token is expired by definition when this endpoint is requested.

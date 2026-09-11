@@ -1,16 +1,19 @@
 import { sendSuccess, sendError } from "../utils/response.js";
 import * as roomService from "../services/room.service.js";
+import { getCurrentUser } from "../middlewares/auth.middleware.js";
+import prisma from "../lib/prisma.js";
 
 export async function createRoom(req, res, next) {
   try {
     const { roomId, name, mode, systemContext } = req.body || {};
+    const user = getCurrentUser(req);
     const rawId = roomId || name || `workspace-${Date.now().toString(36)}`;
     const finalRoomId = rawId.trim().toLowerCase().replace(/[^a-z0-9-_]/g, "-") || `workspace-${Date.now()}`;
     const room = await roomService.getOrCreateRoom(finalRoomId, {
       name: name || `Room ${finalRoomId}`,
       mode: mode || "operational",
       systemContext: systemContext || null,
-      userId: req.user?.id || null,
+      userId: user && !user.isDemo ? user.id : null,
     });
     return sendSuccess(res, "Room created successfully", room, 201);
   } catch (err) {
@@ -118,7 +121,9 @@ export async function updateRoomMode(req, res, next) {
 
 export async function listRooms(req, res, next) {
   try {
-    const rooms = await roomService.listRooms();
+    const user = getCurrentUser(req);
+    const userId = user && !user.isDemo ? user.id : null;
+    const rooms = await roomService.listRooms(userId);
     return sendSuccess(res, "Rooms retrieved successfully", rooms);
   } catch (err) {
     next(err);
@@ -128,10 +133,42 @@ export async function listRooms(req, res, next) {
 export async function deleteRoom(req, res, next) {
   try {
     const { roomId } = req.params;
+    const user = req.user || getCurrentUser(req);
+
+    if (!user || user.isGuest) {
+      return sendError(res, "Forbidden", ["Guests cannot delete workspaces"], 403);
+    }
+
+    // In authenticated production mode, verify owner role in RoomMember
+    if (!user.isDemo) {
+      const membership = await prisma.roomMember.findUnique({
+        where: {
+          roomId_userId: {
+            roomId,
+            userId: user.id,
+          },
+        },
+      });
+
+      if (membership) {
+        if (membership.role !== "owner") {
+          return sendError(res, "Forbidden", ["Only the workspace owner can delete this room"], 403);
+        }
+      } else {
+        // Check if any owner exists for this room
+        const anyOwner = await prisma.roomMember.findFirst({
+          where: { roomId, role: "owner" },
+        });
+        if (anyOwner) {
+          return sendError(res, "Forbidden", ["Only the workspace owner can delete this room"], 403);
+        }
+        // If legacy test room has no owner row at all, allow creator/caller cleanup
+      }
+    }
+
     await roomService.deleteRoom(roomId);
     return sendSuccess(res, "Room deleted successfully", { roomId });
   } catch (err) {
     next(err);
   }
 }
-
