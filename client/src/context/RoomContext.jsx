@@ -128,7 +128,13 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   useEffect(() => {
     if (!socket) return;
 
+    // Guard: prevents double canvas:join when the socket is already connected
+    // at effect mount time AND the 'connect' event fires in the same tick.
+    let hasJoined = false;
+
     const handleConnect = () => {
+      if (hasJoined) return;
+      hasJoined = true;
       setIsConnected(true);
       // Re-join canvas room on every connect/reconnect
       socket.emit("canvas:join", { roomId, user: currentUser }, (ack) => {
@@ -263,6 +269,8 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
     }
 
     return () => {
+      // Reset guard so a future remount of this effect starts fresh
+      hasJoined = false;
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.off("connect_error", handleConnectError);

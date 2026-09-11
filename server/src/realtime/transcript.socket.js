@@ -1,5 +1,6 @@
 import { extractionQueue, isConversationalFiller } from "../ai/extractionQueue.js";
 import { processDialogueBatch } from "../ai/extraction.js";
+import prisma from "../lib/prisma.js";
 
 /**
  * Register real-time speech and transcript socket handlers
@@ -38,6 +39,22 @@ export function setupTranscriptSocketHandlers(io, socket) {
         ...chunk,
         isFiller,
       });
+
+      // 2b. Persist non-filler chunks to DB for Commit Report summarization.
+      // Fire-and-forget: intentionally not awaited to keep the real-time path non-blocking.
+      if (!isFiller) {
+        prisma.transcriptChunk
+          .create({
+            data: {
+              roomId,
+              speaker: chunk.speaker,
+              text: chunk.text,
+            },
+          })
+          .catch((err) => {
+            console.warn("[transcript.socket] Failed to persist chunk to DB:", err.message);
+          });
+      }
 
       // 3. If filler, discard before queuing to save API quota
       if (isFiller) {
