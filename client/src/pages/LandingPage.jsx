@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useRouter } from "../app.routes.jsx";
 import { roomsApi } from "../api/rooms.api.js";
-import AuthModal from "../components/auth/AuthModal.jsx";
 import { getUserInitials, getUserColor } from "../utils/colors.js";
 
 // Modular Landing Page Components
@@ -31,7 +30,7 @@ const COOL_ROOM_SLUGS = [
 ];
 
 export default function LandingPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { navigateToRoom } = useRouter();
 
   // User Display Name State
@@ -64,9 +63,7 @@ export default function LandingPage() {
   const [roomToDelete, setRoomToDelete] = useState(null);
   const [isDeletingRoom, setIsDeletingRoom] = useState(false);
 
-  // Auth Modal State
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authTab, setAuthTab] = useState("login");
+
 
   // Fetch active rooms from backend API
   useEffect(() => {
@@ -147,27 +144,6 @@ export default function LandingPage() {
     navigateToRoom("demo-room");
   };
 
-  // Open Auth Modal
-  const handleOpenAuth = (tab = "login") => {
-    setAuthTab(tab);
-    setIsAuthModalOpen(true);
-  };
-
-  // Logout Handler
-  const handleLogout = async () => {
-    try {
-      await logout();
-      if (typeof localStorage !== "undefined") {
-        localStorage.removeItem("mindmesh_username");
-        localStorage.removeItem("mindmesh_userid");
-      }
-      setUserName("");
-      toast.info("Logged out successfully.");
-    } catch {
-      toast.error("Error logging out.");
-    }
-  };
-
   // Workspace Deletion Handler
   const handleDeleteClick = (e, room) => {
     e.stopPropagation();
@@ -203,13 +179,10 @@ export default function LandingPage() {
         <div className="absolute top-[65%] -right-32 w-[550px] h-[450px] bg-sky-100/30 blur-[140px] rounded-full" />
       </div>
 
-      {/* 1. Navbar */}
+      {/* 1. Navbar — auth state is self-managed via useAuth() */}
       <LandingNavbar
-        user={user}
-        onOpenAuth={handleOpenAuth}
         onLaunchDemo={handleLaunchDemo}
         onLaunchNewWorkspace={() => setIsLaunchModalOpen(true)}
-        onLogout={handleLogout}
       />
 
       {/* Main Content Flow */}
@@ -223,14 +196,12 @@ export default function LandingPage() {
         {/* 3. Workflow Bridge */}
         <LandingHowItWorks />
 
-        {/* 4. Dynamic Workspaces Section */}
+        {/* 4. Dynamic Workspaces Section — preview of 4 rooms max */}
         <LandingWorkspaces
           user={user}
           rooms={recentRooms}
           isLoading={isLoadingRooms}
           onNavigateToRoom={navigateToRoom}
-          onDeleteClick={handleDeleteClick}
-          onOpenAuth={handleOpenAuth}
           onLaunchDemo={handleLaunchDemo}
         />
 
@@ -243,7 +214,6 @@ export default function LandingPage() {
 
       {/* 7. Enterprise SaaS Footer */}
       <LandingFooter
-        onOpenAuth={handleOpenAuth}
         onLaunchDemo={handleLaunchDemo}
       />
 
@@ -264,13 +234,6 @@ export default function LandingPage() {
         onSubmit={handleExecuteLaunch}
         userColor={userColor}
         userInitials={userInitials}
-      />
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        initialTab={authTab}
       />
 
       {/* In-App Workspace Deletion Confirmation Modal */}

@@ -14,6 +14,7 @@ import {
   Radio,
   Clock,
   Filter,
+  Zap,
 } from "lucide-react";
 
 export const BENCHMARK_SCENARIOS = [

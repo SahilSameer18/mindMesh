@@ -1,7 +1,11 @@
-import { ArrowRight, LogIn, LogOut, Layers, Menu, X } from "lucide-react";
+import { ArrowRight, LogIn, LogOut, LayoutDashboard, Menu, X, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import BrandLogo from "../ui/BrandLogo.jsx";
 import { getUserInitials, getUserColor } from "../../utils/colors.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { useRouter } from "../../app.routes.jsx";
+import AuthModal from "../auth/AuthModal.jsx";
 
 const NAV_LINKS = [
   { href: "#how-it-works", label: "How It Works" },
@@ -10,15 +14,20 @@ const NAV_LINKS = [
   { href: "#faq", label: "FAQ" },
 ];
 
-export default function LandingNavbar({
-  user,
-  onOpenAuth,
-  onLaunchDemo,
-  onLaunchNewWorkspace,
-  onLogout,
-}) {
+/**
+ * LandingNavbar — now self-contained via useAuth() and useRouter().
+ * Props retained for page-specific actions that the navbar doesn't own:
+ *   onLaunchNewWorkspace — opens the Create Room modal
+ *   onLaunchDemo         — navigates to demo-room directly
+ */
+export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
+  const { user, logout } = useAuth();
+  const { navigateToDashboard } = useRouter();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authTab, setAuthTab] = useState("login");
 
   const userInitials = user ? getUserInitials(user.name || "User") : "";
   const userColor = user ? getUserColor(user.name || "User") : "#6366f1";
@@ -32,6 +41,25 @@ export default function LandingNavbar({
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleOpenAuth = (tab = "login") => {
+    setAuthTab(tab);
+    setIsAuthModalOpen(true);
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("mindmesh_username");
+        localStorage.removeItem("mindmesh_userid");
+      }
+      toast.info("Logged out successfully.");
+    } catch {
+      toast.error("Error logging out.");
+    }
+  };
 
   return (
     <>
@@ -74,13 +102,15 @@ export default function LandingNavbar({
           {user ? (
             /* Authenticated State */
             <div className="flex items-center gap-3">
-              <a
-                href="#workspaces"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-text-muted hover:text-indigo-600 hover:bg-surface-subtle transition-all duration-200"
+              {/* Dashboard Link */}
+              <button
+                type="button"
+                onClick={() => navigateToDashboard()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/20 border border-indigo-500/20 transition-all duration-200 active:scale-95 cursor-pointer group"
               >
-                <Layers className="w-3.5 h-3.5" />
-                <span>My Workspaces</span>
-              </a>
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>Dashboard</span>
+              </button>
 
               <div className="flex items-center gap-2 pl-3 border-l border-border-subtle">
                 <div
@@ -95,7 +125,7 @@ export default function LandingNavbar({
                 </span>
                 <button
                   type="button"
-                  onClick={onLogout}
+                  onClick={handleLogout}
                   className="p-1.5 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 cursor-pointer active:scale-90"
                   title="Log Out"
                   aria-label="Log out"
@@ -109,7 +139,7 @@ export default function LandingNavbar({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => onOpenAuth?.("login")}
+                onClick={() => handleOpenAuth("login")}
                 className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-text-muted hover:text-text-main hover:bg-surface-subtle transition-all duration-200 active:scale-95 cursor-pointer"
               >
                 Sign In
@@ -129,13 +159,23 @@ export default function LandingNavbar({
 
         {/* Mobile Action & Hamburger Toggle */}
         <div className="flex items-center gap-2 sm:hidden">
-          <button
-            type="button"
-            onClick={onLaunchNewWorkspace}
-            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-all active:scale-95"
-          >
-            Start
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={() => navigateToDashboard()}
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-all active:scale-95"
+            >
+              Dashboard
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onLaunchNewWorkspace}
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-all active:scale-95"
+            >
+              Start
+            </button>
+          )}
 
           <button
             type="button"
@@ -154,7 +194,7 @@ export default function LandingNavbar({
           </button>
         </div>
 
-        {/* Mobile Menu Dropdown (Smooth Slide & Fade) */}
+        {/* Mobile Menu Dropdown */}
         <div
           className={`sm:hidden absolute top-16 left-0 right-0 bg-surface/98 border-b border-border-subtle p-4 space-y-3 backdrop-blur-2xl shadow-elevated transition-all duration-300 ease-in-out origin-top ${
             isMobileMenuOpen
@@ -177,35 +217,45 @@ export default function LandingNavbar({
 
           <div className="pt-3 border-t border-border-subtle flex flex-col gap-2">
             {user ? (
-              <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-surface-subtle text-xs">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white shadow-xs shrink-0"
-                    style={{ backgroundColor: userColor }}
-                  >
-                    {userInitials}
+              <>
+                <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-surface-subtle text-xs">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white shadow-xs shrink-0"
+                      style={{ backgroundColor: userColor }}
+                    >
+                      {userInitials}
+                    </div>
+                    <span className="text-text-main font-semibold">{user.name}</span>
                   </div>
-                  <span className="text-text-main font-semibold">{user.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="text-rose-600 hover:underline cursor-pointer font-medium"
+                  >
+                    Log Out
+                  </button>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    onLogout();
+                    navigateToDashboard();
                   }}
-                  className="text-rose-600 hover:underline cursor-pointer font-medium"
+                  className="w-full py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
                 >
-                  Log Out
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  Go to Dashboard
                 </button>
-              </div>
+              </>
             ) : (
               <>
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    onOpenAuth?.("login");
-                  }}
+                  onClick={() => handleOpenAuth("login")}
                   className="w-full py-2.5 rounded-xl text-xs font-semibold text-text-main bg-surface-subtle hover:bg-surface-hover border border-border-subtle transition-all active:scale-[0.99] cursor-pointer"
                 >
                   Sign In
@@ -214,7 +264,7 @@ export default function LandingNavbar({
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    onLaunchNewWorkspace();
+                    onLaunchNewWorkspace?.();
                   }}
                   className="w-full py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-all active:scale-[0.99] cursor-pointer"
                 >
@@ -226,13 +276,20 @@ export default function LandingNavbar({
         </div>
       </header>
 
-      {/* Mobile Backdrop Overlay (Smooth Fade) */}
+      {/* Mobile Backdrop Overlay */}
       <div
         onClick={() => setIsMobileMenuOpen(false)}
         className={`sm:hidden fixed inset-0 top-16 bg-text-main/15 backdrop-blur-xs z-40 transition-opacity duration-300 ease-in-out ${
           isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         aria-hidden="true"
+      />
+
+      {/* Auth Modal — self-managed by navbar */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialTab={authTab}
       />
     </>
   );

@@ -440,7 +440,6 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       startPresenting,
       stopPresenting,
       setFollowing,
-      roomMode,
       systemContext,
       updateRoomMode,
       updateDisplayName,

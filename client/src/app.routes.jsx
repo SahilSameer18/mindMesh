@@ -10,6 +10,7 @@ import {
 import AppLayout from "./app.layout.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import RoomPage from "./pages/RoomPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
 
 const RouterContext = createContext(null);
 
@@ -24,7 +25,8 @@ export function RouterProvider({ children }) {
     pathParts[0] === "room" && pathParts[1] ? decodeURIComponent(pathParts[1]) : "";
   const queryRoomId = searchParams.get("room")?.trim() || "";
   const roomId = pathRoomId || queryRoomId;
-  const currentRoute = roomId ? "room" : "home";
+  const isDashboard = location.pathname === "/dashboard";
+  const currentRoute = roomId ? "room" : isDashboard ? "dashboard" : "home";
 
   const navigateToRoom = useCallback(
     (targetRoomId, { replace = false } = {}) => {
@@ -42,14 +44,22 @@ export function RouterProvider({ children }) {
     [navigate]
   );
 
+  const navigateToDashboard = useCallback(
+    ({ replace = false } = {}) => {
+      navigate("/dashboard", { replace });
+    },
+    [navigate]
+  );
+
   const value = useMemo(
     () => ({
       currentRoute,
       roomId,
       navigateToRoom,
       navigateToHome,
+      navigateToDashboard,
     }),
-    [currentRoute, roomId, navigateToRoom, navigateToHome]
+    [currentRoute, roomId, navigateToRoom, navigateToHome, navigateToDashboard]
   );
 
   return <RouterContext.Provider value={value}>{children}</RouterContext.Provider>;
@@ -82,6 +92,7 @@ export function AppRoutes() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<LegacyQueryRoomWrapper />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/room/:roomId" element={<RoomRouteWrapper />} />
         <Route path="*" element={<LegacyQueryRoomWrapper />} />
       </Route>

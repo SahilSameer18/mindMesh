@@ -2,7 +2,6 @@ import {
   Calendar,
   Layers,
   ChevronRight,
-  Trash2,
   Plus,
   Zap,
   Brain,
@@ -10,41 +9,56 @@ import {
   CheckCircle2,
   Play,
   UserPlus,
+  LayoutDashboard,
+  ArrowRight,
 } from "lucide-react";
+import { useRouter } from "../../app.routes.jsx";
 
 export default function LandingWorkspaces({
   user,
   rooms = [],
   isLoading = false,
   onNavigateToRoom,
-  onDeleteClick,
-  onOpenAuth,
   onLaunchDemo,
 }) {
+  const { navigateToDashboard } = useRouter();
+
+  // Show only 4 rooms as a preview — full list is on /dashboard
+  const previewRooms = rooms.slice(0, 4);
+
   return (
     <section id="workspaces" className="w-full max-w-5xl mx-auto space-y-6 select-none scroll-mt-24">
       {user ? (
-        /* Authenticated View: Active Workspaces List */
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+        /* ── Authenticated View: 4-Room Preview ── */
+        <div className="space-y-5">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-xl sm:text-2xl font-display font-bold text-text-main flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                <span>Your Saved Workspaces</span>
+                <span>Recent Workspaces</span>
               </h2>
               <p className="text-xs text-text-muted">
-                Logged in as <span className="text-indigo-600 dark:text-indigo-400 font-medium">{user.name}</span> · Real-time Neon PostgreSQL
+                Your 4 most recent rooms — manage all in the Dashboard
               </p>
             </div>
-            <span className="text-xs font-mono text-text-faint hidden sm:inline">
-              {rooms.length} {rooms.length === 1 ? "workspace" : "workspaces"}
-            </span>
+
+            {/* "View All" shortcut */}
+            <button
+              type="button"
+              onClick={() => navigateToDashboard()}
+              className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 transition-all duration-200 cursor-pointer"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>View All in Dashboard</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
           </div>
 
-          {/* Skeleton Loaders (Per Frontend Rules) */}
+          {/* Room Cards (4 max) */}
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-              {[1, 2, 3].map((i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
                   className="p-4 rounded-xl bg-surface-subtle border border-border-subtle animate-pulse space-y-3"
@@ -58,80 +72,81 @@ export default function LandingWorkspaces({
                 </div>
               ))}
             </div>
-          ) : rooms.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-              {rooms.map((room) => {
-                const isBrainstorm = room.mode === "brainstorm";
-                const nodeCount = room._count?.nodes || 0;
-                return (
-                  <div
-                    key={room.id}
-                    className="p-4 rounded-2xl bg-surface border border-border-subtle hover:border-border-strong transition-all flex flex-col justify-between group space-y-3 shadow-subtle hover:shadow-elevated"
-                  >
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-text-main group-hover:text-indigo-600 transition-colors truncate">
-                          {room.name || room.id}
-                        </span>
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1 ${
-                            isBrainstorm
-                              ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/30"
-                              : "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30"
-                          }`}
-                        >
-                          {isBrainstorm ? <Brain className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
-                          <span className="capitalize">{room.mode || "operational"}</span>
-                        </span>
+          ) : previewRooms.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {previewRooms.map((room) => {
+                  const isBrainstorm = room.mode === "brainstorm";
+                  const nodeCount = room._count?.nodes || 0;
+                  return (
+                    <div
+                      key={room.id}
+                      className="p-4 rounded-2xl bg-surface border border-border-subtle hover:border-indigo-300 dark:hover:border-indigo-500/40 transition-all flex flex-col justify-between group space-y-3 shadow-subtle hover:shadow-elevated cursor-pointer"
+                      onClick={() => onNavigateToRoom(room.id)}
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-start justify-between gap-1">
+                          <span className="text-sm font-bold text-text-main group-hover:text-indigo-600 transition-colors line-clamp-1 flex-1">
+                            {room.name || room.id}
+                          </span>
+                          <span
+                            className={`shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1 ${
+                              isBrainstorm
+                                ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/30"
+                                : "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30"
+                            }`}
+                          >
+                            {isBrainstorm ? <Brain className="w-2.5 h-2.5" /> : <Zap className="w-2.5 h-2.5" />}
+                          </span>
+                        </div>
+
+                        <div className="text-[11px] text-text-muted font-mono flex items-center gap-2">
+                          <span className="text-text-main font-medium">
+                            {nodeCount} {nodeCount === 1 ? "card" : "cards"}
+                          </span>
+                          <span>·</span>
+                          <span>
+                            {new Date(room.updatedAt || Date.now()).toLocaleDateString([], {
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="text-[11px] text-text-muted font-mono flex items-center gap-2">
-                        <span className="text-text-main font-medium">{nodeCount} {nodeCount === 1 ? "card" : "cards"}</span>
-                        <span>·</span>
-                        <span className="truncate">
-                          {new Date(room.updatedAt || Date.now()).toLocaleDateString([], {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
-                      <button
-                        type="button"
-                        onClick={(e) => onDeleteClick(e, room)}
-                        className="p-1.5 rounded-lg text-text-faint hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-colors cursor-pointer"
-                        title={`Delete workspace ${room.name || room.id}`}
-                        aria-label={`Delete workspace ${room.name || room.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => onNavigateToRoom(room.id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-subtle hover:bg-indigo-600 text-xs font-semibold text-text-main hover:text-white border border-border-subtle transition-all cursor-pointer shadow-subtle"
-                      >
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 group-hover:gap-2 transition-all">
                         <span>Open Canvas</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
+                        <ChevronRight className="w-3 h-3" />
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+
+              {/* "Manage All" CTA below the cards */}
+              <div className="flex items-center justify-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => navigateToDashboard()}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-surface border border-border-subtle hover:border-indigo-300 dark:hover:border-indigo-500/40 text-text-muted hover:text-indigo-600 transition-all duration-200 cursor-pointer shadow-subtle"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  Manage all {rooms.length} workspace{rooms.length !== 1 ? "s" : ""} →
+                </button>
+              </div>
+            </>
           ) : (
-            <div className="p-8 rounded-2xl bg-surface border border-border-subtle text-center space-y-2">
-              <p className="text-sm text-text-main font-semibold">No workspaces found in your account yet.</p>
+            /* Empty state */
+            <div className="p-8 rounded-2xl bg-surface border border-dashed border-border-subtle text-center space-y-3">
+              <p className="text-sm text-text-main font-semibold">No workspaces yet</p>
               <p className="text-xs text-text-muted">
-                Launch a meeting room using the generator above to start organizing spoken knowledge!
+                Launch a meeting room above to start organizing spoken knowledge.
               </p>
             </div>
           )}
         </div>
       ) : (
-        /* Guest / Unauthenticated View: High-Converting Account Teaser */
+        /* ── Guest View: Marketing Teaser (unchanged) ── */
         <div className="relative rounded-2xl sm:rounded-3xl border border-border-subtle bg-surface p-6 sm:p-8 shadow-elevated overflow-hidden">
           {/* Ambient Glow Accent */}
           <div className="absolute -top-24 -right-24 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -175,19 +190,11 @@ export default function LandingWorkspaces({
             <div className="flex flex-col gap-2.5 sm:min-w-[220px] shrink-0">
               <button
                 type="button"
-                onClick={() => onOpenAuth?.("signup")}
+                onClick={() => {}}
                 className="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-500 hover:via-violet-500 hover:to-purple-500 text-white font-semibold text-xs sm:text-sm shadow-xl shadow-indigo-600/20 border border-white/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Create Free Account</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onOpenAuth?.("login")}
-                className="w-full py-2.5 px-4 rounded-xl bg-surface-subtle hover:bg-surface-hover text-text-main text-xs font-semibold border border-border-subtle transition-all cursor-pointer text-center"
-              >
-                Already have an account? Sign In
               </button>
 
               <button
