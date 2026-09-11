@@ -60,24 +60,50 @@ export async function getOrCreateRoom(roomId, { name, mode, systemContext, userI
           integrations: true,
         },
       });
-    } else if (
-      (systemContext !== undefined) ||
-      (mode !== undefined && mode !== room.mode) ||
-      (name !== undefined && name !== room.name)
-    ) {
-      const updateData = {};
-      if (systemContext !== undefined) updateData.systemContext = systemContext;
-      if (mode !== undefined && mode !== room.mode) updateData.mode = mode;
-      if (name !== undefined && name !== room.name) updateData.name = name;
+    } else {
+      if (validUser) {
+        const isMember = room.members?.some((m) => m.userId === validUser.id);
+        if (!isMember) {
+          try {
+            await prisma.roomMember.create({
+              data: {
+                roomId: room.id,
+                userId: validUser.id,
+                role: "member",
+              },
+            });
+            room = await prisma.room.findUnique({
+              where: { id: roomId },
+              include: {
+                members: { include: { user: true } },
+                integrations: true,
+              },
+            });
+          } catch (memberErr) {
+            console.warn("[getOrCreateRoom] Member create note:", memberErr.message);
+          }
+        }
+      }
 
-      room = await prisma.room.update({
-        where: { id: roomId },
-        data: updateData,
-        include: {
-          members: { include: { user: true } },
-          integrations: true,
-        },
-      });
+      if (
+        (systemContext !== undefined) ||
+        (mode !== undefined && mode !== room.mode) ||
+        (name !== undefined && name !== room.name)
+      ) {
+        const updateData = {};
+        if (systemContext !== undefined) updateData.systemContext = systemContext;
+        if (mode !== undefined && mode !== room.mode) updateData.mode = mode;
+        if (name !== undefined && name !== room.name) updateData.name = name;
+
+        room = await prisma.room.update({
+          where: { id: roomId },
+          data: updateData,
+          include: {
+            members: { include: { user: true } },
+            integrations: true,
+          },
+        });
+      }
     }
 
     const canvas = await loadCanvasState(roomId);
@@ -221,3 +247,5 @@ export async function deleteRoom(roomId) {
     throw err;
   }
 }
+
+

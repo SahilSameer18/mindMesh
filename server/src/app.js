@@ -11,11 +11,25 @@ import inviteRoutes from "./routes/invite.routes.js";
 
 const app = express();
 
+const allowedOrigins = [
+  config.clientUrl?.replace(/\/+$/, ""),
+  ...(process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim().replace(/\/+$/, ""))
+    : []),
+].filter(Boolean);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, postman) or matching client
-      callback(null, true);
+      // Allow requests with no origin (like mobile apps, curl, server-to-server) or in non-production
+      if (!origin || config.nodeEnv !== "production") {
+        return callback(null, true);
+      }
+      const normalizedOrigin = origin.replace(/\/+$/, "");
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`[CORS] Blocked origin: ${origin}`));
     },
     credentials: true,
   })

@@ -30,12 +30,13 @@ export function issueGuestSession(res, roomId, name) {
     isGuest: true,
   });
 
+  const isProd = config.nodeEnv === "production";
+
   res.cookie("guest_session", guestToken, {
     httpOnly: true,
-    secure: config.nodeEnv === "production",
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     path: "/",
     maxAge: 8 * 60 * 60 * 1000, // 8 hours
   });
 }
-

@@ -4,10 +4,12 @@ import { Users, ArrowRight, Sparkles, AlertCircle, ArrowLeft } from "lucide-reac
 import apiClient from "../api/apiClient.js";
 import { useRouter } from "../app.routes.jsx";
 import BrandLogo from "../components/ui/BrandLogo.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function GuestJoinPage() {
   const { token } = useParams();
   const { navigateToRoom, navigateToHome, navigateToLogin } = useRouter();
+  const { user: authUser } = useAuth();
 
   const [isLoading, setIsLoading] = useState(true);
   const [inviteData, setInviteData] = useState(null);
@@ -47,9 +49,17 @@ export default function GuestJoinPage() {
     };
   }, [token]);
 
+  // Auto-populate display name if user is already authenticated
+  useEffect(() => {
+    if (authUser?.name && !name) {
+      setName(authUser.name);
+    }
+  }, [authUser]);
+
   const handleJoin = async (e) => {
     e.preventDefault();
-    if (!name.trim()) {
+    const effectiveName = name.trim() || authUser?.name || "";
+    if (!effectiveName && !authUser) {
       setErrorMessage("Please enter your name to join.");
       return;
     }
@@ -59,14 +69,14 @@ export default function GuestJoinPage() {
       setErrorMessage("");
 
       const res = await apiClient.post(`/api/invites/${token}/join`, {
-        name: name.trim(),
+        name: effectiveName,
       });
 
       const data = res?.data || res;
 
       // Scoped ephemeral storage: save in sessionStorage so it never pollutes localStorage
-      if (typeof sessionStorage !== "undefined") {
-        sessionStorage.setItem("mindmesh_guest_name", name.trim());
+      if (!authUser && effectiveName && typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem("mindmesh_guest_name", effectiveName);
       }
 
       navigateToRoom(data.roomId || inviteData.roomId);
@@ -101,8 +111,14 @@ export default function GuestJoinPage() {
             </span>
           </button>
 
-          <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 font-mono">
-            Guest Invite
+          <span
+            className={`text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border font-mono ${
+              authUser
+                ? "text-indigo-700 bg-indigo-50 border-indigo-200"
+                : "text-emerald-700 bg-emerald-50 border-emerald-200"
+            }`}
+          >
+            {authUser ? "Workspace Invite" : "Guest Invite"}
           </span>
         </div>
 
@@ -151,9 +167,28 @@ export default function GuestJoinPage() {
                 Join &ldquo;{inviteData?.roomName || "Workspace Room"}&rdquo;
               </h1>
               <p className="mt-1.5 text-xs text-text-muted">
-                You were invited to collaborate in this live session. Choose a display name to enter.
+                {authUser
+                  ? "You were invited to collaborate in this workspace with your account."
+                  : "You were invited to collaborate in this live session. Choose a display name to enter."}
               </p>
             </div>
+
+            {authUser && (
+              <div className="mb-4 p-3 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                    {authUser.name?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-text-main leading-tight">{authUser.name}</p>
+                    <p className="text-[11px] text-text-muted">{authUser.email}</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-semibold text-indigo-700 bg-white/90 px-2 py-0.5 rounded-md border border-indigo-200/60 font-mono">
+                  Member
+                </span>
+              </div>
+            )}
 
             {errorMessage && (
               <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs">
@@ -208,7 +243,9 @@ export default function GuestJoinPage() {
 
             <div className="mt-6 pt-5 border-t border-border-subtle text-center">
               <span className="text-xs text-text-faint">
-                Temporary 8-hour session &bull; Scoped to this room
+                {authUser
+                  ? "Authenticated session \u2022 Permanent workspace membership"
+                  : "Temporary 8-hour session \u2022 Scoped to this room"}
               </span>
             </div>
           </div>

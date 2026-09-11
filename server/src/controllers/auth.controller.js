@@ -10,7 +10,7 @@ function setAuthCookies(res, accessToken, refreshToken) {
   res.cookie("session", accessToken, {
     httpOnly: true,
     secure: isProd,
-    sameSite: "lax",
+    sameSite: isProd ? "none" : "lax",
     path: "/",
     maxAge: 15 * 60 * 1000, // 15 minutes
   });
@@ -18,7 +18,7 @@ function setAuthCookies(res, accessToken, refreshToken) {
   res.cookie("refresh", refreshToken, {
     httpOnly: true,
     secure: isProd,
-    sameSite: "lax",
+    sameSite: isProd ? "none" : "lax",
     path: "/api/auth", // Restricted path: only sent to auth endpoints
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
@@ -28,13 +28,13 @@ function clearAuthCookies(res) {
   res.clearCookie("session", {
     httpOnly: true,
     secure: isProd,
-    sameSite: "lax",
+    sameSite: isProd ? "none" : "lax",
     path: "/",
   });
   res.clearCookie("refresh", {
     httpOnly: true,
     secure: isProd,
-    sameSite: "lax",
+    sameSite: isProd ? "none" : "lax",
     path: "/api/auth",
   });
 }

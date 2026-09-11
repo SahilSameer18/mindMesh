@@ -25,7 +25,13 @@ export async function getOrCreateRoom(req, res, next) {
   try {
     const { roomId } = req.params;
     const { name, mode, systemContext } = req.body || {};
-    const room = await roomService.getOrCreateRoom(roomId, { name, mode, systemContext });
+    const user = getCurrentUser(req);
+    const room = await roomService.getOrCreateRoom(roomId, {
+      name,
+      mode,
+      systemContext,
+      userId: user && !user.isDemo ? user.id : null,
+    });
     return sendSuccess(res, "Room retrieved successfully", room);
   } catch (err) {
     next(err);
@@ -172,3 +178,4 @@ export async function deleteRoom(req, res, next) {
     next(err);
   }
 }
+
