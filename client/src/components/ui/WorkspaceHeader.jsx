@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useRoom } from "../../hooks/useRoom.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useRouter } from "../../app.routes.jsx";
 import { roomsApi } from "../../api/rooms.api.js";
 import {
   CheckCircle2,
@@ -51,6 +52,7 @@ export default function WorkspaceHeader({
   } = useRoom();
 
   const { logout } = useAuth();
+  const { navigateToLogin } = useRouter();
   const [showHelp, setShowHelp] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -372,7 +374,7 @@ export default function WorkspaceHeader({
         {currentUser.isDemo ? (
           <button
             type="button"
-            onClick={onOpenAuth}
+            onClick={onOpenAuth || (() => navigateToLogin())}
             className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-text-main bg-surface-subtle hover:bg-surface-hover border border-border-subtle transition-colors shrink-0 cursor-pointer"
             title="Sign in or register an account"
           >
@@ -445,3 +447,5 @@ export default function WorkspaceHeader({
     </header>
   );
 }
+
+

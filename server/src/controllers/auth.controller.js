@@ -71,7 +71,7 @@ export async function signup(req, res) {
       select: { id: true, name: true, email: true },
     });
 
-    const userPayload = { id: user.id, email: user.email, name: user.name, role: "owner" };
+    const userPayload = { id: user.id, email: user.email, name: user.name, role: "user" };
     const { accessToken, refreshToken } = await authService.generateAndStoreTokens(user.id, userPayload);
     setAuthCookies(res, accessToken, refreshToken);
 
@@ -103,7 +103,7 @@ export async function login(req, res) {
       return sendError(res, "Unauthorized", ["Invalid email or password"], 401);
     }
 
-    const userPayload = { id: user.id, email: user.email, name: user.name, role: "owner" };
+    const userPayload = { id: user.id, email: user.email, name: user.name, role: "user" };
     const { accessToken, refreshToken } = await authService.generateAndStoreTokens(user.id, userPayload);
     setAuthCookies(res, accessToken, refreshToken);
 

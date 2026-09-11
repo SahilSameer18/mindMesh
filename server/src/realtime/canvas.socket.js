@@ -16,7 +16,7 @@ export function initCanvasSocket(io, socket) {
    * 2. Loads and sends authoritative canvas state (canvas:init)
    * 3. Registers in presence service and broadcasts presence to peers
    */
-  socket.on("canvas:join", async ({ roomId, user }, callback) => {
+  socket.on("canvas:join", async ({ roomId }, callback) => {
     if (!roomId) {
       if (typeof callback === "function") callback({ success: false, error: "Missing roomId" });
       return;
@@ -25,10 +25,14 @@ export function initCanvasSocket(io, socket) {
     try {
       socket.join(roomId);
       socket.roomId = roomId;
-      socket.user = user || socket.user || { id: socket.id, name: "Collaborator" };
+
+      // Authoritative identity from socket handshake (socketAuthMiddleware)
+      // NEVER overwrite with untrusted client payload
+      const verifiedUser = socket.user || socket.data?.user || { id: socket.id, name: "Collaborator" };
+      socket.user = verifiedUser;
       if (!socket.data) socket.data = {};
       socket.data.roomId = roomId;
-      socket.data.user = socket.user;
+      socket.data.user = verifiedUser;
 
       // Ensure room and membership records exist upfront in PostgreSQL
       const room = await getOrCreateRoom(roomId, { userId: socket.user?.id });

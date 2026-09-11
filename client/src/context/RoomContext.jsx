@@ -26,8 +26,23 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   }, []);
 
   const currentUser = useMemo(() => {
-    // 1. Explicit query parameter override (highest priority for multi-tab developer demos)
-    if (typeof window !== "undefined") {
+    // 1. Real authenticated session from AuthContext takes highest priority
+    // authUser.name takes strict precedence over stale localStorage guest names
+    if (authUser && !authUser.isDemo) {
+      const initials = getUserInitials(authUser.name || authUser.email || "User");
+      return {
+        id: authUser.id,
+        name: authUser.name || customDisplayName || "Explorer",
+        email: authUser.email,
+        role: authUser.role || "member",
+        color: getUserColor(authUser.id || authUser.name),
+        avatar: initials,
+        isDemo: false,
+      };
+    }
+
+    // 2. Developer demo query override (STRICTLY IN DEV ENVIRONMENT)
+    if (import.meta.env.DEV && typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const asUser = params.get("as")?.toLowerCase();
 
@@ -52,20 +67,6 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
           isDemo: true,
         };
       }
-    }
-
-    // 2. Real authenticated session from AuthContext
-    if (authUser && !authUser.isDemo) {
-      const initials = getUserInitials(authUser.name || authUser.email || "User");
-      return {
-        id: authUser.id,
-        name: authUser.name || authUser.email,
-        email: authUser.email,
-        role: authUser.role || "owner",
-        color: getUserColor(authUser.name || authUser.email),
-        avatar: initials,
-        isDemo: false,
-      };
     }
 
     // 3. User configured display name from localStorage or in-room editing

@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import { config } from "../config/env.js";
 import { initCanvasSocket } from "./canvas.socket.js";
 import { setupTranscriptSocketHandlers } from "./transcript.socket.js";
 import { setupPresenceSocketHandlers } from "./presence.socket.js";
@@ -12,7 +13,19 @@ let io = null;
 export function initSocketServer(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: (origin, callback) => callback(null, true),
+      origin: (origin, callback) => {
+        if (!origin || process.env.NODE_ENV !== "production") {
+          return callback(null, true);
+        }
+        const allowed = [
+          config.clientUrl,
+          ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()) : []),
+        ];
+        if (allowed.includes(origin)) {
+          return callback(null, true);
+        }
+        return callback(new Error(`[SocketCORS] Blocked origin: ${origin}`));
+      },
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -57,5 +70,3 @@ export function getIO() {
   }
   return io;
 }
-
-
