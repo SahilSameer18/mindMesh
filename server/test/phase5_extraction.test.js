@@ -329,12 +329,12 @@ assert(user.id && user.email === testEmail, "Prisma User record created with cui
 // Test JWT creation and verification
 const token = jwt.sign(
   { id: user.id, email: user.email, name: user.name, role: "owner" },
-  config.jwtSecret || "mindmesh-secret-key-change-in-prod-2026",
-  { expiresIn: "7d" }
+  config.accessTokenSecret || config.jwtSecret || "mindmesh-secret-key-change-in-prod-2026",
+  { expiresIn: "15m" }
 );
 assert(typeof token === "string" && token.split(".").length === 3, "Valid signed 3-part JWT generated");
 
-const decoded = jwt.verify(token, config.jwtSecret || "mindmesh-secret-key-change-in-prod-2026");
+const decoded = jwt.verify(token, config.accessTokenSecret || config.jwtSecret || "mindmesh-secret-key-change-in-prod-2026");
 assert(decoded.id === user.id && decoded.email === testEmail, "JWT verified and payload extracted correctly");
 
 // Test isDemo decoupling
