@@ -15,6 +15,8 @@
 
 **An AI-native collaborative visual workspace that turns spoken dialogue into living, interactive knowledge maps in real time.**
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-mindmesh--s.vercel.app-000000.svg?style=flat-square&logo=vercel)](https://mindmesh-s.vercel.app/)
+[![API Backend](https://img.shields.io/badge/API_Backend-Render-46E3B7.svg?style=flat-square&logo=render)](https://mindmesh-gnyi.onrender.com/api/health)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=flat-square)](https://opensource.org/licenses/ISC)
 [![React 19](https://img.shields.io/badge/React-19.0-61dafb.svg?style=flat-square&logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8.2-646CFF.svg?style=flat-square&logo=vite)](https://vitejs.dev/)
@@ -29,7 +31,7 @@
 [![Security: CORS & Rate-Limited](https://img.shields.io/badge/Security-CORS_%26_Rate_Limited-10B981.svg?style=flat-square)](https://expressjs.com/)
 [![Tests Passing](https://img.shields.io/badge/Tests-130%2B_Passing-success.svg?style=flat-square)](https://github.com/SahilSameer18/mindMesh)
 
-[Quick Start](#-quick-start) • [Product Tour](#-product-tour) • [System Architecture](#-system-architecture) • [Engineering Invariants](#-hardened-engineering-invariants) • [Ontology](#-the-canvas-knowledge-ontology) • [API Reference](#-api--websocket-reference)
+[Live App](https://mindmesh-s.vercel.app/) • [Quick Start](#-quick-start) • [Production Deployment](#-production-deployment) • [Product Tour](#-product-tour) • [System Architecture](#-system-architecture) • [Engineering Invariants](#-hardened-engineering-invariants) • [Ontology](#-the-canvas-knowledge-ontology) • [API Reference](#-api--websocket-reference)
 
 ---
 
@@ -140,6 +142,11 @@ mindMesh Flow:
 - **Cross-Domain Cookie Transmission**: Cookies dynamically adapt flags based on environment (`sameSite: isProd ? "none" : "lax"`, `secure: isProd`), enabling seamless cross-domain deployments (e.g. Vercel frontend + Render/Railway backend) with `credentials: true`.
 - **Express & WebSocket HTTP CORS Lockdown**: Production origin validation strictly whitelists `config.clientUrl` and `ALLOWED_ORIGINS` across both Express HTTP endpoints and Socket.io handshakes, rejecting unauthorized cross-origin credentialed requests.
 - **Integration Credential Masking**: Room integration settings automatically mask sensitive credentials (incoming Slack webhooks and Notion API keys) to prevent client-side credential exposure.
+
+### 13. 🌌 Spatial 404 Canvas & Performance Optimization
+- **Immersive Spatial 404 Page (`NotFoundPage.jsx`)**: Responsive, Linear/Stripe-tier 404 experience featuring atmospheric glows, live telemetry badge (`STATUS: UNMAPPED ROUTE`), dynamic path feedback, and floating spatial mock cards (Goal, Decision, Task) linked by an animated SVG gradient thread.
+- **Rollup Manual Chunk Splitting**: Configured in `vite.config.js` (`manualChunks`) to isolate vendor dependencies (`react`, `socket.io`, `lucide-react`, `dagre`), reducing the main client bundle from >700kB down to ~420kB (<115kB gzip).
+- **Vercel SPA Rewrites (`vercel.json`)**: Configured routing rewrites to root `/` for client SPA route persistence across all direct subpaths (`/room/:roomId`, `/join/:token`, `/dashboard`).
 
 ---
 
@@ -374,6 +381,52 @@ Open `http://localhost:5173` in your browser.
 
 ---
 
+## 🌐 Production Deployment (Render + Vercel + Neon)
+
+mindMesh is deployed live in production:
+* **Web Application (Vercel)**: [https://mindmesh-s.vercel.app/](https://mindmesh-s.vercel.app/)
+* **API & WebSocket Server (Render)**: [https://mindmesh-gnyi.onrender.com/](https://mindmesh-gnyi.onrender.com/)
+* **Health Check**: [https://mindmesh-gnyi.onrender.com/api/health](https://mindmesh-gnyi.onrender.com/api/health)
+
+### 1. Backend Deployment (Render Web Service)
+1. Create a new **Web Service** on [Render](https://render.com) connected to the `mindMesh` repository.
+2. Set the configuration:
+   - **Root Directory**: `server`
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install && npx prisma generate`
+   - **Start Command**: `node server.js`
+   - **Instance Type**: `Free`
+3. Configure the following environment variables:
+
+| Variable | Description |
+| :--- | :--- |
+| `NODE_ENV` | `production` |
+| `DATABASE_URL` | Neon Serverless PostgreSQL connection string *(pooled)* |
+| `DIRECT_URL` | Neon Serverless PostgreSQL direct connection string |
+| `CLIENT_URL` | `https://mindmesh-s.vercel.app` |
+| `ALLOWED_ORIGINS` | `https://mindmesh-s.vercel.app` |
+| `JWT_SECRET` | Cryptographic random secret string (32+ characters) |
+| `ACCESS_TOKEN_SECRET` | Cryptographic random secret string (32+ characters) |
+| `REFRESH_TOKEN_SECRET` | Cryptographic random secret string (32+ characters) |
+| `GUEST_TOKEN_SECRET` | Cryptographic random secret string (32+ characters) |
+| `GROQ_API_KEYS` | Groq LPU API key(s) for real-time speech extraction |
+| `GEMINI_API_KEYS` | Google AI Studio key(s) for visual and fallback synthesis |
+
+### 2. Frontend Deployment (Vercel)
+1. Import the `mindMesh` repository into [Vercel](https://vercel.com).
+2. Set the project settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `client`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+3. Add the single public client environment variable:
+
+| Variable | Value | Description |
+| :--- | :--- | :--- |
+| `VITE_SERVER_URL` | `https://mindmesh-gnyi.onrender.com` | Target Render backend URL *(no trailing slash)* |
+
+---
+
 ## 🧪 Comprehensive Test Suites (130+ Passing)
 
 The repository features comprehensive automated test suites validating every layer of the stack:
@@ -477,10 +530,11 @@ mindMesh/
 │   │   │   └── ui/                       # BrandLogo, WorkspaceHeader, Minimap, Avatar
 │   │   ├── context/                      # RoomContext, AuthContext (JWT & guest auth lifecycle)
 │   │   ├── hooks/                        # useCanvas, useAIActions, useSpeechRecognition, useWebRTC, useAuth
-│   │   ├── pages/                        # LandingPage, DashboardPage, GuestJoinPage
+│   │   ├── pages/                        # LandingPage, DashboardPage, GuestJoinPage, NotFoundPage (Spatial 404)
 │   │   │   └── auth/                     # LoginPage, RegisterPage, AuthShowcase (Obsidian Dark Mode)
 │   │   ├── app.routes.jsx                # React Router v7 routes & navigation hooks
 │   │   └── utils/                        # canvasConstants, color tokens
+│   ├── vercel.json                       # Vercel SPA Client Route Rewrites
 │   └── package.json
 │
 ├── server/                               # Node.js + Express 5 Backend
