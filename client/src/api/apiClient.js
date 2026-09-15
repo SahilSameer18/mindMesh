@@ -20,7 +20,7 @@ export const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 30000,
+  timeout: 60000,
 });
 
 // Response Interceptor: unwrap response data directly with 401 auto-refresh mutex queue
