@@ -164,8 +164,8 @@ export default function PasteAgendaModal({ isOpen, onClose, roomId }) {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Generating Pillars...</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-white/80 animate-ping" />
+                  <span>Extracting Pillars...</span>
                 </>
               ) : (
                 <>

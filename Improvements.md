@@ -60,7 +60,8 @@ For the competition: do Option B right now. The report already said "Demo with 2
 That turns a crash into a professional product decision. Takes 30 minutes.
 
 
-claude solutiion -
+## claude solutiion -
+
 Good topic to dig into properly — but first, a correction: the audit's math is actually wrong, and understanding the *right* numbers matters for deciding how urgent this fix actually is.
 
 ## The real math (the audit conflated two different formulas)

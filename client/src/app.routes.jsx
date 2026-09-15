@@ -14,6 +14,7 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 import LoginPage from "./pages/auth/LoginPage.jsx";
 import RegisterPage from "./pages/auth/RegisterPage.jsx";
 import GuestJoinPage from "./pages/GuestJoinPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 const RouterContext = createContext(null);
 
@@ -134,7 +135,7 @@ export function AppRoutes() {
         <Route path="/" element={<LegacyQueryRoomWrapper />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/room/:roomId" element={<RoomRouteWrapper />} />
-        <Route path="*" element={<LegacyQueryRoomWrapper />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

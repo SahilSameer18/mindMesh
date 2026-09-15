@@ -25,6 +25,8 @@
 [![Prisma ORM](https://img.shields.io/badge/Prisma-7.0-2D3748.svg?style=flat-square&logo=prisma)](https://www.prisma.io/)
 [![Groq LPU](https://img.shields.io/badge/Groq-Dual_Key_Pool-F55036.svg?style=flat-square)](https://groq.com/)
 [![Google Gemini](https://img.shields.io/badge/Gemini-3.5_Flash_Lite_(500_RPD)-4285F4.svg?style=flat-square&logo=google)](https://ai.google.dev/)
+[![Auth: Dual-Token JWT](https://img.shields.io/badge/Auth-Dual_Token_JWT-7C3AED.svg?style=flat-square&logo=jsonwebtokens)](https://jwt.io/)
+[![Security: CORS & Rate-Limited](https://img.shields.io/badge/Security-CORS_%26_Rate_Limited-10B981.svg?style=flat-square)](https://expressjs.com/)
 [![Tests Passing](https://img.shields.io/badge/Tests-130%2B_Passing-success.svg?style=flat-square)](https://github.com/SahilSameer18/mindMesh)
 
 [Quick Start](#-quick-start) • [Product Tour](#-product-tour) • [System Architecture](#-system-architecture) • [Engineering Invariants](#-hardened-engineering-invariants) • [Ontology](#-the-canvas-knowledge-ontology) • [API Reference](#-api--websocket-reference)
@@ -114,7 +116,30 @@ mindMesh Flow:
 - **Fixed Glassmorphic Navigation**: Sticky top navigation that shifts from minimalist glass to an elevated translucent backdrop (`backdrop-blur-xl`) upon scroll.
 - **Silky-Smooth Q&A Accordion**: Zero-jitter CSS Grid fractional height transitions (`grid-template-rows: 0fr ↔ 1fr`) with coordinated chevron rotations.
 - **100% Mobile-First Responsiveness**: Tailored layout hierarchies across 320px mobile viewports, tablets, and 4K desktop screens with zero horizontal overflow.
-- **Modern Routing Pipeline**: Standard React Router v7 DOM navigation (`/` and `/room/:roomId`) with backward-compatible room query strings.
+- **Modern Routing Pipeline**: Standard React Router v7 DOM navigation (`/`, `/dashboard`, `/login`, `/register`, `/join/:token`, and `/room/:roomId`).
+
+### 10. 🔐 Enterprise Authentication & Multi-Tenancy
+- **Dedicated Authentication Suite**: Modern `/login` and `/register` views featuring a responsive split layout with an obsidian dark-mode spatial engine showcase panel.
+- **Dual-Token Cookie Lifecycle**:
+  - `session`: 15-minute short-lived rotating JWT access token stored in an `httpOnly` cookie (`path: /`).
+  - `refresh`: 7-day long-lived refresh token stored in an `httpOnly` cookie restricted strictly to `/api/auth`.
+  - Transparent Axios response interceptor intercepts 401s, rotates the session token via `/api/auth/refresh`, and transparently replays failed requests without UX disruption.
+- **Anti-Brute-Force Rate Limiting**: `express-rate-limit` guards `/api/auth/signup` and `/api/auth/login` (5 requests per 15-minute window per IP) against automated credential abuse.
+- **Multi-Tenant Data Isolation & RBAC**:
+  - `requireRoomAccess` middleware enforces room membership boundaries.
+  - Creator is attached as `"owner"` in `RoomMember`; room deletion (`DELETE /api/rooms/:roomId`) is strictly guarded (`403 Forbidden` for non-owners).
+  - Room listing (`listRooms(userId)`) returns only workspaces the authenticated user belongs to; unauthenticated callers see zero rooms, closing cross-tenant discovery leaks.
+
+### 11. 🎟️ Frictionless Guest Invite System
+- **Cryptographic Disposable Invites**: Authenticated room members generate tokenized URLs (`/join/:token`) with configurable member or guest privileges.
+- **Scoped 8-Hour Guest Sessions**: Guests enter their display name and receive a cryptographically signed `guest_session` HTTP-only cookie restricted strictly to the invited `roomId`.
+- **Ephemeral Storage Isolation**: Guest identity is saved to tab-scoped `sessionStorage` (`mindmesh_guest_name`), preventing permanent `localStorage` pollution.
+- **Frictionless Account Upgrade**: Logged-in users opening an invite link are automatically upserted as permanent `RoomMember` records without issuing temporary guest cookies.
+
+### 12. 🛡️ Production Deployment & Cross-Domain Hardening
+- **Cross-Domain Cookie Transmission**: Cookies dynamically adapt flags based on environment (`sameSite: isProd ? "none" : "lax"`, `secure: isProd`), enabling seamless cross-domain deployments (e.g. Vercel frontend + Render/Railway backend) with `credentials: true`.
+- **Express & WebSocket HTTP CORS Lockdown**: Production origin validation strictly whitelists `config.clientUrl` and `ALLOWED_ORIGINS` across both Express HTTP endpoints and Socket.io handshakes, rejecting unauthorized cross-origin credentialed requests.
+- **Integration Credential Masking**: Room integration settings automatically mask sensitive credentials (incoming Slack webhooks and Notion API keys) to prevent client-side credential exposure.
 
 ---
 
@@ -380,15 +405,27 @@ All endpoints strictly adhere to the unified JSON schema:
 
 ### Core REST Endpoints
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/health` | Service uptime, database connection, and environment health check. |
-| `GET` | `/api/rooms/:roomId` | Room metadata, active participant count, and canvas authorization. |
-| `GET` | `/api/rooms/:roomId/ai-actions` | Fetches historical `AIAction` feed for Activity Stream hydration. |
-| `POST` | `/api/rooms/:roomId/ai-actions/:id/approve` | Approves and executes a proposed action via REST. |
-| `POST` | `/api/rooms/:roomId/ai-actions/:id/reject` | Dismisses a proposed action and marks it `rejected`. |
-| `POST` | `/api/rooms/:roomId/agenda` | Ingests meeting agenda, extracts 3–5 strategic pillars, and seeds anchor roots. |
-| `POST` | `/api/auth/login` | Issues 7-day `httpOnly` JWT session cookie. |
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/api/health` | Public | Service uptime, database connection, and environment health check. |
+| `POST` | `/api/auth/signup` | Public (Rate-Limited) | Registers account (hashed with bcrypt), sets 15m `session` & 7d `refresh` cookies. |
+| `POST` | `/api/auth/login` | Public (Rate-Limited) | Authenticates credentials and issues environment-aware `httpOnly` cookies. |
+| `POST` | `/api/auth/refresh` | Cookie (`refresh`) | Rotates session token and issues fresh 15m `session` cookie. |
+| `POST` | `/api/auth/logout` | Public | Clears `session` and `refresh` cookies across domains. |
+| `GET` | `/api/auth/me` | Session Cookie | Validates session token and returns current authenticated user profile. |
+| `GET` | `/api/rooms` | Session Cookie | Lists workspaces scoped strictly to caller's memberships (`[]` if unauthenticated). |
+| `POST` | `/api/rooms` | Public / Member | Creates workspace and automatically registers creator as `"owner"`. |
+| `GET` | `/api/rooms/:roomId` | `requireRoomAccess` | Room metadata, active canvas state, and member authorization check. |
+| `DELETE` | `/api/rooms/:roomId` | Owner Only | Permanently deletes workspace (guarded with `403 Forbidden` for non-owners). |
+| `POST` | `/api/rooms/:roomId/invites` | Member Only | Generates cryptographic disposable invite token for room sharing. |
+| `GET` | `/api/invites/:token` | Public | Resolves invite metadata (`roomId`, `roomName`). |
+| `POST` | `/api/invites/:token/join` | Public / Member | Joins workspace; upserts `RoomMember` for real users or issues 8h `guest_session`. |
+| `GET` | `/api/rooms/:roomId/ai-actions` | `requireRoomAccess` | Fetches historical `AIAction` feed for Activity Stream hydration. |
+| `POST` | `/api/rooms/:roomId/ai-actions/:id/approve` | `requireRoomAccess` | Approves and executes a proposed action via REST. |
+| `POST` | `/api/rooms/:roomId/ai-actions/:id/reject` | `requireRoomAccess` | Dismisses a proposed action and marks it `rejected`. |
+| `POST` | `/api/rooms/:roomId/agenda` | `requireRoomAccess` | Ingests meeting agenda, extracts 3–5 strategic pillars, and seeds anchor roots. |
+| `GET` | `/api/rooms/:roomId/integrations` | `requireRoomAccess` | Fetches external integrations with sensitive webhooks/keys masked. |
+| `POST` | `/api/rooms/:roomId/commit` | `requireRoomAccess` | Synthesizes dual-source executive report and dispatches to Slack/Notion. |
 
 ### Real-Time Socket.io Events
 
@@ -428,8 +465,9 @@ For the full architectural specification and signaling sequence, see [**`WEBRTC.
 mindMesh/
 ├── client/                               # React 19 + Vite Frontend
 │   ├── src/
-│   │   ├── api/                          # REST & WebSocket client instances
+│   │   ├── api/                          # REST & WebSocket client instances (with auto-refresh 401 interceptor)
 │   │   ├── components/
+│   │   │   ├── auth/                     # GuestJoinModal (Frictionless room share dialog)
 │   │   │   ├── landing/                  # Navbar, Hero, HowItWorks, Workspaces, Comparison, FAQ, Footer
 │   │   │   ├── canvas/                   # InfiniteCanvas, CanvasNode, CanvasEdge, VisualLightboxModal
 │   │   │   ├── command/                  # ActiveCommandBar (Floating OS bar)
@@ -437,16 +475,17 @@ mindMesh/
 │   │   │   ├── meeting/                  # SpeechIntelligenceController, CommitCallModal, PasteAgendaModal
 │   │   │   ├── webrtc/                   # VideoConferenceDock (Floating P2P video mesh bar)
 │   │   │   └── ui/                       # BrandLogo, WorkspaceHeader, Minimap, Avatar
-│   │   ├── context/                      # RoomContext, AuthContext
-│   │   ├── hooks/                        # useCanvas, useAIActions, useSpeechRecognition, useWebRTC
-│   │   ├── pages/                        # LandingPage
+│   │   ├── context/                      # RoomContext, AuthContext (JWT & guest auth lifecycle)
+│   │   ├── hooks/                        # useCanvas, useAIActions, useSpeechRecognition, useWebRTC, useAuth
+│   │   ├── pages/                        # LandingPage, DashboardPage, GuestJoinPage
+│   │   │   └── auth/                     # LoginPage, RegisterPage, AuthShowcase (Obsidian Dark Mode)
 │   │   ├── app.routes.jsx                # React Router v7 routes & navigation hooks
 │   │   └── utils/                        # canvasConstants, color tokens
 │   └── package.json
 │
 ├── server/                               # Node.js + Express 5 Backend
 │   ├── prisma/
-│   │   ├── schema.prisma                 # 11 PostgreSQL data models
+│   │   ├── schema.prisma                 # 11 PostgreSQL data models (User, RoomMember, Room, AIAction, etc.)
 │   │   └── seed.js                       # Elena & Marcus demo seeding
 │   ├── src/
 │   │   ├── ai/
@@ -463,18 +502,22 @@ mindMesh/
 │   │   │   ├── canvasDeduplication.js    # Jaccard token & semanticKey mutator
 │   │   │   ├── canvasPersistence.js      # Neon PostgreSQL Prisma writer
 │   │   │   └── canvasValidation.js       # Payload schema validators
+│   │   ├── controllers/                  # auth.controller, room.controller, invite.controller, report.controller
+│   │   ├── services/                     # auth.service, guest.service, room.service, presence.service
+│   │   ├── middlewares/                  # auth (requireRoomAccess), rateLimit, validation, error
 │   │   ├── realtime/
-│   │   │   ├── socket.js                 # Socket.io server bootstrap
-│   │   │   ├── canvas.socket.js          # Canvas action & command relays
+│   │   │   ├── socket.js                 # Socket.io bootstrap with production origin whitelisting
+│   │   │   ├── canvas.socket.js          # Canvas action & authoritative join handshake
+│   │   │   ├── transcript.socket.js      # Live speech streaming & chunk persistence
+│   │   │   ├── webrtc.socket.js          # WebRTC P2P signaling mesh
 │   │   │   └── presence.socket.js        # Multiplayer cursor & presenter relays
-│   │   ├── routes/                       # REST API routes (room, ai, auth, commit)
-│   │   ├── utils/
-│   │   │   ├── hash.js                   # Normalized SHA-256 fingerprinting
-│   │   │   └── response.js               # Unified JSON response formatters
-│   │   └── app.js                        # Express app configuration & middleware
+│   │   ├── routes/                       # REST API routes (auth, room, ai, invite)
+│   │   ├── utils/                        # tokens (JWT & guest crypto), hash, response
+│   │   └── app.js                        # Express app configuration, CORS whitelist, cookie parser
 │   ├── test/
 │   │   ├── phase3_ai.test.js             # 19 Phase 3 AI extraction tests
 │   │   ├── phase4_backend.test.js        # 34 Phase 4 backend integration tests
+│   │   ├── phase5_extraction.test.js     # 7 Phase 5 extraction & persistence tests
 │   │   ├── phase7_commit.test.js         # 42 Phase 7 commit & integration tests
 │   │   └── phase8_voice_layout.test.js   # 36 Phase 8 Dagre & command tests
 │   └── package.json
@@ -495,3 +538,4 @@ Engineered by **Sahil Sameer** ([@SahilSameer18](https://github.com/SahilSameer1
 ## 📄 License
 
 This project is licensed under the [ISC License](LICENSE).
+

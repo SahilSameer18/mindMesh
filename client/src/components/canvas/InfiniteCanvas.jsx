@@ -305,25 +305,46 @@ export default function InfiniteCanvas({ canvas }) {
       {/* Background click target for deselection */}
       <div className="absolute inset-0 canvas-bg pointer-events-auto" />
 
-      {/* Skeleton Loading State (Rule 7: Prefer Skeleton Loaders over Raw Spinners) */}
+      {/* Skeleton Loading State (Rule: Prefer Skeleton Loaders over Raw Spinners) */}
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-app/80 backdrop-blur-sm z-50 pointer-events-none">
-          <div className="flex flex-col items-center gap-6">
-            <div className="grid grid-cols-2 gap-4 w-72">
-              <div className="h-24 rounded-xl border border-border-subtle bg-surface p-3 space-y-2 animate-pulse shadow-card">
-                <div className="h-3 w-16 bg-surface-subtle rounded" />
-                <div className="h-2.5 w-24 bg-surface-subtle/80 rounded" />
-                <div className="h-2 w-20 bg-surface-subtle/60 rounded" />
+        <div className="absolute inset-0 flex items-center justify-center bg-app/85 backdrop-blur-md z-50 pointer-events-none">
+          <div className="flex flex-col items-center gap-7 max-w-sm w-full px-4">
+            {/* Mock Spatial Graph Nodes Skeleton */}
+            <div className="relative w-full h-40 flex items-center justify-center">
+              {/* Central root pillar skeleton */}
+              <div className="absolute top-2 w-48 h-12 rounded-xl bg-surface border border-border-subtle shadow-card p-2.5 flex items-center gap-2 animate-pulse">
+                <div className="w-6 h-6 rounded-lg bg-indigo-500/20" />
+                <div className="flex-1 space-y-1">
+                  <div className="h-2.5 bg-surface-hover rounded w-3/4" />
+                  <div className="h-2 bg-surface-hover/70 rounded w-1/2" />
+                </div>
               </div>
-              <div className="h-24 rounded-xl border border-border-subtle bg-surface p-3 space-y-2 animate-pulse shadow-card">
-                <div className="h-3 w-14 bg-surface-subtle rounded" />
-                <div className="h-2.5 w-20 bg-surface-subtle/80 rounded" />
-                <div className="h-2 w-16 bg-surface-subtle/60 rounded" />
+
+              {/* Connecting line skeletons */}
+              <div className="absolute top-14 w-32 h-6 border-b-2 border-dashed border-border-subtle opacity-50" />
+
+              {/* Branch child cards skeleton */}
+              <div className="absolute bottom-2 flex gap-4">
+                <div className="w-32 h-14 rounded-xl bg-surface border border-border-subtle shadow-card p-2 space-y-1.5 animate-pulse">
+                  <div className="h-2 bg-surface-hover rounded w-2/3" />
+                  <div className="h-1.5 bg-surface-hover/70 rounded w-5/6" />
+                </div>
+                <div className="w-32 h-14 rounded-xl bg-surface border border-border-subtle shadow-card p-2 space-y-1.5 animate-pulse">
+                  <div className="h-2 bg-surface-hover rounded w-3/4" />
+                  <div className="h-1.5 bg-surface-hover/70 rounded w-4/5" />
+                </div>
               </div>
             </div>
+
+            {/* Shimmering status indicator */}
             <div className="space-y-2 text-center">
-              <div className="h-3.5 w-36 bg-surface-subtle rounded-full animate-pulse mx-auto" />
-              <div className="h-2.5 w-48 bg-surface-subtle/60 rounded-full animate-pulse mx-auto" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-border-subtle shadow-sm text-xs font-semibold text-text-main font-mono">
+                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+                <span>Hydrating Spatial Canvas...</span>
+              </div>
+              <p className="text-[11px] text-text-muted">
+                Synchronizing live room state and collaborative nodes
+              </p>
             </div>
           </div>
         </div>
