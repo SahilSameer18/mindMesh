@@ -2,6 +2,7 @@ import { sendSuccess, sendError } from "../utils/response.js";
 import * as roomService from "../services/room.service.js";
 import { getCurrentUser } from "../middlewares/auth.middleware.js";
 import prisma from "../lib/prisma.js";
+import { getIO } from "../realtime/socket.js";
 
 export async function createRoom(req, res, next) {
   try {
@@ -32,7 +33,7 @@ export async function getOrCreateRoom(req, res, next) {
       systemContext,
       userId: user && !user.isDemo ? user.id : null,
     });
-    return sendSuccess(res, "Room retrieved successfully", room);
+    return sendSuccess(res, "Room retrieved or created successfully", room);
   } catch (err) {
     next(err);
   }
@@ -43,9 +44,9 @@ export async function getRoom(req, res, next) {
     const { roomId } = req.params;
     const room = await roomService.getRoom(roomId);
     if (!room) {
-      return sendError(res, "Room not found", ["Room does not exist"], 404);
+      return sendError(res, "Room not found", ["No room exists with the provided roomId"], 404);
     }
-    return sendSuccess(res, "Room retrieved", room);
+    return sendSuccess(res, "Room retrieved successfully", room);
   } catch (err) {
     next(err);
   }
@@ -69,6 +70,9 @@ export async function addContextZone(req, res, next) {
       return sendError(res, "Missing zone properties", ["name, x, and y are required"], 400);
     }
     const zone = await roomService.addContextZone(roomId, { name, x: Number(x), y: Number(y), zoom: zoom ? Number(zoom) : 1.0 });
+    try {
+      getIO().to(roomId).emit("zone:created", zone);
+    } catch (_) {}
     return sendSuccess(res, "Context zone added", zone, 201);
   } catch (err) {
     next(err);
@@ -97,6 +101,9 @@ export async function deleteContextZone(req, res, next) {
         404
       );
     }
+    try {
+      getIO().to(roomId).emit("zone:deleted", { zoneId });
+    } catch (_) {}
     return sendSuccess(res, "Context zone deleted", { zoneId });
   } catch (err) {
     next(err);

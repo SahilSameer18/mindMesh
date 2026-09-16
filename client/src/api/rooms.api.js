@@ -98,6 +98,29 @@ export const roomsApi = {
       `/api/rooms/${encodeURIComponent(roomId)}/ai-actions/${encodeURIComponent(actionId)}/reject`
     );
   },
+
+  /**
+   * Fetch context zones for a room
+   */
+  async getZones(roomId) {
+    return apiClient.get(`/api/rooms/${encodeURIComponent(roomId)}/zones`);
+  },
+
+  /**
+   * Add a new context zone
+   */
+  async createZone(roomId, data) {
+    return apiClient.post(`/api/rooms/${encodeURIComponent(roomId)}/zones`, data);
+  },
+
+  /**
+   * Delete a context zone
+   */
+  async deleteZone(roomId, zoneId) {
+    return apiClient.delete(
+      `/api/rooms/${encodeURIComponent(roomId)}/zones/${encodeURIComponent(zoneId)}`
+    );
+  },
 };
 
 export default roomsApi;

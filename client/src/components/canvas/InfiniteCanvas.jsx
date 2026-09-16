@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   GitFork,
   X,
+  Bookmark,
 } from "lucide-react";
 import { CanvasNode } from "./CanvasNode.jsx";
 import { CanvasEdge } from "./CanvasEdge.jsx";
@@ -24,6 +25,7 @@ export default function InfiniteCanvas({ canvas }) {
   const {
     nodes,
     edges,
+    zones,
     nodesMap,
     viewport,
     selectedNodeId,
@@ -46,7 +48,9 @@ export default function InfiniteCanvas({ canvas }) {
     resetViewport,
     setViewportDirect,
     flyTo,
-    cancelFlyTo,
+    createZone,
+    deleteZone,
+    flyToZone,
   } = canvas;
 
   const {
@@ -67,6 +71,8 @@ export default function InfiniteCanvas({ canvas }) {
   const [mouseCanvasPos, setMouseCanvasPos] = useState({ x: 0, y: 0 });
   const [isTidying, setIsTidying] = useState(false);
   const [tidyFeedback, setTidyFeedback] = useState(null); // null | "success" | "empty" | "error"
+  const [showZonesPanel, setShowZonesPanel] = useState(false);
+  const [newZoneName, setNewZoneName] = useState("");
   const panStartRef = useRef({ x: 0, y: 0 });
   const lastCursorEmitRef = useRef(0);
   const lastViewportEmitRef = useRef(0);
@@ -81,6 +87,7 @@ export default function InfiniteCanvas({ canvas }) {
         setConnectingNodeId(null);
         setSelectedNodeId(null);
         setSelectedEdgeId(null);
+        setShowZonesPanel(false);
       }
     };
 
@@ -390,6 +397,52 @@ export default function InfiniteCanvas({ canvas }) {
           transformOrigin: "0 0",
         }}
       >
+        {/* Context Zones (Spatial bounding regions / bookmarks) */}
+        <div className="relative pointer-events-auto">
+          {(zones || []).map((zone) => (
+            <div
+              key={zone.id}
+              className="absolute pointer-events-auto rounded-3xl border-2 border-dashed border-indigo-500/35 bg-indigo-500/[0.03] dark:border-indigo-400/25 dark:bg-indigo-500/[0.02] transition-all group hover:border-indigo-500/60"
+              style={{
+                left: `${zone.x - 300}px`,
+                top: `${zone.y - 200}px`,
+                width: "600px",
+                height: "400px",
+              }}
+            >
+              {/* Zone Header Tag */}
+              <div className="absolute -top-3.5 left-6 px-3 py-1 rounded-full bg-surface/95 border border-indigo-500/40 text-xs font-semibold text-indigo-700 dark:text-indigo-300 shadow-sm flex items-center gap-1.5 backdrop-blur-sm select-none">
+                <Bookmark className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <span className="font-medium tracking-wide">{zone.name}</span>
+                <button
+                  type="button"
+                  onClick={() => flyToZone(zone)}
+                  className="ml-1.5 text-[10px] text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                  title="Fly to this zone"
+                >
+                  Jump
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteZone(zone.id);
+                  }}
+                  className="text-text-muted hover:text-rose-500 p-0.5 rounded transition-colors cursor-pointer ml-0.5"
+                  title="Delete zone"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+
+              {/* Coordinates Watermark */}
+              <div className="absolute bottom-3 right-4 text-[10px] text-text-muted/40 font-mono pointer-events-none select-none">
+                Zone: {Math.round(zone.x)}, {Math.round(zone.y)}
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div className="relative pointer-events-auto">
           {nodes.map((node) => (
             <CanvasNode
@@ -553,7 +606,117 @@ export default function InfiniteCanvas({ canvas }) {
               : "Tidy Graph (Auto-Layout)"}
           </span>
         </button>
+
+        <div className="w-5 h-px bg-border-subtle my-0.5" />
+
+        {/* Context Zones Drawer Toggle */}
+        <button
+          type="button"
+          title={`Context Zones (${zones?.length || 0})`}
+          onClick={() => setShowZonesPanel((prev) => !prev)}
+          className={`p-2.5 rounded-xl border transition-all relative group flex items-center justify-center cursor-pointer ${
+            showZonesPanel
+              ? "text-indigo-600 dark:text-indigo-300 bg-indigo-500/20 border-indigo-500/40 shadow-sm"
+              : "text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/15 border-transparent hover:border-indigo-500/30"
+          }`}
+        >
+          <Bookmark className="w-4 h-4 text-indigo-500" />
+          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-surface border border-border-subtle text-xs font-medium text-text-main shadow-elevated opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Context Zones ({zones?.length || 0})
+          </span>
+        </button>
       </aside>
+
+      {/* Context Zones Quick-Jump & Creation Drawer */}
+      {showZonesPanel && (
+        <div className="absolute left-20 top-1/2 -translate-y-1/2 z-40 w-72 bg-surface/95 backdrop-blur-xl border border-border-subtle rounded-2xl shadow-elevated p-4 flex flex-col gap-3 animate-in fade-in slide-in-from-left-4 duration-150 pointer-events-auto">
+          <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
+            <div className="flex items-center gap-2">
+              <Bookmark className="w-4 h-4 text-indigo-500" />
+              <span className="text-sm font-semibold text-text-main">Context Zones</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowZonesPanel(false)}
+              className="p-1 text-text-muted hover:text-text-main rounded-lg hover:bg-surface-subtle"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Form to create zone from current camera view */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!newZoneName.trim()) return;
+              const screenW = containerRef.current ? containerRef.current.clientWidth : window.innerWidth;
+              const screenH = containerRef.current ? containerRef.current.clientHeight : window.innerHeight;
+              const centerX = (screenW / 2 - viewport.x) / viewport.zoom;
+              const centerY = (screenH / 2 - viewport.y) / viewport.zoom;
+              createZone({
+                name: newZoneName.trim(),
+                x: centerX,
+                y: centerY,
+                zoom: viewport.zoom,
+              });
+              setNewZoneName("");
+            }}
+            className="flex gap-2"
+          >
+            <input
+              type="text"
+              placeholder="Zone name..."
+              value={newZoneName}
+              onChange={(e) => setNewZoneName(e.target.value)}
+              className="flex-1 px-2.5 py-1.5 rounded-lg bg-surface-subtle border border-border-subtle text-xs text-text-main placeholder-text-muted focus:outline-none focus:border-indigo-500"
+            />
+            <button
+              type="submit"
+              disabled={!newZoneName.trim()}
+              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-medium transition-colors cursor-pointer"
+            >
+              Save View
+            </button>
+          </form>
+
+          {/* List of saved zones */}
+          <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto">
+            {(!zones || zones.length === 0) ? (
+              <p className="text-xs text-text-muted text-center py-4">
+                No context zones yet.<br />Pan anywhere and click &ldquo;Save View&rdquo; to bookmark regions.
+              </p>
+            ) : (
+              zones.map((z) => (
+                <div
+                  key={z.id}
+                  className="flex items-center justify-between p-2 rounded-xl bg-surface-subtle hover:bg-surface-hover border border-border-subtle group transition-all"
+                >
+                  <button
+                    type="button"
+                    onClick={() => flyToZone(z)}
+                    className="flex-1 text-left flex flex-col cursor-pointer"
+                  >
+                    <span className="text-xs font-medium text-text-main group-hover:text-indigo-500 transition-colors">
+                      {z.name}
+                    </span>
+                    <span className="text-[10px] text-text-muted">
+                      Zoom: {Math.round((z.zoom || 1) * 100)}%
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteZone(z.id)}
+                    className="p-1 text-text-muted hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                    title="Delete zone"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Compact Viewport Controls (Bottom-Left Mini-Pill) */}
       <aside

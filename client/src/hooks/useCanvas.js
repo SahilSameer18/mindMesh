@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRoom } from "./useRoom.js";
 import { ACTION_TYPES, NODE_TYPES, EDGE_TYPES } from "../utils/canvasConstants.js";
+import { roomsApi } from "../api/rooms.api.js";
 
 const MOVE_THROTTLE_MS = 50;
 const MIN_ZOOM = 0.15;
@@ -11,6 +12,7 @@ export function useCanvas() {
 
   const [nodes, setNodes] = useState(new Map());
   const [edges, setEdges] = useState(new Map());
+  const [zones, setZones] = useState(new Map());
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState(null);
@@ -23,6 +25,7 @@ export function useCanvas() {
   const [inspectingNode, setInspectingNode] = useState(null);
   const [inspectingVisualNode, setInspectingVisualNode] = useState(null);
   const highlightTimerRef = useRef(null);
+  const highlightElementsRef = useRef(null);
 
   // Throttled movement timers & pending position map
   const moveThrottleTimers = useRef(new Map());
@@ -39,6 +42,7 @@ export function useCanvas() {
       if (!state) return;
       const nextNodes = new Map();
       const nextEdges = new Map();
+      const nextZones = new Map();
 
       for (const node of state.nodes || []) {
         nextNodes.set(node.id, node);
@@ -46,9 +50,13 @@ export function useCanvas() {
       for (const edge of state.edges || []) {
         nextEdges.set(edge.id, edge);
       }
+      for (const zone of state.zones || []) {
+        nextZones.set(zone.id, zone);
+      }
 
       setNodes(nextNodes);
       setEdges(nextEdges);
+      setZones(nextZones);
       setIsLoading(false);
     };
 
@@ -151,20 +159,42 @@ export function useCanvas() {
     const handleCommandResult = (result) => {
       if (!result) return;
       if (result.highlightedNodeIds?.length || result.highlightedEdgeIds?.length) {
-        highlightElements(result.highlightedNodeIds || [], result.highlightedEdgeIds || []);
+        highlightElementsRef.current?.(result.highlightedNodeIds || [], result.highlightedEdgeIds || []);
       }
+    };
+
+    const handleZoneCreated = (zone) => {
+      if (!zone || !zone.id) return;
+      setZones((prev) => {
+        const next = new Map(prev);
+        next.set(zone.id, zone);
+        return next;
+      });
+    };
+
+    const handleZoneDeleted = ({ zoneId }) => {
+      if (!zoneId) return;
+      setZones((prev) => {
+        const next = new Map(prev);
+        next.delete(zoneId);
+        return next;
+      });
     };
 
     socket.on("canvas:init", handleCanvasInit);
     socket.on("canvas:action", handleRemoteAction);
     socket.on("canvas:batch_action", handleBatchAction);
     socket.on("canvas:command:result", handleCommandResult);
+    socket.on("zone:created", handleZoneCreated);
+    socket.on("zone:deleted", handleZoneDeleted);
 
     return () => {
       socket.off("canvas:init", handleCanvasInit);
       socket.off("canvas:action", handleRemoteAction);
       socket.off("canvas:batch_action", handleBatchAction);
       socket.off("canvas:command:result", handleCommandResult);
+      socket.off("zone:created", handleZoneCreated);
+      socket.off("zone:deleted", handleZoneDeleted);
       if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
     };
   }, [socket]);
@@ -646,11 +676,69 @@ export function useCanvas() {
     }
   }, [panToNode]);
 
+  useEffect(() => {
+    highlightElementsRef.current = highlightElements;
+  }, [highlightElements]);
+
+  const createZone = useCallback(
+    async ({ name, x, y, zoom = 1.0 }) => {
+      if (!roomId) return null;
+      try {
+        const res = await roomsApi.createZone(roomId, { name, x, y, zoom });
+        const created = res.data?.data || res.data;
+        if (created?.id) {
+          setZones((prev) => {
+            const next = new Map(prev);
+            next.set(created.id, created);
+            return next;
+          });
+        }
+        return created;
+      } catch (err) {
+        console.error("[useCanvas] Error creating context zone:", err);
+        return null;
+      }
+    },
+    [roomId]
+  );
+
+  const deleteZone = useCallback(
+    async (zoneId) => {
+      if (!roomId || !zoneId) return;
+      setZones((prev) => {
+        const next = new Map(prev);
+        next.delete(zoneId);
+        return next;
+      });
+      try {
+        await roomsApi.deleteZone(roomId, zoneId);
+      } catch (err) {
+        console.error("[useCanvas] Error deleting context zone:", err);
+      }
+    },
+    [roomId]
+  );
+
+  const flyToZone = useCallback(
+    (zone) => {
+      if (!zone) return;
+      const targetZoom = zone.zoom || 1.0;
+      const screenW = typeof window !== "undefined" ? window.innerWidth : 1200;
+      const screenH = typeof window !== "undefined" ? window.innerHeight : 800;
+      const targetX = screenW / 2 - (Number(zone.x) || 0) * targetZoom;
+      const targetY = screenH / 2 - (Number(zone.y) || 0) * targetZoom;
+      flyTo(targetX, targetY, targetZoom);
+    },
+    [flyTo]
+  );
+
   return {
     nodes: useMemo(() => Array.from(nodes.values()), [nodes]),
     edges: useMemo(() => Array.from(edges.values()), [edges]),
+    zones: useMemo(() => Array.from(zones.values()), [zones]),
     nodesMap: nodes,
     edgesMap: edges,
+    zonesMap: zones,
     viewport,
     selectedNodeId,
     selectedEdgeId,
@@ -682,6 +770,9 @@ export function useCanvas() {
     setViewportDirect,
     flyTo,
     cancelFlyTo,
+    createZone,
+    deleteZone,
+    flyToZone,
   };
 }
 

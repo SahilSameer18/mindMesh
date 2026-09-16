@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { RoomProvider } from "../context/RoomContext.jsx";
 import { useRoom } from "../hooks/useRoom.js";
@@ -34,6 +34,7 @@ function WorkspaceContent({ onLeaveRoom }) {
     interimTranscript,
     toggleListening,
     micStatus,
+    isSupported,
   } = useSpeechRecognition({
     onFinalTranscript: (text) => {
       if (text && socket) {
@@ -52,25 +53,33 @@ function WorkspaceContent({ onLeaveRoom }) {
     },
   });
 
+  const handleToggleMic = useCallback(() => {
+    if (!isSupported) {
+      toast.info("Live voice dictation requires Chrome, Edge, or Brave (Web Speech API).");
+      return;
+    }
+    toggleListening();
+  }, [isSupported, toggleListening]);
+
   // Hotkey 'M' for microphone toggle with input element guards
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key.toLowerCase() === "m" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (!e.target.matches("input, textarea, [contenteditable], [contenteditable='true']")) {
           e.preventDefault();
-          toggleListening();
+          handleToggleMic();
         }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleListening]);
+  }, [handleToggleMic]);
 
   return (
     <div className="w-screen h-screen flex flex-col bg-app text-text-main overflow-hidden select-none">
       <WorkspaceHeader
         isListening={isListening}
-        onToggleMic={toggleListening}
+        onToggleMic={handleToggleMic}
         micStatus={micStatus}
         onLeaveRoom={onLeaveRoom}
       />
@@ -138,4 +147,5 @@ export default function RoomPage({ roomId, onLeaveRoom }) {
     </RoomProvider>
   );
 }
+
 
