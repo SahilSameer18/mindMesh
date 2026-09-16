@@ -11,6 +11,10 @@ import inviteRoutes from "./routes/invite.routes.js";
 
 const app = express();
 
+// Required on Render/Railway/Vercel/any reverse-proxy host so req.ip reflects
+// the real visitor, not the proxy. Must come before rateLimit middleware mounts.
+app.set("trust proxy", 1);
+
 const allowedOrigins = [
   config.clientUrl?.replace(/\/+$/, ""),
   ...(process.env.ALLOWED_ORIGINS
@@ -60,3 +64,4 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 export default app;
+

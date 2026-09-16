@@ -145,31 +145,18 @@ export async function deleteRoom(req, res, next) {
       return sendError(res, "Forbidden", ["Guests cannot delete workspaces"], 403);
     }
 
-    // In authenticated production mode, verify owner role in RoomMember
-    if (!user.isDemo) {
-      const membership = await prisma.roomMember.findUnique({
-        where: {
-          roomId_userId: {
-            roomId,
-            userId: user.id,
-          },
+    // Verify owner role in RoomMember
+    const membership = await prisma.roomMember.findUnique({
+      where: {
+        roomId_userId: {
+          roomId,
+          userId: user.id,
         },
-      });
+      },
+    });
 
-      if (membership) {
-        if (membership.role !== "owner") {
-          return sendError(res, "Forbidden", ["Only the workspace owner can delete this room"], 403);
-        }
-      } else {
-        // Check if any owner exists for this room
-        const anyOwner = await prisma.roomMember.findFirst({
-          where: { roomId, role: "owner" },
-        });
-        if (anyOwner) {
-          return sendError(res, "Forbidden", ["Only the workspace owner can delete this room"], 403);
-        }
-        // If legacy test room has no owner row at all, allow creator/caller cleanup
-      }
+    if (!membership || membership.role !== "owner") {
+      return sendError(res, "Forbidden", ["Only the workspace owner can delete this room"], 403);
     }
 
     await roomService.deleteRoom(roomId);
@@ -178,4 +165,3 @@ export async function deleteRoom(req, res, next) {
     next(err);
   }
 }
-

@@ -21,6 +21,9 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       if (typeof localStorage !== "undefined") {
         localStorage.setItem("mindmesh_username", trimmed);
       }
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem("mindmesh_guest_name", trimmed);
+      }
       setCustomDisplayName(trimmed);
     }
   }, []);
@@ -65,6 +68,21 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
           color: "#8b5cf6",
           avatar: "EV",
           isDemo: true,
+        };
+      }
+    }
+
+    // 2.5. Guest identity from a recent invite-link join (session-scoped, never touches localStorage)
+    if (typeof sessionStorage !== "undefined") {
+      const guestName = customDisplayName || sessionStorage.getItem("mindmesh_guest_name");
+      if (guestName) {
+        return {
+          id: `guest-${guestName}`,
+          name: guestName,
+          role: "Guest",
+          color: getUserColor(guestName),
+          avatar: getUserInitials(guestName),
+          isDemo: false,
         };
       }
     }

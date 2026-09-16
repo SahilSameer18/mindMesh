@@ -9,6 +9,9 @@ import { getCurrentUser } from "../middlewares/auth.middleware.js";
 export async function createInvite(req, res, next) {
   try {
     const { roomId } = req.params;
+    if (req.roomRole !== "owner") {
+      return sendError(res, "Forbidden", ["Only the room owner can create invite links"], 403);
+    }
     const role = req.body?.role || "member";
     const invite = await guestService.createInviteLink(roomId, req.user.id, role);
 

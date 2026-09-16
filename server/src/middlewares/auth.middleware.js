@@ -1,5 +1,6 @@
 import { verifyAccessToken, verifyGuestToken } from "../utils/tokens.js";
 import { sendError } from "../utils/response.js";
+import { config } from "../config/env.js";
 import prisma from "../lib/prisma.js";
 
 export const DEMO_USER = {
@@ -49,9 +50,9 @@ export function getCurrentUser(req) {
     // Token invalid or expired
   }
 
-  // Header override for multi-user simulation testing (e.g. x-demo-user: "marcus")
+  // Header override for multi-user simulation testing (strictly in non-production)
   const demoHeader = req.headers?.["x-demo-user"];
-  if (demoHeader === "marcus" || demoHeader === "2") {
+  if (config.nodeEnv !== "production" && (demoHeader === "marcus" || demoHeader === "2")) {
     return SECONDARY_DEMO_USER;
   }
 
@@ -113,9 +114,9 @@ export async function requireRoomAccess(req, res, next) {
     }
   }
 
-  // 3. Fallback to demo identity for developer prototype testing
+  // 3. Fallback to demo identity for developer prototype testing (strictly in non-production)
   const demoHeader = req.headers?.["x-demo-user"];
-  if (demoHeader) {
+  if (config.nodeEnv !== "production" && demoHeader) {
     const demo = demoHeader === "marcus" || demoHeader === "2" ? SECONDARY_DEMO_USER : DEMO_USER;
     req.user = demo;
     req.roomRole = demo.role;
@@ -134,17 +135,19 @@ export function socketAuthMiddleware(socket, next) {
     const cookieHeader = socket.handshake.headers?.cookie || "";
     const cookies = parseCookies(cookieHeader);
 
-    // Query demo override for multi-agent simulation (?as=marcus)
+    // Query demo override for multi-agent simulation (?as=marcus) (strictly in non-production)
     const asParam = socket.handshake.query?.as?.toLowerCase();
-    if (asParam === "marcus") {
-      socket.user = SECONDARY_DEMO_USER;
-      socket.data.user = SECONDARY_DEMO_USER;
-      return next();
-    }
-    if (asParam === "elena") {
-      socket.user = DEMO_USER;
-      socket.data.user = DEMO_USER;
-      return next();
+    if (config.nodeEnv !== "production" && asParam) {
+      if (asParam === "marcus") {
+        socket.user = SECONDARY_DEMO_USER;
+        socket.data.user = SECONDARY_DEMO_USER;
+        return next();
+      }
+      if (asParam === "elena") {
+        socket.user = DEMO_USER;
+        socket.data.user = DEMO_USER;
+        return next();
+      }
     }
 
     // 1. Authenticated user access token
