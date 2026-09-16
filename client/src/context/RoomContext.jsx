@@ -15,6 +15,18 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
     return "";
   });
 
+  const [persistentGuestId] = useState(() => {
+    if (typeof localStorage !== "undefined") {
+      let id = localStorage.getItem("mindmesh_userid");
+      if (!id) {
+        id = `guest-${Math.random().toString(36).slice(2, 8)}`;
+        localStorage.setItem("mindmesh_userid", id);
+      }
+      return id;
+    }
+    return `guest-${Math.random().toString(36).slice(2, 8)}`;
+  });
+
   const updateDisplayName = useCallback((name) => {
     const trimmed = name?.trim() || "";
     if (trimmed) {
@@ -74,7 +86,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
 
     // 2.5. Guest identity from a recent invite-link join (session-scoped, never touches localStorage)
     if (typeof sessionStorage !== "undefined") {
-      const guestName = customDisplayName || sessionStorage.getItem("mindmesh_guest_name");
+      const guestName = sessionStorage.getItem("mindmesh_guest_name");
       if (guestName) {
         return {
           id: `guest-${guestName}`,
@@ -89,14 +101,8 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
 
     // 3. User configured display name from localStorage or in-room editing
     if (customDisplayName) {
-      const guestId =
-        (typeof localStorage !== "undefined" && localStorage.getItem("mindmesh_userid")) ||
-        `user-${Math.random().toString(36).slice(2, 8)}`;
-      if (typeof localStorage !== "undefined") {
-        localStorage.setItem("mindmesh_userid", guestId);
-      }
       return {
-        id: guestId,
+        id: persistentGuestId,
         name: customDisplayName,
         role: "Member",
         color: getUserColor(customDisplayName),
@@ -106,22 +112,16 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
     }
 
     // 4. Default persistent guest identity
-    const guestId =
-      (typeof localStorage !== "undefined" && localStorage.getItem("mindmesh_userid")) ||
-      `guest-${Math.random().toString(36).slice(2, 6)}`;
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem("mindmesh_userid", guestId);
-    }
-    const guestName = `Guest ${guestId.slice(-4)}`;
+    const guestName = `Guest ${persistentGuestId.slice(-4)}`;
     return {
-      id: guestId,
+      id: persistentGuestId,
       name: guestName,
       role: "Guest",
-      color: getUserColor(guestId),
+      color: getUserColor(persistentGuestId),
       avatar: getUserInitials(guestName),
       isDemo: false,
     };
-  }, [authUser, customDisplayName]);
+  }, [authUser, customDisplayName, persistentGuestId]);
   const [isConnected, setIsConnected] = useState(false);
   const [peers, setPeers] = useState(new Map());
   const [peerCursors, setPeerCursors] = useState(new Map());
@@ -142,7 +142,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const [transcripts, setTranscripts] = useState([]);
 
   // Synchronous socket initialization eliminates setState inside useEffect
-  const [socket] = useState(() => createSocketClient());
+  const [socket] = useState(() => createSocketClient({ query: { roomId } }));
 
   useEffect(() => {
     if (!socket) return;
@@ -159,6 +159,9 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       socket.emit("canvas:join", { roomId, user: currentUser }, (ack) => {
         if (!ack?.success) {
           console.warn("[Socket] Join acknowledgment error:", ack?.error);
+          if (ack?.code === "ROOM_FULL" && typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("mindmesh:room-full", { detail: ack.error }));
+          }
         } else {
           if (ack.activePresenter) setActivePresenter(ack.activePresenter);
           if (ack.mode) setRoomMode(ack.mode);

@@ -23,6 +23,22 @@ export function initCanvasSocket(io, socket) {
     }
 
     try {
+      const MAX_PARTICIPANTS = 4;
+      const existingRoom = io.sockets.adapter.rooms.get(roomId);
+      const isAlreadyInRoom = existingRoom && existingRoom.has(socket.id);
+      const currentSize = existingRoom ? existingRoom.size : 0;
+
+      if (!isAlreadyInRoom && currentSize >= MAX_PARTICIPANTS) {
+        if (typeof callback === "function") {
+          callback({
+            success: false,
+            code: "ROOM_FULL",
+            error: `This room is full (max ${MAX_PARTICIPANTS} participants during beta).`,
+          });
+        }
+        return;
+      }
+
       socket.join(roomId);
       socket.roomId = roomId;
 

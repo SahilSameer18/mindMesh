@@ -26,7 +26,7 @@
 [![Neon PostgreSQL](https://img.shields.io/badge/Neon-PostgreSQL-00E599.svg?style=flat-square&logo=postgresql)](https://neon.tech/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-7.0-2D3748.svg?style=flat-square&logo=prisma)](https://www.prisma.io/)
 [![Groq LPU](https://img.shields.io/badge/Groq-Dual_Key_Pool-F55036.svg?style=flat-square)](https://groq.com/)
-[![Google Gemini](https://img.shields.io/badge/Gemini-3.5_Flash_Lite_(500_RPD)-4285F4.svg?style=flat-square&logo=google)](https://ai.google.dev/)
+[![Google Gemini](https://img.shields.io/badge/Gemini-Multi_Key_Pool-4285F4.svg?style=flat-square&logo=google)](https://ai.google.dev/)
 [![Auth: Dual-Token JWT](https://img.shields.io/badge/Auth-Dual_Token_JWT-7C3AED.svg?style=flat-square&logo=jsonwebtokens)](https://jwt.io/)
 [![Security: CORS & Rate-Limited](https://img.shields.io/badge/Security-CORS_%26_Rate_Limited-10B981.svg?style=flat-square)](https://expressjs.com/)
 [![Tests Passing](https://img.shields.io/badge/Tests-130%2B_Passing-success.svg?style=flat-square)](https://github.com/SahilSameer18/mindMesh)
@@ -67,7 +67,7 @@ mindMesh Flow:
 
 ### 2. ⚡ Multi-Key Resilient AI Grid (Zero-Downtime Failover)
 - **Primary Engine**: Dual-Key Groq LPU pool running **Llama 3.3 70B / GPT-OSS 120B & 20B** for lightning-fast structured JSON inference (500–1,000 tokens/sec, ~300ms latency). Key rotation and burst failover provide **60 RPM** and **2,000 RPD** (1,000 RPD per key).
-- **Secondary Safety Net**: Google **Gemini 3.5 Flash Lite** transparently absorbs high-volume dialogue spikes with **500 RPD**, **250,000 TPM**, and sub-second latency (benchmarked locally at ~926ms).
+- **Secondary Safety Net**: Google **Gemini 3.5 Flash Lite** transparently absorbs high-volume dialogue spikes via a round-robin multi-key pool (500+ RPD per key, 250,000 TPM) and sub-second latency (benchmarked locally at ~926ms).
 - **Zero-Crash Graceful Degradation**: If all upstream LLMs are unavailable, live speech extraction degrades safely without crashing the room (`status: "failed"` with empty action set), while the Meeting Commit Engine falls back to an authoritative deterministic qualitative summary (`generateDeterministicSummary`).
 - **Confidence Routing**:
   - High confidence ($\ge 0.85$): Auto-applied to the canvas instantly.
@@ -102,6 +102,7 @@ mindMesh Flow:
 
 ### 7. 📹 Peer-to-Peer WebRTC Video Calling
 - **Low-Latency P2P Mesh**: Audio and video streams flow directly between attendee browsers via Google STUN servers with zero server media bandwidth overhead.
+- **4-Participant Beta Mesh Ceiling**: Automatically enforced at room join to maintain optimal browser CPU and upstream P2P bandwidth ($N \times (N-1)$ connections).
 - **Dockable Video Conference Bar**: Floating glassmorphic dock positioned above the canvas, featuring mirrored local video, remote peer tiles, and live mic status indicators.
 - **Ambient Avatar Fallbacks**: Graceful fallback to initialed colored avatars if cameras are disabled or permission is denied, ensuring attendees are always visually represented.
 - **Synchronous Signaling Locks**: Hardened against duplicate offer collisions and out-of-order ICE candidate trickling.
@@ -126,14 +127,14 @@ mindMesh Flow:
   - `session`: 15-minute short-lived rotating JWT access token stored in an `httpOnly` cookie (`path: /`).
   - `refresh`: 7-day long-lived refresh token stored in an `httpOnly` cookie restricted strictly to `/api/auth`.
   - Transparent Axios response interceptor intercepts 401s, rotates the session token via `/api/auth/refresh`, and transparently replays failed requests without UX disruption.
-- **Anti-Brute-Force Rate Limiting**: `express-rate-limit` guards `/api/auth/signup` and `/api/auth/login` (5 requests per 15-minute window per IP) against automated credential abuse.
+- **Anti-Brute-Force Rate Limiting**: `express-rate-limit` guards `/api/auth/signup` and `/api/auth/login` (15 requests per 15-minute window per IP) against automated credential abuse.
 - **Multi-Tenant Data Isolation & RBAC**:
   - `requireRoomAccess` middleware enforces room membership boundaries.
   - Creator is attached as `"owner"` in `RoomMember`; room deletion (`DELETE /api/rooms/:roomId`) is strictly guarded (`403 Forbidden` for non-owners).
   - Room listing (`listRooms(userId)`) returns only workspaces the authenticated user belongs to; unauthenticated callers see zero rooms, closing cross-tenant discovery leaks.
 
 ### 11. 🎟️ Frictionless Guest Invite System
-- **Cryptographic Disposable Invites**: Authenticated room members generate tokenized URLs (`/join/:token`) with configurable member or guest privileges.
+- **Cryptographic Disposable Invites**: Workspace owners generate tokenized URLs (`/join/:token`) with configurable member or guest privileges.
 - **Scoped 8-Hour Guest Sessions**: Guests enter their display name and receive a cryptographically signed `guest_session` HTTP-only cookie restricted strictly to the invited `roomId`.
 - **Ephemeral Storage Isolation**: Guest identity is saved to tab-scoped `sessionStorage` (`mindmesh_guest_name`), preventing permanent `localStorage` pollution.
 - **Frictionless Account Upgrade**: Logged-in users opening an invite link are automatically upserted as permanent `RoomMember` records without issuing temporary guest cookies.
@@ -350,7 +351,7 @@ npm install
 cp .env.example .env
 # DATABASE_URL="postgresql://..."
 # GROQ_API_KEYS="gsk_key1,gsk_key2"       # Comma-separated multi-key pool (round-robin + burst failover)
-# GEMINI_API_KEYS="AIzaSy..."             # Gemini 3.5 Flash Lite (500 RPD safety net)
+# GEMINI_API_KEYS="AIzaSy1...,AIzaSy2..." # Comma-separated multi-key pool (round-robin rotation)
 
 # Apply Prisma database schema
 npx prisma migrate dev --name init
@@ -470,7 +471,7 @@ All endpoints strictly adhere to the unified JSON schema:
 | `POST` | `/api/rooms` | Public / Member | Creates workspace and automatically registers creator as `"owner"`. |
 | `GET` | `/api/rooms/:roomId` | `requireRoomAccess` | Room metadata, active canvas state, and member authorization check. |
 | `DELETE` | `/api/rooms/:roomId` | Owner Only | Permanently deletes workspace (guarded with `403 Forbidden` for non-owners). |
-| `POST` | `/api/rooms/:roomId/invites` | Member Only | Generates cryptographic disposable invite token for room sharing. |
+| `POST` | `/api/rooms/:roomId/invites` | Owner Only | Generates cryptographic disposable invite token for room sharing. |
 | `GET` | `/api/invites/:token` | Public | Resolves invite metadata (`roomId`, `roomName`). |
 | `POST` | `/api/invites/:token/join` | Public / Member | Joins workspace; upserts `RoomMember` for real users or issues 8h `guest_session`. |
 | `GET` | `/api/rooms/:roomId/ai-actions` | `requireRoomAccess` | Fetches historical `AIAction` feed for Activity Stream hydration. |
@@ -505,6 +506,7 @@ All endpoints strictly adhere to the unified JSON schema:
 
 Peer-to-peer WebRTC video conferencing is fully operational in mindMesh:
 - **Low-Latency P2P Mesh**: Audio/video streams exchange directly between peer browsers via public Google STUN servers.
+- **4-Peer Connection Guard**: Enforces an authoritative 4-participant ceiling during handshake to preserve client upstream bandwidth and render latency.
 - **Zero Server Media Overhead**: Node.js backend acts purely as an ephemeral signaling relay for SDP offers, answers, and ICE candidates.
 - **Ambient Presence**: Integrated with room presence; auto-reconnects and cleanly unmounts video elements on disconnect with zero ghost tiles.
 

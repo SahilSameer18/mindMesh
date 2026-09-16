@@ -4,16 +4,30 @@ import { buildExtractionSystemPrompt } from "../prompts/extraction.prompt.js";
 import { buildCommandSystemPrompt } from "../prompts/command.prompt.js";
 import { buildMeetingCommitPrompt } from "../prompts/summary.prompt.js";
 
-let client = null;
+// Cache Gemini client instances per API key
+const clientCache = new Map();
+let keyRotationIndex = 0;
 
 function getClient() {
-  if (!config.geminiApiKey) {
-    throw new Error("No Gemini API key configured. Set GEMINI_API_KEYS in server/.env");
+  const keys =
+    config.geminiApiKeys && config.geminiApiKeys.length > 0
+      ? config.geminiApiKeys
+      : config.geminiApiKey
+      ? [config.geminiApiKey]
+      : [];
+
+  if (!keys || keys.length === 0) {
+    throw new Error("No Gemini API keys configured. Set GEMINI_API_KEYS in server/.env");
   }
-  if (!client) {
-    client = new GoogleGenAI({ apiKey: config.geminiApiKey });
+
+  // Round-robin selection across all configured Gemini API keys
+  const activeKey = keys[keyRotationIndex % keys.length];
+  keyRotationIndex = (keyRotationIndex + 1) % keys.length;
+
+  if (!clientCache.has(activeKey)) {
+    clientCache.set(activeKey, new GoogleGenAI({ apiKey: activeKey }));
   }
-  return client;
+  return clientCache.get(activeKey);
 }
 
 /**

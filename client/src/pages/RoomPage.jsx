@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { RoomProvider } from "../context/RoomContext.jsx";
 import { useRoom } from "../hooks/useRoom.js";
 import { useCanvas } from "../hooks/useCanvas.js";
@@ -17,6 +18,15 @@ function WorkspaceContent({ onLeaveRoom }) {
   const { roomId, socket, currentUser, isCommitModalOpen, setIsCommitModalOpen } = useRoom();
   const canvas = useCanvas();
   const aiActivity = useAIActions();
+
+  // Surface beta participant limit rejection to the user
+  useEffect(() => {
+    const handleRoomFull = (e) => {
+      toast.error(e.detail || "This room is full (max 4 participants during beta).");
+    };
+    window.addEventListener("mindmesh:room-full", handleRoomFull);
+    return () => window.removeEventListener("mindmesh:room-full", handleRoomFull);
+  }, []);
 
   // Phase 8B: Live Voice Dictation Engine
   const {
