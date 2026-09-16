@@ -18,6 +18,4 @@ export function createSocketClient(options = {}) {
     ...options,
   });
 }
-
-export const socket = null;
 export default createSocketClient;

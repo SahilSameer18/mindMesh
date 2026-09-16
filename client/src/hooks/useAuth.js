@@ -1,4 +1,5 @@
-import { useAuthContext } from "../context/AuthContext.jsx";
+import { useContext } from "react";
+import { AuthContext } from "../context/authContextInstance.js";
 import { authApi } from "../api/auth.api.js";
 import { useRouter } from "../app.routes.jsx";
 import { extractError } from "../utils/extractError.js";
@@ -7,13 +8,11 @@ import { extractError } from "../utils/extractError.js";
  * Custom hook to execute authentication actions and access state.
  */
 export function useAuth() {
-  const ctx = useAuthContext();
-  let router = null;
-  try {
-    router = useRouter ? useRouter() : null;
-  } catch {
-    // Router context not mounted (e.g. in standalone tests)
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
+  const router = useRouter();
 
   const login = async ({ email, password }) => {
     ctx.setAuthError(null);

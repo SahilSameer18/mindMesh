@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import authApi from "../api/auth.api.js";
-
-export const AuthContext = createContext(null);
+import { AuthContext } from "./authContextInstance.js";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -9,13 +8,9 @@ export function AuthProvider({ children }) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [authError, setAuthError] = useState(null);
 
-  /**
-   * Check for active session cookie on mount
-   */
   const refreshSession = useCallback(async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      setAuthError(null);
       const res = await authApi.getMe();
       if (res?.success && res?.data) {
         setUser(res.data);
@@ -25,7 +20,6 @@ export function AuthProvider({ children }) {
         setUser(null);
       }
     } catch {
-      // Offline or unauthenticated -> default to guest mode without blocking UI
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -33,7 +27,26 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    refreshSession();
+    let isMounted = true;
+    async function checkSession() {
+      try {
+        const res = await authApi.getMe();
+        if (isMounted) {
+          if (res?.success && res?.data) {
+            setUser(res.data);
+          } else if (res?.data) {
+            setUser(res.data);
+          } else {
+            setUser(null);
+          }
+        }
+      } catch {
+        if (isMounted) setUser(null);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    checkSession();
 
     const handleSessionExpired = () => {
       setUser(null);
@@ -44,11 +57,12 @@ export function AuthProvider({ children }) {
     }
 
     return () => {
+      isMounted = false;
       if (typeof window !== "undefined") {
         window.removeEventListener("mindmesh:session-expired", handleSessionExpired);
       }
     };
-  }, [refreshSession]);
+  }, []);
 
   const value = {
     user,
@@ -65,12 +79,4 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuthContext() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuthContext must be used within an AuthProvider");
-  }
-  return context;
-}
-
-export default AuthContext;
+export default AuthProvider;

@@ -1,4 +1,4 @@
-import { ArrowRight, LogIn, LogOut, LayoutDashboard, Menu, X, Zap } from "lucide-react";
+import { ArrowRight, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import BrandLogo from "../ui/BrandLogo.jsx";
@@ -14,12 +14,9 @@ const NAV_LINKS = [
 ];
 
 /**
- * LandingNavbar — now self-contained via useAuth() and useRouter().
- * Props retained for page-specific actions that the navbar doesn't own:
- *   onLaunchNewWorkspace — opens the Create Room modal
- *   onLaunchDemo         — navigates to demo-room directly
+ * LandingNavbar — self-contained via useAuth() and useRouter().
  */
-export default function LandingNavbar({ onLaunchNewWorkspace, onLaunchDemo }) {
+export default function LandingNavbar() {
   const { user, logout } = useAuth();
   const { navigateToDashboard, navigateToLogin, navigateToRegister } = useRouter();
 

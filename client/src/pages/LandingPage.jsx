@@ -34,18 +34,14 @@ export default function LandingPage() {
   const { navigateToRoom } = useRouter();
 
   // User Display Name State
-  const [userName, setUserName] = useState(() => {
+  const [customUserName, setCustomUserName] = useState(() => {
     if (typeof localStorage !== "undefined") {
-      return localStorage.getItem("mindmesh_username") || user?.name || "";
+      return localStorage.getItem("mindmesh_username") || "";
     }
-    return user?.name || "";
+    return "";
   });
-
-  useEffect(() => {
-    if (user?.name && !userName) {
-      setUserName(user.name);
-    }
-  }, [user, userName]);
+  const userName = customUserName || user?.name || "";
+  const setUserName = setCustomUserName;
 
   // Workspace Creator Modal State
   const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(false);
@@ -145,10 +141,6 @@ export default function LandingPage() {
   };
 
   // Workspace Deletion Handler
-  const handleDeleteClick = (e, room) => {
-    e.stopPropagation();
-    setRoomToDelete(room);
-  };
 
   const handleExecuteDeleteRoom = async () => {
     if (!roomToDelete) return;

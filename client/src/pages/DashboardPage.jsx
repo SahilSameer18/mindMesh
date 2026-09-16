@@ -13,7 +13,6 @@ import {
   Users,
   MessageSquare,
   LayoutDashboard,
-  Filter,
   SlidersHorizontal,
   RefreshCw,
   LogIn,
@@ -37,7 +36,7 @@ const MODE_FILTERS = ["all", "operational", "brainstorm", "solo"];
 
 export default function WorkspacePage() {
   const { user } = useAuth();
-  const { navigateToRoom, navigateToHome, navigateToLogin } = useRouter();
+  const { navigateToRoom, navigateToLogin } = useRouter();
 
   // Room list state
   const [rooms, setRooms] = useState([]);
@@ -65,10 +64,9 @@ export default function WorkspacePage() {
   const [roomToDelete, setRoomToDelete] = useState(null);
   const [isDeletingRoom, setIsDeletingRoom] = useState(false);
 
-  // Fetch rooms
-  const fetchRooms = useCallback(async (showRefresh = false) => {
-    if (showRefresh) setIsRefreshing(true);
-    else setIsLoading(true);
+  // Manual refresh for button or action completion
+  const fetchRooms = useCallback(async () => {
+    setIsRefreshing(true);
     try {
       const json = await roomsApi.getAll();
       if (json?.success && Array.isArray(json.data)) {
@@ -78,14 +76,31 @@ export default function WorkspacePage() {
       console.warn("[Dashboard] Could not fetch rooms:", err);
       toast.error("Failed to load workspaces.");
     } finally {
-      setIsLoading(false);
       setIsRefreshing(false);
     }
   }, []);
 
+  // Initial load on mount
   useEffect(() => {
-    fetchRooms();
-  }, [fetchRooms]);
+    let isMounted = true;
+    async function loadInitialRooms() {
+      try {
+        const json = await roomsApi.getAll();
+        if (json?.success && Array.isArray(json.data) && isMounted) {
+          setRooms(json.data);
+        }
+      } catch (err) {
+        console.warn("[Dashboard] Could not fetch rooms:", err);
+        toast.error("Failed to load workspaces.");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadInitialRooms();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Filtered rooms
   const filteredRooms = rooms.filter((room) => {
@@ -345,7 +360,9 @@ export default function WorkspacePage() {
                       <span className="text-text-main font-medium">{transcriptCount}</span>
                     </span>
                     <span className="ml-auto text-text-faint">
-                      {new Date(room.createdAt || Date.now()).toLocaleDateString([], { month: "short", day: "numeric" })}
+                      {room.createdAt
+                        ? new Date(room.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })
+                        : "Recently"}
                     </span>
                   </div>
 

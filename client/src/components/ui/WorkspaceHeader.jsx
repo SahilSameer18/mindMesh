@@ -26,7 +26,6 @@ export default function WorkspaceHeader({
   onOpenAuth,
   isListening = false,
   onToggleMic,
-  micStatus = "idle",
   onLeaveRoom,
 }) {
   const {
