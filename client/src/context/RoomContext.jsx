@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { DEFAULT_ROOM_ID } from "../utils/canvasConstants.js";
 import { RoomContext } from "./roomContextInstance.js";
-import { useAuth } from "./AuthContext.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 import { getUserColor, getUserInitials } from "../utils/colors.js";
 import { roomsApi } from "../api/rooms.api.js";
 import { createSocketClient } from "../api/socket.js";

@@ -73,7 +73,4 @@ export function useAuthContext() {
   return context;
 }
 
-// Backwards-compatibility re-export:
-// All existing import sites (`import { useAuth } from "../context/AuthContext.jsx"`) continue to work
-export { useAuth } from "../hooks/useAuth.js";
 export default AuthContext;

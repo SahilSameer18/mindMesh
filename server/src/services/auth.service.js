@@ -22,6 +22,21 @@ export async function generateAndStoreTokens(userId, userPayload) {
     },
   });
 
+  // Cap active sessions at 10 — evict oldest beyond that so bcrypt.compare
+  // in rotateRefreshToken never has to check more than 10 rows.
+  const MAX_SESSIONS = 10;
+  const activeSessions = await prisma.refreshToken.findMany({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  if (activeSessions.length > MAX_SESSIONS) {
+    const toDelete = activeSessions.slice(0, activeSessions.length - MAX_SESSIONS);
+    await prisma.refreshToken.deleteMany({
+      where: { id: { in: toDelete.map((s) => s.id) } },
+    });
+  }
+
   return { accessToken, refreshToken: rawRefreshToken };
 }
 

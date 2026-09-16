@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import BrandLogo from "../ui/BrandLogo.jsx";
 import { getUserInitials, getUserColor } from "../../utils/colors.js";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../hooks/useAuth.js";
 import { useRouter } from "../../app.routes.jsx";
 
 const NAV_LINKS = [

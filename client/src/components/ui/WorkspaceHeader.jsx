@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useRoom } from "../../hooks/useRoom.js";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../hooks/useAuth.js";
 import { useRouter } from "../../app.routes.jsx";
 import { roomsApi } from "../../api/rooms.api.js";
 import {

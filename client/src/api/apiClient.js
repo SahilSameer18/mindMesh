@@ -52,7 +52,8 @@ apiClient.interceptors.response.use(
       !originalRequest._retry &&
       !url.includes("/api/auth/refresh") &&
       !url.includes("/api/auth/login") &&
-      !url.includes("/api/auth/signup")
+      !url.includes("/api/auth/signup") &&
+      !url.includes("/api/auth/me")
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

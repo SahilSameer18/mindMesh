@@ -19,7 +19,7 @@ import {
   LogIn,
 } from "lucide-react";
 import { roomsApi } from "../api/rooms.api.js";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 import { useRouter } from "../app.routes.jsx";
 import LandingNavbar from "../components/landing/LandingNavbar.jsx";
 import LandingFooter from "../components/landing/LandingFooter.jsx";

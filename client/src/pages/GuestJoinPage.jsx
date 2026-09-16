@@ -4,7 +4,7 @@ import { Users, ArrowRight, Sparkles, AlertCircle, ArrowLeft } from "lucide-reac
 import apiClient from "../api/apiClient.js";
 import { useRouter } from "../app.routes.jsx";
 import BrandLogo from "../components/ui/BrandLogo.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 
 export default function GuestJoinPage() {
   const { token } = useParams();
