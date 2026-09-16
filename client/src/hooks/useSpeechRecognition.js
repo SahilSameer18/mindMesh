@@ -32,6 +32,7 @@ export function useSpeechRecognition({
   // The critical ref: tracks user's explicit intent across async Chromium closures
   const isMicActiveRef = useRef(false);
   const recognitionRef = useRef(null);
+  const restartTimeoutRef = useRef(null);
   const callbacksRef = useRef({ onFinalTranscript, onInterimTranscript });
 
   // Keep callback refs updated without re-triggering speech instance recreation
@@ -116,19 +117,23 @@ export function useSpeechRecognition({
     };
 
     recognition.onend = () => {
-      // The Phase 5 state machine: if user still intended to listen, auto-restart seamlessly
+      // The Phase 5 state machine: if user still intended to listen, auto-restart with a 200ms debounce
+      // Giving Chromium's audio capture track enough time to completely tear down before starting anew.
       if (isMicActiveRef.current) {
-        try {
-          recognition.start();
-        } catch (err) {
-          // InvalidStateError occurs if already started; safely ignore
-          if (err.name !== "InvalidStateError") {
-            console.warn("[useSpeechRecognition] Restart error:", err.message);
-            isMicActiveRef.current = false;
-            setIsListening(false);
-            setMicStatus("idle");
+        if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = setTimeout(() => {
+          if (!isMicActiveRef.current) return;
+          try {
+            recognition.start();
+          } catch (err) {
+            if (err.name !== "InvalidStateError") {
+              console.warn("[useSpeechRecognition] Restart error:", err.message);
+              isMicActiveRef.current = false;
+              setIsListening(false);
+              setMicStatus("idle");
+            }
           }
-        }
+        }, 200);
       } else {
         setIsListening(false);
         setMicStatus("idle");
@@ -174,6 +179,10 @@ export function useSpeechRecognition({
   // Stop listening
   const stopListening = useCallback(() => {
     isMicActiveRef.current = false;
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
     setIsListening(false);
     setMicStatus("idle");
     setInterimTranscript("");
@@ -196,10 +205,14 @@ export function useSpeechRecognition({
     }
   }, [startListening, stopListening]);
 
-  // Unmount cleanup: ensure mic is released
+  // Unmount cleanup: ensure mic is released and pending timers cleared
   useEffect(() => {
     return () => {
       isMicActiveRef.current = false;
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = null;
+      }
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
