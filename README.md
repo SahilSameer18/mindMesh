@@ -62,6 +62,7 @@ mindMesh Flow:
 
 ### 1. 🎙️ Live Speech-to-Graph Synthesis
 - **Zero-Friction Dictation**: Click the **Dictate** button in the header or hit **`M`** to toggle continuous voice dictation with browser silence recovery.
+- **Web Speech API & Silence Recovery**: Native live speech synthesis directly in-browser (supported on Chromium: Chrome, Edge, Brave) with 200ms debounced silence recovery to prevent Chromium silence timeouts, and informative in-app guidance for non-Chromium visitors.
 - **Interim Caption Stream (<10ms)**: Watch your spoken words stream into an ethereal floating pill right above the active command bar before they materialize into graph cards.
 - **Background Speech Simulator**: Test real-time intelligence with 4 pre-loaded benchmark scenarios (*Canonical Onboarding Debate*, *Live Reassignment & In-Place Correction*, *Architecture & Risk Mitigation*, *Fluff Filter vs. Action Marker*).
 
@@ -92,10 +93,11 @@ mindMesh Flow:
 - Click any visual card to launch the **Visual Lightbox Inspection Modal** for full-resolution view, prompt inspection, and downloads.
 - Automatic retry lifecycle with jitter and fallback rendering on slow network connections.
 
-### 6. 👥 Multiplayer Presence & Radar Minimap
+### 6. 👥 Multiplayer Presence, Radar Minimap & Context Zones
 - **60fps Cursors**: Canvas-space transformed cursors throttled to 35ms with smooth CSS transform interpolation and name badges.
 - **Radar Minimap**: Bottom-right interactive radar projecting all canvas cards and peer viewports; click or drag anywhere to jump instantly.
 - **Follow Me Presenter Broadcast**: Single-presenter concurrency lock allows a speaker to guide all attendees' viewports with trailing-edge sync.
+- **Context Zones (Spatial Bookmarking & Frames)**: Mark, name, and bound important regions on the infinite canvas. Includes translucent dashed visual frames, coordinate tags, a left-dock tool, and a quick-jump drawer with smooth cubic-bezier easing navigation and real-time multiplayer synchronization (`zone:created`, `zone:deleted`).
 - **Dual Meeting Modes**:
   - **Operational**: Structured columns, task assignments, and chronological deliverables.
   - **Brainstorm**: Organic visual clustering and associative idea maps.
@@ -128,6 +130,7 @@ mindMesh Flow:
   - `refresh`: 7-day long-lived refresh token stored in an `httpOnly` cookie restricted strictly to `/api/auth`.
   - Transparent Axios response interceptor intercepts 401s, rotates the session token via `/api/auth/refresh`, and transparently replays failed requests without UX disruption.
 - **Anti-Brute-Force Rate Limiting**: `express-rate-limit` guards `/api/auth/signup` and `/api/auth/login` (15 requests per 15-minute window per IP) against automated credential abuse.
+- **Active Refresh Token Session Ceiling (`MAX_SESSIONS = 10`)**: Automatically prunes the oldest refresh token sessions when a user signs in across multiple devices, bounding bcrypt verification loops and eliminating session bloat.
 - **Multi-Tenant Data Isolation & RBAC**:
   - `requireRoomAccess` middleware enforces room membership boundaries.
   - Creator is attached as `"owner"` in `RoomMember`; room deletion (`DELETE /api/rooms/:roomId`) is strictly guarded (`403 Forbidden` for non-owners).
@@ -328,6 +331,8 @@ mindMesh classifies every piece of conversational intelligence into **8 distinct
 7. **Collision-Free Coordinates**: Spaced by $360\text{px} \times 200\text{px}$ strides ($280\times140\text{px}$ cards), mathematically guaranteeing $|x_i - x_j| \ge 280\text{px}$ or $|y_i - y_j| \ge 140\text{px}$ across all node pairs.
 8. **End-to-End Data Lineage (`sourceId`)**: Nodes store their originating `AIAction.id` in `CanvasNode.sourceId`, allowing clicking any card's "Why This Exists" button to display the verbatim transcript quote and conversational reasoning.
 9. **Rule 7 Loading State Polish**: 100% shimmering skeleton loaders across canvas load states, visual lightbox, and command reasoning bars; zero raw circular loading spinners.
+10. **Bounded Session Invariant (`MAX_SESSIONS = 10`)**: Active refresh token records in PostgreSQL are strictly capped at 10 per user with automatic oldest-first pruning, ensuring constant-time token rotation and preventing unbounded bcrypt verification loops.
+11. **Foreign-Key Protected Transcript Ingestion**: Real-time spoken dialogue chunks (`transcript:chunk`) automatically guarantee room entity existence (`getOrCreateRoom`) before saving to `TranscriptChunk`, ensuring ad-hoc meeting rooms never drop conversational transcripts.
 
 ---
 
@@ -478,6 +483,9 @@ All endpoints strictly adhere to the unified JSON schema:
 | `POST` | `/api/rooms/:roomId/ai-actions/:id/approve` | `requireRoomAccess` | Approves and executes a proposed action via REST. |
 | `POST` | `/api/rooms/:roomId/ai-actions/:id/reject` | `requireRoomAccess` | Dismisses a proposed action and marks it `rejected`. |
 | `POST` | `/api/rooms/:roomId/agenda` | `requireRoomAccess` | Ingests meeting agenda, extracts 3–5 strategic pillars, and seeds anchor roots. |
+| `GET` | `/api/rooms/:roomId/zones` | `requireRoomAccess` | Fetches saved spatial context zones and camera bookmarks for the room. |
+| `POST` | `/api/rooms/:roomId/zones` | `requireRoomAccess` | Creates a new named context zone (`name, x, y, zoom`). |
+| `DELETE` | `/api/rooms/:roomId/zones/:zoneId` | `requireRoomAccess` | Deletes a context zone with room-scoped boundary checks. |
 | `GET` | `/api/rooms/:roomId/integrations` | `requireRoomAccess` | Fetches external integrations with sensitive webhooks/keys masked. |
 | `POST` | `/api/rooms/:roomId/commit` | `requireRoomAccess` | Synthesizes dual-source executive report and dispatches to Slack/Notion. |
 
@@ -492,6 +500,8 @@ All endpoints strictly adhere to the unified JSON schema:
 | `transcript:chunk` | `C ──► S` | `{ roomId, chunk: { id, speaker, text, timestamp } }`: Live speech stream. |
 | `cursor:move` | `C ──► S` | Throttled `(x, y)` coordinates broadcast to peers as `cursor:moved`. |
 | `presence:presenter-start` | `C ──► S` | Requests atomic single-presenter broadcast lock. |
+| `zone:created` | `S ──► C` | `{ id, name, x, y, zoom }`: Broadcasts newly created context zone to all room peers. |
+| `zone:deleted` | `S ──► C` | `{ zoneId }`: Broadcasts deleted context zone ID to all room peers. |
 | `ai:activity` | `S ──► C` | Real-time broadcast of newly applied `AIAction` row. |
 | `ai:proposed` | `S ──► C` | Broadcast of action requiring user review and approval. |
 | `webrtc:offer` | `C ◄──► S` | Relays SDP offer to target peer socket ID. |
