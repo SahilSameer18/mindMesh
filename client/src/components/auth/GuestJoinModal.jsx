@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { X, Copy, Check, Users, Link as LinkIcon } from "lucide-react";
+import { createPortal } from "react-dom";
+import { X, Copy, Check, Users } from "lucide-react";
 
 export default function GuestJoinModal({ isOpen, onClose, roomId, inviteUrl }) {
   const [copied, setCopied] = useState(false);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
   const handleCopy = () => {
     if (!inviteUrl) return;
@@ -13,7 +14,7 @@ export default function GuestJoinModal({ isOpen, onClose, roomId, inviteUrl }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-text-main/20 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="max-w-md w-full rounded-2xl bg-surface border border-border-subtle p-6 shadow-elevated relative text-left animate-in zoom-in-95 duration-150">
         <button
@@ -57,6 +58,7 @@ export default function GuestJoinModal({ isOpen, onClose, roomId, inviteUrl }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

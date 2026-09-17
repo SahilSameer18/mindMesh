@@ -27,6 +27,13 @@ export const roomsApi = {
   },
 
   /**
+   * Create a scoped guest invite link for a room (owner only)
+   */
+  async createInvite(roomId, role = "member") {
+    return apiClient.post(`/api/rooms/${encodeURIComponent(roomId)}/invites`, { role });
+  },
+
+  /**
    * Delete a room permanently
    */
   async delete(roomId) {
