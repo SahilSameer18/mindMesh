@@ -247,7 +247,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       setIsFollowing(false);
     };
 
-    const handleCanvasInit = ({ activePresenter: initialPresenter, mode, systemContext: initialContext }) => {
+    const handleCanvasInit = ({ activePresenter: initialPresenter, mode, systemContext: initialContext, peers: existingPeers }) => {
       if (initialPresenter) {
         const presenterSocketId = initialPresenter.socketId || initialPresenter.presenterId;
         setActivePresenter({
@@ -258,6 +258,18 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       }
       if (mode) setRoomMode(mode);
       if (initialContext) setSystemContext(initialContext);
+      // Backfill peers already in the room — without this, a joiner never learns
+      // who's already here (video call / peer avatars would otherwise stay empty
+      // until someone new joins after them).
+      if (Array.isArray(existingPeers) && existingPeers.length > 0) {
+        setPeers((prev) => {
+          const next = new Map(prev);
+          for (const peer of existingPeers) {
+            if (peer?.socketId) next.set(peer.socketId, { user: peer.user, socketId: peer.socketId });
+          }
+          return next;
+        });
+      }
     };
 
     socket.on("connect", handleConnect);

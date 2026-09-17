@@ -13,8 +13,6 @@ import {
   AlertCircle,
   Mic,
   PhoneOff,
-  Check,
-  Copy,
   Sparkles,
   UserPlus,
 } from "lucide-react";
@@ -57,7 +55,6 @@ export default function WorkspaceHeader({
   const [showHelp, setShowHelp] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [isDeletingRoom, setIsDeletingRoom] = useState(false);
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
   const [inviteUrl, setInviteUrl] = useState(null);
@@ -91,19 +88,6 @@ export default function WorkspaceHeader({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleCopyLink = () => {
-    if (typeof window !== "undefined") {
-      const shareUrl = `${window.location.origin}/?room=${encodeURIComponent(roomId)}`;
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        setCopiedLink(true);
-        toast.success("Room invite link copied to clipboard!");
-        setTimeout(() => setCopiedLink(false), 2000);
-      }).catch(() => {
-        toast.error("Could not copy link to clipboard.");
-      });
-    }
-  };
 
   const handleCreateInvite = async () => {
     setIsCreatingInvite(true);
@@ -183,22 +167,10 @@ export default function WorkspaceHeader({
           <span className="text-text-main font-mono font-medium max-w-[65px] sm:max-w-none truncate">{roomId}</span>
           <button
             type="button"
-            onClick={handleCopyLink}
-            className="p-0.5 text-text-muted hover:text-text-main rounded transition-colors ml-0.5 cursor-pointer"
-            title="Copy shareable room link to invite teammates"
-          >
-            {copiedLink ? (
-              <Check className="w-3 h-3 text-emerald-600" />
-            ) : (
-              <Copy className="w-3 h-3" />
-            )}
-          </button>
-          <button
-            type="button"
             onClick={handleCreateInvite}
             disabled={isCreatingInvite}
-            className="p-0.5 text-text-muted hover:text-text-main rounded transition-colors disabled:opacity-50 cursor-pointer"
-            title="Generate a scoped guest invite link"
+            className="p-0.5 text-text-muted hover:text-text-main rounded transition-colors ml-0.5 disabled:opacity-50 cursor-pointer"
+            title="Invite someone: generates a scoped guest link that asks for their name"
           >
             <UserPlus className="w-3 h-3" />
           </button>

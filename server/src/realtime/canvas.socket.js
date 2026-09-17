@@ -2,7 +2,7 @@ import { getCanvasDocument } from "../canvas/canvasDocument.js";
 import { executeWorkspaceCommand } from "../ai/commands.js";
 import { approveAIAction, rejectAIAction } from "../ai/applyAIActions.js";
 import { getOrCreateRoom } from "../services/room.service.js";
-import { addPeer, getActivePresenter, handleSocketDisconnect } from "../services/presence.service.js";
+import { addPeer, getPeers, getActivePresenter, handleSocketDisconnect } from "../services/presence.service.js";
 
 /**
  * Initializes real-time canvas socket event handlers for a connected client
@@ -59,12 +59,17 @@ export function initCanvasSocket(io, socket) {
       // Register peer in presence service
       addPeer(roomId, socket.id, socket.user);
       const activePresenter = getActivePresenter(roomId);
+      // Existing peers already in the room — without this, a joiner never learns
+      // who's already here (only future joiners trigger presence:peer-joined),
+      // so their video call/presence UI silently shows nobody but themselves.
+      const existingPeers = getPeers(roomId).filter((p) => p.socketId !== socket.id);
 
       // Emit canvas state, active presenter, and AI Persona context to joining client
       socket.emit("canvas:init", {
         roomId,
         state,
         activePresenter,
+        peers: existingPeers,
         mode: room?.mode || "operational",
         systemContext: room?.systemContext || null,
       });
@@ -80,6 +85,7 @@ export function initCanvasSocket(io, socket) {
           success: true,
           state,
           activePresenter,
+          peers: existingPeers,
           mode: room?.mode || "operational",
           systemContext: room?.systemContext || null,
         });

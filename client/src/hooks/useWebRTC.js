@@ -55,6 +55,13 @@ export function useWebRTC({ socket, roomId }) {
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
       });
 
+      // Tell the room our starting mic/camera state. Without this, peers only
+      // ever learn about it via toggleMic/toggleCamera — so a camera that's on
+      // from the moment you join (this function auto-runs on mount) never gets
+      // announced, and every remote tile renders the avatar fallback forever
+      // (VideoTile gates on peerMediaStates, not on whether a stream arrived).
+      socket?.emit("webrtc:media-state", { roomId, isMuted: !audio, isCameraOn: video });
+
       return stream;
     } catch (err) {
       // Camera denied, no device, or insecure context — never crash, just
@@ -63,7 +70,7 @@ export function useWebRTC({ socket, roomId }) {
       setIsCameraOn(false);
       return null;
     }
-  }, []);
+  }, [socket, roomId]);
 
   const emitMediaState = useCallback(
     (nextMuted, nextCameraOn) => {
@@ -205,6 +212,28 @@ export function useWebRTC({ socket, roomId }) {
       pc.onconnectionstatechange = () => {
         if (["failed", "closed", "disconnected"].includes(pc.connectionState)) {
           closePeer(targetSocketId);
+        }
+      };
+
+      // Fires whenever the track set changes after the initial offer/answer —
+      // most commonly because getUserMedia() resolves *after* signaling already
+      // completed (a real race: camera permission/hardware init is async and
+      // often loses the race against the socket "peer joined" round trip).
+      // startLocalMedia() retroactively calls pc.addTrack() on existing
+      // connections in that case; without renegotiating here, those tracks are
+      // attached locally but never actually offered to the remote peer, so
+      // video/audio silently never arrives even though everything "connects".
+      pc.onnegotiationneeded = async () => {
+        if (isNegotiating.current.has(targetSocketId)) return;
+        isNegotiating.current.add(targetSocketId);
+        try {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit("webrtc:offer", { targetSocketId, offer });
+        } catch (err) {
+          console.warn("[useWebRTC] Renegotiation failed:", err.message);
+        } finally {
+          isNegotiating.current.delete(targetSocketId);
         }
       };
 

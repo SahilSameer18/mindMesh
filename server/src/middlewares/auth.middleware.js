@@ -23,6 +23,26 @@ export const SECONDARY_DEMO_USER = {
   isDemo: true,
 };
 
+/**
+ * Distinct, honestly-labeled identity for a fully anonymous socket connection
+ * (no session cookie, no valid guest_session token — e.g. someone who opened a
+ * bare room link instead of a real invite link). Previously these all silently
+ * collapsed into the single shared DEMO_USER ("Elena Vance"), making every
+ * anonymous visitor in a room indistinguishable from every other one to peers,
+ * which broke presence, video-tile labeling, and speaker attribution.
+ */
+function createAnonymousGuestUser(socketId) {
+  const shortId = (socketId || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase() || "GUEST";
+  return {
+    id: `anon-${socketId}`,
+    name: `Guest ${shortId}`,
+    role: "Guest",
+    avatar: shortId.slice(0, 2),
+    isGuest: true,
+    isDemo: true,
+  };
+}
+
 function parseCookies(cookieHeader = "") {
   const list = {};
   if (!cookieHeader) return list;
@@ -186,9 +206,11 @@ export function socketAuthMiddleware(socket, next) {
       }
     }
 
-    // Fallback for demo connection
-    socket.user = DEMO_USER;
-    socket.data.user = DEMO_USER;
+    // Fallback for a fully anonymous connection: give it a distinct identity
+    // instead of masquerading as the shared demo persona (see comment above).
+    const anonymousUser = createAnonymousGuestUser(socket.id);
+    socket.user = anonymousUser;
+    socket.data.user = anonymousUser;
     return next();
   } catch (err) {
     console.error("[SocketAuth] Error in socket handshake auth:", err.message);
