@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 
 /**
  * P2P WebRTC mesh client hook for mindMesh real-time video conference.
@@ -15,7 +16,7 @@ const RTC_CONFIG = {
   iceCandidatePoolSize: 10,
 };
 
-export function useWebRTC({ socket, roomId, currentUserId }) {
+export function useWebRTC({ socket, roomId }) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState(new Map());
   const [isMuted, setIsMuted] = useState(false);
@@ -84,14 +85,73 @@ export function useWebRTC({ socket, roomId, currentUserId }) {
     emitMediaState(nextMuted, isCameraOn);
   }, [isMuted, isCameraOn, emitMediaState]);
 
-  const toggleCamera = useCallback(() => {
+  const toggleCamera = useCallback(async () => {
     const stream = localStreamRef.current;
-    if (!stream) return;
-    const nextCameraOn = !isCameraOn;
-    stream.getVideoTracks().forEach((track) => (track.enabled = nextCameraOn));
-    setIsCameraOn(nextCameraOn);
-    emitMediaState(isMuted, nextCameraOn);
-  }, [isMuted, isCameraOn, emitMediaState]);
+    if (isCameraOn) {
+      // 1. Turning camera OFF:
+      // Must explicitly stop the hardware track to release the webcam sensor and turn off the laptop LED
+      if (stream) {
+        stream.getVideoTracks().forEach((track) => {
+          track.stop();
+          stream.removeTrack(track);
+        });
+        peerConnections.current.forEach((pc) => {
+          const sender = pc.getSenders().find((s) => s.kind === "video" || (s.track && s.track.kind === "video"));
+          if (sender) {
+            sender.replaceTrack(null).catch(() => {});
+          }
+        });
+        const updatedStream = new MediaStream(stream.getTracks());
+        localStreamRef.current = updatedStream;
+        setLocalStream(updatedStream);
+      }
+      setIsCameraOn(false);
+      emitMediaState(isMuted, false);
+    } else {
+      // 2. Turning camera ON:
+      // Re-acquire hardware camera track
+      try {
+        if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+          toast.error("Camera is not supported in this browser environment");
+          return;
+        }
+
+        const freshStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { max: 30 } },
+        });
+        const newTrack = freshStream.getVideoTracks()[0];
+        if (!newTrack) return;
+
+        let activeStream = stream;
+        if (!activeStream) {
+          activeStream = new MediaStream([newTrack]);
+        } else {
+          activeStream.addTrack(newTrack);
+        }
+
+        // Replace track on all active peer connections
+        peerConnections.current.forEach((pc) => {
+          const sender = pc.getSenders().find((s) => s.kind === "video" || (s.track && s.track.kind === "video"));
+          if (sender) {
+            sender.replaceTrack(newTrack).catch(() => {});
+          } else {
+            pc.addTrack(newTrack, activeStream);
+          }
+        });
+
+        const updatedStream = new MediaStream(activeStream.getTracks());
+        localStreamRef.current = updatedStream;
+        setLocalStream(updatedStream);
+        setIsCameraOn(true);
+        emitMediaState(isMuted, true);
+      } catch (err) {
+        console.warn("[useWebRTC] Failed to re-enable camera:", err.message);
+        toast.error("Could not activate camera. Please check permissions.");
+        setIsCameraOn(false);
+        emitMediaState(isMuted, false);
+      }
+    }
+  }, [isCameraOn, isMuted, emitMediaState]);
 
   // ---------- Peer connection lifecycle ----------
 
@@ -264,10 +324,12 @@ export function useWebRTC({ socket, roomId, currentUserId }) {
 
   // Clean up all peer connections and local tracks on unmount
   useEffect(() => {
+    const activePeers = peerConnections.current;
+    const streamRef = localStreamRef;
     return () => {
-      peerConnections.current.forEach((pc) => pc.close());
-      peerConnections.current.clear();
-      localStreamRef.current?.getTracks().forEach((track) => track.stop());
+      activePeers.forEach((pc) => pc.close());
+      activePeers.clear();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
 

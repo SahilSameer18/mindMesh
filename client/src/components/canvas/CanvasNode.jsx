@@ -14,6 +14,7 @@ import {
   Quote,
   RotateCw,
   Maximize2,
+  Sparkles,
 } from "lucide-react";
 import { NODE_CONFIGS, NODE_TYPES } from "../../utils/canvasConstants.js";
 
@@ -54,20 +55,29 @@ function CanvasNodeComponent({
   // Client-side image lifecycle state (Option B: Zero-infrastructure error recovery)
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const [retrySeed, setRetrySeed] = useState(0);
+  const [prevImageUrl, setPrevImageUrl] = useState(node.metadata?.imageUrl);
 
-  useEffect(() => {
+  if (node.metadata?.imageUrl !== prevImageUrl) {
+    setPrevImageUrl(node.metadata?.imageUrl);
     setImgLoaded(false);
     setImgError(false);
-    setRetryCount(0);
-  }, [node.metadata?.imageUrl]);
+    setRetrySeed(0);
+  }
+
+  const handleRetryImage = (e) => {
+    e.stopPropagation();
+    setImgError(false);
+    setImgLoaded(false);
+    setRetrySeed(Date.now());
+  };
 
   const displayImageUrl = useMemo(() => {
     if (!node.metadata?.imageUrl) return null;
-    if (retryCount === 0) return node.metadata.imageUrl;
+    if (!retrySeed) return node.metadata.imageUrl;
     const separator = node.metadata.imageUrl.includes("?") ? "&" : "?";
-    return `${node.metadata.imageUrl}${separator}retry=${retryCount}&seed=${Date.now()}`;
-  }, [node.metadata?.imageUrl, retryCount]);
+    return `${node.metadata.imageUrl}${separator}retry=${retrySeed}`;
+  }, [node.metadata?.imageUrl, retrySeed]);
 
   const config = NODE_CONFIGS[node.type] || NODE_CONFIGS[NODE_TYPES.IDEA];
   const IconComponent = ICON_MAP[config.icon] || Lightbulb;
@@ -185,9 +195,9 @@ function CanvasNodeComponent({
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-1.5">
             <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${config.badgeBg}`}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${config.badgeBg}`}
             >
-              <IconComponent className="w-3 h-3" />
+              <IconComponent className="w-3 h-3 shrink-0" />
               <span>{config.label}</span>
             </span>
 
@@ -299,26 +309,35 @@ function CanvasNodeComponent({
                   <span className="text-[10px] text-text-muted mt-1">Generative Concept</span>
                 </div>
               ) : imgError ? (
-                /* Error Phase: Option (B) Client-side error state with Retry Generation button */
-                <div className="w-full h-32 rounded-xl bg-rose-50 border border-rose-200 dark:bg-rose-950/20 dark:border-rose-800/50 flex flex-col items-center justify-center p-2.5 text-center shadow-inner">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 mb-1" />
-                  <span className="text-xs text-rose-700 dark:text-rose-200 font-semibold">Failed to load visual concept</span>
-                  <p className="text-[10px] text-text-muted mt-0.5 mb-2 line-clamp-1">
-                    Pollinations service timed out
+                /* Fallback Phase: Sleek Concept Blueprint container with subtle retry trigger */
+                <div className="w-full min-h-32 rounded-xl bg-gradient-to-br from-indigo-50/70 via-purple-50/40 to-slate-50 border border-indigo-200/80 dark:from-indigo-950/30 dark:via-purple-950/20 dark:to-surface-subtle dark:border-indigo-800/40 p-3 flex flex-col justify-between relative overflow-hidden shadow-subtle group/fallback">
+                  {/* Subtle decorative blueprint grid lines */}
+                  <div className="absolute inset-0 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:12px_12px] opacity-15 pointer-events-none" />
+                  
+                  <div className="relative z-10 flex items-center justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <span className="text-[11px] font-semibold text-text-main tracking-tight">Concept Blueprint</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRetryImage}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface border border-border hover:border-indigo-400 text-[10px] font-medium text-text-muted hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors shadow-subtle cursor-pointer active:scale-95"
+                      title="Regenerate visual representation"
+                    >
+                      <RotateCw className="w-2.5 h-2.5" />
+                      <span>Retry</span>
+                    </button>
+                  </div>
+
+                  <p className="relative z-10 text-[11px] text-text-muted line-clamp-2 leading-relaxed italic">
+                    {node.metadata?.prompt || node.text || "Generative concept visual blueprint"}
                   </p>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setImgError(false);
-                      setImgLoaded(false);
-                      setRetryCount((prev) => prev + 1);
-                    }}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 text-[11px] font-medium transition-all shadow-subtle active:scale-95 cursor-pointer dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:text-rose-200 dark:border-rose-500/40"
-                  >
-                    <RotateCw className="w-3 h-3" />
-                    <span>Retry Generation</span>
-                  </button>
+
+                  <div className="relative z-10 mt-2 flex items-center justify-between text-[9px] text-text-faint pt-1 border-t border-indigo-100 dark:border-indigo-900/40">
+                    <span>Generative AI Service</span>
+                    <span className="font-mono">Offline Fallback</span>
+                  </div>
                 </div>
               ) : (
                 /* Ready Phase: Image container with skeleton under-layer and smooth fade-in */
@@ -389,11 +408,12 @@ function CanvasNodeComponent({
           )}
         </div>
 
-        {/* Card Footer: Metadata info (e.g. source/status) */}
-        {node.semanticKey && (
-          <div className="mt-1 pt-1 border-t border-border-subtle flex items-center justify-between text-[10px] text-text-muted">
-            <span className="truncate max-w-[140px]">key: {node.semanticKey}</span>
-            {node.sourceType === "transcript" && <span className="text-sky-600 dark:text-sky-400 font-medium">Echo Voice</span>}
+        {/* Card Footer: Origin Metadata (e.g. Echo Voice speech-to-text indicator) */}
+        {node.sourceType === "transcript" && (
+          <div className="mt-1.5 pt-1 border-t border-border-subtle flex items-center justify-end text-[10px]">
+            <span className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 font-medium bg-sky-50 dark:bg-sky-950/40 px-1.5 py-0.5 rounded border border-sky-200 dark:border-sky-800/50">
+              Echo Voice
+            </span>
           </div>
         )}
 

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Ensure dark: variant only applies when .dark class is explicitly present on an ancestor */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* 1. Default: Warm Alabaster & Oatmeal (Linear / Arc Inspired Light Mode) */
 :root {
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
