@@ -80,7 +80,7 @@ export default function InfiniteCanvas({ canvas }) {
   const lastCursorEmitRef = useRef(0);
   const lastViewportEmitRef = useRef(0);
 
-  // Handle Space key for canvas panning
+  // Handle keyboard shortcuts (Space to pan, Escape to deselect, Ctrl +/-/0 for canvas zoom)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.code === "Space" && !isSpacePressed && !e.target.matches("input, textarea")) {
@@ -91,6 +91,20 @@ export default function InfiniteCanvas({ canvas }) {
         setSelectedNodeId(null);
         setSelectedEdgeId(null);
         setShowZonesPanel(false);
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === "+" || e.key === "=" || e.key === "-" || e.key === "0")) {
+        // Prevent browser whole-page zoom and apply to canvas instead
+        e.preventDefault();
+        if (!containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        if (e.key === "+" || e.key === "=") {
+          zoomAt(1.15, centerX, centerY, rect);
+        } else if (e.key === "-") {
+          zoomAt(0.85, centerX, centerY, rect);
+        } else if (e.key === "0") {
+          resetViewport();
+        }
       }
     };
 
@@ -106,23 +120,55 @@ export default function InfiniteCanvas({ canvas }) {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isSpacePressed, setConnectingNodeId, setSelectedNodeId, setSelectedEdgeId]);
+  }, [isSpacePressed, setConnectingNodeId, setSelectedNodeId, setSelectedEdgeId, zoomAt, resetViewport]);
 
-  // Wheel Zoom centered around mouse pointer (breaks follow mode on manual interaction)
-  const handleWheel = useCallback(
-    (e) => {
+  // Native non-passive Wheel / Trackpad listener to prevent browser whole-page zoom
+  // Follows Figma/Miro standard: trackpad pinch (ctrlKey) zooms; 2-finger scroll pans
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onWheel = (e) => {
+      // Actively cancel browser native page zoom (non-passive listener)
       e.preventDefault();
+
       if (isFollowing) {
         setFollowing(false);
       }
-      if (!containerRef.current) return;
 
-      const rect = containerRef.current.getBoundingClientRect();
-      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-      zoomAt(zoomFactor, e.clientX, e.clientY, rect);
-    },
-    [zoomAt, isFollowing, setFollowing]
-  );
+      const rect = container.getBoundingClientRect();
+
+      // Case 1: Trackpad pinch gesture (browsers emit wheel with ctrlKey=true) OR Ctrl+Mouse Wheel
+      if (e.ctrlKey || e.metaKey) {
+        // Smooth continuous exponential zoom proportional to pinch distance
+        const factor = Math.exp(-e.deltaY * 0.008);
+        zoomAt(factor, e.clientX, e.clientY, rect);
+        return;
+      }
+
+      // Case 2: Shift + Wheel horizontal scroll
+      if (e.shiftKey) {
+        pan(-e.deltaY, 0);
+        return;
+      }
+
+      // Case 3: Trackpad two-finger glide OR regular mouse wheel
+      // Laptop trackpads emit both deltaX and deltaY to glide smoothly across the board
+      pan(-e.deltaX, -e.deltaY);
+    };
+
+    const preventGesture = (e) => e.preventDefault();
+
+    container.addEventListener("wheel", onWheel, { passive: false });
+    container.addEventListener("gesturestart", preventGesture);
+    container.addEventListener("gesturechange", preventGesture);
+
+    return () => {
+      container.removeEventListener("wheel", onWheel);
+      container.removeEventListener("gesturestart", preventGesture);
+      container.removeEventListener("gesturechange", preventGesture);
+    };
+  }, [isFollowing, setFollowing, zoomAt, pan]);
 
   // Pointer Down for background pan (breaks follow mode on manual interaction)
   const handlePointerDown = useCallback(
@@ -357,7 +403,6 @@ export default function InfiniteCanvas({ canvas }) {
   return (
     <div
       ref={containerRef}
-      onWheel={handleWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
