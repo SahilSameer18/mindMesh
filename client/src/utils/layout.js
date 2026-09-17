@@ -86,10 +86,62 @@ export function arrangeInGrid(cards = [], options = {}) {
   });
 }
 
+/**
+ * Finds the nearest non-overlapping position for a new card.
+ * If the target spot overlaps with any existing card, it searches outward in a grid pattern.
+ * @param {number} targetX
+ * @param {number} targetY
+ * @param {Array<{ x: number, y: number }>} existingNodes
+ * @param {number} [cardW=280]
+ * @param {number} [cardH=160]
+ * @param {number} [margin=40]
+ * @returns {{ x: number, y: number }}
+ */
+export function findAvailableSpot(targetX, targetY, existingNodes = [], cardW = 280, cardH = 160, margin = 40) {
+  if (!existingNodes || existingNodes.length === 0) {
+    return gridSnap(targetX, targetY);
+  }
+
+  const strideX = cardW + margin;
+  const strideY = cardH + margin;
+
+  const isSpotOccupied = (x, y) => {
+    return existingNodes.some((n) => {
+      if (typeof n.x !== "number" || typeof n.y !== "number") return false;
+      return (
+        Math.abs(n.x - x) < cardW &&
+        Math.abs(n.y - y) < cardH
+      );
+    });
+  };
+
+  const initial = gridSnap(targetX, targetY);
+  if (!isSpotOccupied(initial.x, initial.y)) {
+    return initial;
+  }
+
+  // Spiral search outward in radial concentric rings
+  const maxRings = 10;
+  for (let ring = 1; ring <= maxRings; ring++) {
+    for (let dx = -ring; dx <= ring; dx++) {
+      for (let dy = -ring; dy <= ring; dy++) {
+        if (Math.abs(dx) !== ring && Math.abs(dy) !== ring) continue;
+        const testPos = gridSnap(targetX + dx * strideX, targetY + dy * strideY);
+        if (!isSpotOccupied(testPos.x, testPos.y)) {
+          return testPos;
+        }
+      }
+    }
+  }
+
+  return gridSnap(targetX + strideX, targetY + strideY);
+}
+
 export const layoutEngine = {
   gridSnap,
   calculateBoundingBox,
   arrangeInGrid,
+  findAvailableSpot,
 };
 
 export default layoutEngine;

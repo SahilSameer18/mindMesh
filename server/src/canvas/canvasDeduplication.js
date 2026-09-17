@@ -104,7 +104,50 @@ export function findMatchingAgendaPillar(action, resolvedNodes = []) {
     }
   }
 
-  return bestPillar;
+}
+
+/**
+ * Computes a non-overlapping (x, y) location for a new unattached node on the canvas.
+ */
+function findAvailableCanvasSpot(existingNodes = []) {
+  if (!existingNodes || existingNodes.length === 0) {
+    return { x: 100, y: 100 };
+  }
+
+  let maxX = 100;
+  let maxY = 100;
+  for (const n of existingNodes) {
+    if (typeof n.x === "number" && n.x > maxX) maxX = n.x;
+    if (typeof n.y === "number" && n.y > maxY) maxY = n.y;
+  }
+
+  let targetX = maxX + 320;
+  let targetY = 100;
+
+  if (targetX > 1500) {
+    targetX = 100;
+    targetY = maxY + 220;
+  }
+
+  const isOccupied = (x, y) => {
+    return existingNodes.some(
+      (n) =>
+        typeof n.x === "number" &&
+        typeof n.y === "number" &&
+        Math.abs(n.x - x) < 260 &&
+        Math.abs(n.y - y) < 140
+    );
+  };
+
+  while (isOccupied(targetX, targetY)) {
+    targetX += 320;
+    if (targetX > 1500) {
+      targetX = 100;
+      targetY += 220;
+    }
+  }
+
+  return { x: Math.round(targetX), y: Math.round(targetY) };
 }
 
 /**
@@ -214,6 +257,14 @@ export function deduplicateAndLinkActions(actions = [], existingNodes = [], exis
             finalActions.push(edgeAction);
           }
         } else {
+          // If no matched agenda pillar, ensure the node has a non-overlapping position
+          // instead of defaulting to (0, 0)!
+          if (typeof action.payload.x !== "number" || (action.payload.x === 0 && action.payload.y === 0)) {
+            const spot = findAvailableCanvasSpot(resolvedNodes);
+            action.payload.x = spot.x;
+            action.payload.y = spot.y;
+          }
+
           finalActions.push(action);
           resolvedNodes.push({
             id: action.payload.id,

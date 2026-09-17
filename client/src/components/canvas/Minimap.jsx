@@ -26,7 +26,13 @@ export function Minimap({
   flyTo = null,
   setViewportDirect = null,
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Auto-collapse minimap on small tablet/mobile viewports to prevent covering the canvas
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
   const radarRef = useRef(null);
   const isDraggingRef = useRef(false);
 
@@ -156,7 +162,8 @@ export function Minimap({
 
   // 2. Compute current user camera rectangle in minimap space
   const userCameraRect = useMemo(() => {
-    const { width: cWidth, height: cHeight } = getFreshDimensions();
+    const cWidth = containerSize.width;
+    const cHeight = containerSize.height;
 
     const canvasLeft = -viewport.x / viewport.zoom;
     const canvasTop = -viewport.y / viewport.zoom;
@@ -173,7 +180,7 @@ export function Minimap({
       width: Math.max(w, 8),
       height: Math.max(h, 6),
     };
-  }, [viewport, getFreshDimensions, scale, toRadarCoords]);
+  }, [viewport, containerSize, scale, toRadarCoords]);
 
   // 3. Interactive jump / drag navigation
   const handleJumpTo = useCallback(

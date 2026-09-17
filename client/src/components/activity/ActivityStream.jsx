@@ -7,10 +7,8 @@ import {
   Ban,
   Clock,
   ExternalLink,
-  Target,
   Lightbulb,
   CheckSquare,
-  AlertTriangle,
   Link2,
   HelpCircle,
   Move,
@@ -111,7 +109,7 @@ export default function ActivityStream({
     return (
       <aside
         aria-label="Open Live Transcript"
-        className="fixed top-18 right-6 z-40 animate-in fade-in zoom-in-95 duration-150 pointer-events-auto"
+        className="fixed top-18 right-3 sm:right-6 z-40 animate-in fade-in zoom-in-95 duration-150 pointer-events-auto"
       >
         <button
           type="button"
@@ -145,7 +143,7 @@ export default function ActivityStream({
     return (
       <aside
         aria-label="Activity & Live Transcript (Minimized)"
-        className="fixed top-18 right-6 z-40 flex items-center gap-1.5 p-1.5 rounded-2xl bg-surface/90 border border-border-subtle backdrop-blur-2xl shadow-elevated animate-in fade-in zoom-in-95 duration-150 text-text-main pointer-events-auto"
+        className="fixed top-18 right-3 sm:right-6 z-40 flex items-center gap-1.5 p-1.5 rounded-2xl bg-surface/90 border border-border-subtle backdrop-blur-2xl shadow-elevated animate-in fade-in zoom-in-95 duration-150 text-text-main pointer-events-auto"
       >
         <button
           type="button"
@@ -205,7 +203,7 @@ export default function ActivityStream({
   return (
     <aside
       aria-label="Activity & Live Transcript Floating Panel"
-      className="fixed top-18 right-6 z-40 w-[calc(100%-3rem)] sm:w-92 h-[520px] max-h-[calc(100vh-6rem)] bg-surface/95 border border-border-subtle rounded-3xl backdrop-blur-2xl shadow-elevated flex flex-col overflow-hidden text-text-main animate-in fade-in zoom-in-95 duration-200"
+      className="fixed bottom-3 inset-x-3 sm:bottom-auto sm:inset-x-auto sm:top-18 sm:right-6 z-40 w-auto sm:w-92 h-[60vh] max-h-[500px] sm:h-[520px] sm:max-h-[calc(100vh-6rem)] bg-surface/95 border border-border-subtle rounded-3xl backdrop-blur-2xl shadow-elevated flex flex-col overflow-hidden text-text-main animate-in fade-in zoom-in-95 duration-200"
     >
       {/* Primary Floating Header with Tab Switcher & Window Controls */}
       <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-border-subtle bg-surface-subtle/80 backdrop-blur-md shrink-0">
@@ -408,10 +406,12 @@ export default function ActivityStream({
                       <div className="flex items-center gap-1 text-text-faint">
                         <Clock className="w-3 h-3" />
                         <span>
-                          {new Date(item.createdAt || Date.now()).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {item.createdAt
+                            ? new Date(item.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "Just now"}
                         </span>
                       </div>
 

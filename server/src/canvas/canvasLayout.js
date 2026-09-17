@@ -8,12 +8,12 @@
  */
 
 const CARD_WIDTH = 280;
-const CARD_HEIGHT = 140;
-const COL_GAP = 80;
-const ROW_GAP = 40;
+const CARD_HEIGHT = 150;
+const COL_GAP = 100;
+const ROW_GAP = 60;
 
-const COL_STRIDE = CARD_WIDTH + COL_GAP; // 360px
-const ROW_STRIDE = CARD_HEIGHT + ROW_GAP; // 180px
+const COL_STRIDE = CARD_WIDTH + COL_GAP; // 380px
+const ROW_STRIDE = CARD_HEIGHT + ROW_GAP; // 210px
 
 /**
  * Roadmap Layout:

@@ -88,7 +88,12 @@ export default function VideoConferenceBar({
   const currentUser = propCurrentUser || room?.currentUser;
   const peers = propPeers || room?.peers || [];
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
   const [position, setPosition] = useState(null); // null = use default non-overlapping CSS position
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ pointerX: 0, pointerY: 0, startX: 0, startY: 0 });
@@ -160,7 +165,7 @@ export default function VideoConferenceBar({
     : undefined;
 
   // Non-overlapping default position: bottom-6 left-44 (clear of both zoom controls and left toolbar)
-  const positionClass = position ? "fixed z-40" : "fixed bottom-6 left-44 z-40";
+  const positionClass = position ? "fixed z-40" : "fixed bottom-20 left-4 sm:bottom-6 sm:left-44 z-40 max-w-[calc(100vw-2rem)]";
 
   // Collapsed Mode: Micro-pill
   if (isCollapsed) {
@@ -255,8 +260,8 @@ export default function VideoConferenceBar({
       <div
         className={
           isMultiPeer
-            ? "grid grid-cols-2 gap-1.5 max-w-[240px]"
-            : "flex items-center gap-1.5"
+            ? "grid grid-cols-2 gap-1.5 max-w-[240px] max-h-[50vh] overflow-y-auto"
+            : "flex items-center gap-1.5 max-w-[calc(100vw-3rem)] overflow-x-auto"
         }
       >
         {/* Local User Tile */}

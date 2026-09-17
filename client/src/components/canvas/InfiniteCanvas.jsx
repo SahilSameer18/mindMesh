@@ -20,6 +20,7 @@ import { Minimap } from "./Minimap.jsx";
 import { PresenterFollowBanner } from "../presence/PresenterFollowBanner.jsx";
 import { useRoom } from "../../hooks/useRoom.js";
 import { NODE_TYPES, EDGE_TYPES } from "../../utils/canvasConstants.js";
+import { findAvailableSpot } from "../../utils/layout.js";
 
 export default function InfiniteCanvas({ canvas }) {
   const {
@@ -74,6 +75,8 @@ export default function InfiniteCanvas({ canvas }) {
   const [showZonesPanel, setShowZonesPanel] = useState(false);
   const [newZoneName, setNewZoneName] = useState("");
   const panStartRef = useRef({ x: 0, y: 0 });
+  const touchDistRef = useRef(null);
+  const touchCenterRef = useRef(null);
   const lastCursorEmitRef = useRef(0);
   const lastViewportEmitRef = useRef(0);
 
@@ -222,6 +225,63 @@ export default function InfiniteCanvas({ canvas }) {
     setIsPanning(false);
   }, []);
 
+  // Touch Gestures: Pinch-to-zoom and two-finger pan for mobile touchscreens
+  const handleTouchStart = useCallback(
+    (e) => {
+      if (e.touches.length === 2) {
+        if (isFollowing) {
+          setFollowing(false);
+        }
+        setIsPanning(false);
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        touchDistRef.current = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        touchCenterRef.current = {
+          x: (t1.clientX + t2.clientX) / 2,
+          y: (t1.clientY + t2.clientY) / 2,
+        };
+      }
+    },
+    [isFollowing, setFollowing]
+  );
+
+  const handleTouchMove = useCallback(
+    (e) => {
+      if (e.touches.length === 2 && touchDistRef.current && touchCenterRef.current) {
+        e.preventDefault();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        const midX = (t1.clientX + t2.clientX) / 2;
+        const midY = (t1.clientY + t2.clientY) / 2;
+
+        if (touchDistRef.current > 0) {
+          const ratio = dist / touchDistRef.current;
+          if (Math.abs(ratio - 1) > 0.005) {
+            const rect = containerRef.current.getBoundingClientRect();
+            zoomAt(ratio, midX, midY, rect);
+            touchDistRef.current = dist;
+          }
+        }
+
+        const dx = midX - touchCenterRef.current.x;
+        const dy = midY - touchCenterRef.current.y;
+        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+          pan(dx, dy);
+          touchCenterRef.current = { x: midX, y: midY };
+        }
+      }
+    },
+    [zoomAt, pan]
+  );
+
+  const handleTouchEnd = useCallback((e) => {
+    if (e.touches.length < 2) {
+      touchDistRef.current = null;
+      touchCenterRef.current = null;
+    }
+  }, []);
+
   // Quick Node Creator helper placing new nodes near viewport center
   const handleQuickAdd = (type) => {
     if (!containerRef.current) return;
@@ -230,9 +290,9 @@ export default function InfiniteCanvas({ canvas }) {
     const centerY = rect.height / 2;
     const canvasPos = screenToCanvas(centerX, centerY, rect);
 
-    // Add slight random offset to prevent overlapping nodes
-    const offsetX = (Math.random() - 0.5) * 80;
-    const offsetY = (Math.random() - 0.5) * 80;
+    const targetX = canvasPos.x - 140;
+    const targetY = canvasPos.y - 70;
+    const { x, y } = findAvailableSpot(targetX, targetY, nodes, 280, 160, 40);
 
     const titles = {
       [NODE_TYPES.GOAL]: "New Objective",
@@ -246,8 +306,8 @@ export default function InfiniteCanvas({ canvas }) {
     createNode({
       type,
       text: titles[type] || "New Item",
-      x: canvasPos.x - 128 + offsetX,
-      y: canvasPos.y - 48 + offsetY,
+      x,
+      y,
     });
   };
 
@@ -301,7 +361,11 @@ export default function InfiniteCanvas({ canvas }) {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      className={`relative w-full h-full overflow-hidden canvas-grid bg-app select-none ${
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      className={`relative w-full h-full overflow-hidden canvas-grid bg-app select-none touch-none ${
         isPanning || isSpacePressed ? "cursor-grab active:cursor-grabbing" : connectingNodeId ? "cursor-crosshair" : "cursor-default"
       }`}
       style={{
