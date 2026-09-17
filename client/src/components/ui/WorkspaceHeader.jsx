@@ -16,11 +16,13 @@ import {
   Check,
   Copy,
   Sparkles,
+  UserPlus,
 } from "lucide-react";
 import BrandLogo from "./BrandLogo.jsx";
 import UserProfileMenu from "./menus/UserProfileMenu.jsx";
 import CanvasShortcutsModal from "./modals/CanvasShortcutsModal.jsx";
 import LeaveMeetingModal from "./modals/LeaveMeetingModal.jsx";
+import GuestJoinModal from "../auth/GuestJoinModal.jsx";
 
 export default function WorkspaceHeader({
   onOpenAuth,
@@ -57,6 +59,8 @@ export default function WorkspaceHeader({
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isDeletingRoom, setIsDeletingRoom] = useState(false);
+  const [isCreatingInvite, setIsCreatingInvite] = useState(false);
+  const [inviteUrl, setInviteUrl] = useState(null);
 
   const userMenuRef = useRef(null);
   const helpMenuRef = useRef(null);
@@ -98,6 +102,18 @@ export default function WorkspaceHeader({
       }).catch(() => {
         toast.error("Could not copy link to clipboard.");
       });
+    }
+  };
+
+  const handleCreateInvite = async () => {
+    setIsCreatingInvite(true);
+    try {
+      const res = await roomsApi.createInvite(roomId);
+      setInviteUrl(res.data?.url || null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Failed to create invite link.");
+    } finally {
+      setIsCreatingInvite(false);
     }
   };
 
@@ -176,6 +192,15 @@ export default function WorkspaceHeader({
             ) : (
               <Copy className="w-3 h-3" />
             )}
+          </button>
+          <button
+            type="button"
+            onClick={handleCreateInvite}
+            disabled={isCreatingInvite}
+            className="p-0.5 text-text-muted hover:text-text-main rounded transition-colors disabled:opacity-50 cursor-pointer"
+            title="Generate a scoped guest invite link"
+          >
+            <UserPlus className="w-3 h-3" />
           </button>
         </div>
 
@@ -442,6 +467,14 @@ export default function WorkspaceHeader({
         onConfirmLeave={handleLeaveCall}
         onConfirmDelete={handleExecuteDeleteRoom}
         isDeleting={isDeletingRoom}
+      />
+
+      {/* Scoped Guest Invite Link Modal */}
+      <GuestJoinModal
+        isOpen={Boolean(inviteUrl)}
+        onClose={() => setInviteUrl(null)}
+        roomId={roomId}
+        inviteUrl={inviteUrl}
       />
     </header>
   );
