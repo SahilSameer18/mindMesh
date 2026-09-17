@@ -34,13 +34,6 @@ export const authApi = {
   },
 
   /**
-   * Update current user profile (e.g. name)
-   */
-  async updateProfile({ name }) {
-    return apiClient.patch("/api/auth/me", { name });
-  },
-
-  /**
    * Log out and terminate current session
    */
   async logout() {

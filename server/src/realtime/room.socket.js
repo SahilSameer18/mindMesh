@@ -9,7 +9,7 @@ export function registerRoomSocketHandlers(io, socket) {
   /**
    * Client joins a named room channel
    */
-  socket.on("room:join", ({ roomId, user }, callback) => {
+  socket.on("room:join", ({ roomId }, callback) => {
     if (!roomId) {
       if (typeof callback === "function") {
         callback({ success: false, error: "Missing roomId" });
@@ -19,12 +19,10 @@ export function registerRoomSocketHandlers(io, socket) {
 
     socket.join(roomId);
     socket.roomId = roomId;
-    if (user) {
-      socket.user = user;
-      if (!socket.data) socket.data = {};
-      socket.data.user = user;
-      socket.data.roomId = roomId;
-    }
+    // Authoritative identity from socket handshake (socketAuthMiddleware) — NEVER
+    // trust a client-supplied `user` payload here (matches canvas:join's guard).
+    if (!socket.data) socket.data = {};
+    socket.data.roomId = roomId;
 
     socket.emit("room:joined", {
       roomId,

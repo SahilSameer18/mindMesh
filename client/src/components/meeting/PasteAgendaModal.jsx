@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, ListOrdered, Sparkles, ArrowRight, Loader2, BookOpen } from "lucide-react";
+import { X, ListOrdered, Sparkles, ArrowRight, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { aiApi } from "../../api/ai.api.js";
 
@@ -178,6 +178,7 @@ export default function PasteAgendaModal({ isOpen, onClose, roomId }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

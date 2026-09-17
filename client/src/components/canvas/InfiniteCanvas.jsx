@@ -178,6 +178,12 @@ export default function InfiniteCanvas({ canvas }) {
       }
       // Middle-click (button 1) or Left-click with Space pressed or clicking empty canvas background
       if (e.button === 1 || isSpacePressed || e.target === containerRef.current || e.target.classList.contains("canvas-bg")) {
+        // preventDefault() below (needed to stop native drag/text-selection while panning) also
+        // suppresses the browser's implicit blur of whatever's focused — e.g. a node mid-edit —
+        // so force that blur explicitly first, letting CanvasNode's onBlur commit the edit.
+        if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
+          document.activeElement.blur();
+        }
         e.preventDefault();
         setIsPanning(true);
         panStartRef.current = { x: e.clientX, y: e.clientY };

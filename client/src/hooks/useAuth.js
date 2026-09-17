@@ -98,19 +98,6 @@ export function useAuth() {
     }
   };
 
-  const updateProfile = async ({ name }) => {
-    try {
-      const res = await authApi.updateProfile({ name });
-      const updated = res?.data || res;
-      ctx.setUser((prev) => (prev ? { ...prev, ...updated } : updated));
-      return updated;
-    } catch (err) {
-      const msg = extractError(err, "Failed to update profile");
-      ctx.setAuthError(msg);
-      throw err;
-    }
-  };
-
   return {
     user: ctx.user,
     setUser: ctx.setUser,
@@ -123,7 +110,6 @@ export function useAuth() {
     signup,
     logout,
     logoutAll,
-    updateProfile,
     refreshSession: ctx.refreshSession,
   };
 }

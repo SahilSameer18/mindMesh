@@ -104,6 +104,7 @@ export function findMatchingAgendaPillar(action, resolvedNodes = []) {
     }
   }
 
+  return bestPillar;
 }
 
 /**

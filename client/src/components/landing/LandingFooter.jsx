@@ -1,6 +1,8 @@
 import BrandLogo from "../ui/BrandLogo.jsx";
+import { useRouter } from "../../app.routes.jsx";
 
-export default function LandingFooter({ onOpenAuth, onLaunchDemo }) {
+export default function LandingFooter({ onLaunchDemo }) {
+  const { navigateToLogin } = useRouter();
   return (
     <footer className="w-full border-t border-border-subtle bg-surface-subtle pt-12 sm:pt-16 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 select-none">
       <div className="max-w-5xl mx-auto space-y-12">
@@ -86,7 +88,7 @@ export default function LandingFooter({ onOpenAuth, onLaunchDemo }) {
               <li>
                 <button
                   type="button"
-                  onClick={() => onOpenAuth?.("login")}
+                  onClick={() => navigateToLogin()}
                   className="hover:text-text-main transition-colors cursor-pointer text-left"
                 >
                   Account Portal

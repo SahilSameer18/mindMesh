@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRoom } from "./useRoom.js";
-
-const SERVER_URL =
-  import.meta.env.VITE_SERVER_URL ||
-  (typeof window !== "undefined" && window.location.port === "5173"
-    ? `${window.location.protocol}//${window.location.hostname}:3000`
-    : "");
+import { aiApi } from "../api/ai.api.js";
 
 /**
  * Shared hook managing room AI action history and live events.
@@ -17,17 +12,15 @@ export function useAIActions() {
   const [actions, setActions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 1. Initial hydration from REST endpoint
+  // 1. Initial hydration from REST endpoint (via apiClient, so the session cookie
+  // actually rides along — a bare fetch() here 403s against requireRoomAccess).
   const fetchActions = useCallback(async () => {
     if (!roomId) return;
     try {
       setIsLoading(true);
-      const res = await fetch(`${SERVER_URL}/api/rooms/${roomId}/ai-actions?limit=50`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setActions(json.data);
-        }
+      const json = await aiApi.getAIActions(roomId, { limit: 50 });
+      if (json?.success && Array.isArray(json.data)) {
+        setActions(json.data);
       }
     } catch (err) {
       console.warn("[useAIActions] Failed to hydrate AI actions:", err.message);
