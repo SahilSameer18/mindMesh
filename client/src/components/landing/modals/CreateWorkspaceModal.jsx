@@ -20,7 +20,7 @@ export function CreateWorkspaceModal({
   onRandomize,
   isRolling = false,
   onSubmit,
-  userColor = "#6366f1",
+  userColor = "#A8542E",
   userInitials = "ME",
 }) {
   if (!isOpen || typeof document === "undefined") return null;
@@ -33,7 +33,7 @@ export function CreateWorkspaceModal({
       onClick={onClose}
     >
       <div
-        className="bg-surface border border-border-subtle rounded-2xl sm:rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-elevated space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
+        className="bg-surface border border-border-subtle rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-elevated space-y-5 animate-in zoom-in-95 duration-150 relative text-left"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -47,7 +47,7 @@ export function CreateWorkspaceModal({
 
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-accent/10 text-accent border border-accent/20 flex items-center justify-center">
               <BrandLogo className="w-4 h-4" />
             </div>
             <h3 className="text-lg font-bold text-text-main tracking-tight">
@@ -82,7 +82,7 @@ export function CreateWorkspaceModal({
                   }
                 }}
                 placeholder="Enter your name"
-                className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-surface-subtle border border-border-subtle text-sm text-text-main placeholder:text-text-faint focus:outline-none focus:border-indigo-500 font-medium"
+                className="w-full pl-11 pr-4 py-2.5 rounded-lg bg-surface-subtle border border-border-subtle text-sm text-text-main placeholder:text-text-faint focus:outline-none focus:border-accent font-medium"
                 autoFocus
               />
             </div>
@@ -97,7 +97,7 @@ export function CreateWorkspaceModal({
               <button
                 type="button"
                 onClick={onRandomize}
-                className="flex items-center gap-1 text-[11px] text-text-muted hover:text-indigo-600 transition-colors cursor-pointer"
+                className="flex items-center gap-1 text-[11px] text-text-muted hover:text-accent transition-colors cursor-pointer"
               >
                 <Dices className={`w-3.5 h-3.5 ${isRolling ? "animate-spin" : ""}`} />
                 <span>Randomize</span>
@@ -110,7 +110,7 @@ export function CreateWorkspaceModal({
                 value={roomName}
                 onChange={(e) => setRoomName(e.target.value)}
                 placeholder="sprint-planning"
-                className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-surface-subtle border border-border-subtle text-sm text-text-main placeholder:text-text-faint focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full pl-8 pr-4 py-2.5 rounded-lg bg-surface-subtle border border-border-subtle text-sm text-text-main placeholder:text-text-faint focus:outline-none focus:border-accent font-mono"
               />
             </div>
           </div>
@@ -120,7 +120,7 @@ export function CreateWorkspaceModal({
             <label className="block text-xs font-semibold text-text-main mb-1.5">
               Meeting Mode
             </label>
-            <div className="relative grid grid-cols-2 p-1 rounded-xl bg-surface-subtle border border-border-subtle select-none">
+            <div className="relative grid grid-cols-2 p-1 rounded-lg bg-surface-subtle border border-border-subtle select-none">
               {/* Sliding Indicator */}
               <div
                 className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-lg bg-surface shadow-subtle border border-border-subtle transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none will-change-transform ${
@@ -140,7 +140,7 @@ export function CreateWorkspaceModal({
                 <Zap
                   className={`w-3.5 h-3.5 transition-all duration-300 ${
                     roomMode === "operational"
-                      ? "text-sky-500 fill-sky-500/20 scale-110"
+                      ? "text-accent fill-accent/20 scale-110"
                       : "text-text-muted/60 scale-100"
                   }`}
                 />
@@ -159,7 +159,7 @@ export function CreateWorkspaceModal({
                 <Brain
                   className={`w-3.5 h-3.5 transition-all duration-300 ${
                     roomMode === "brainstorm"
-                      ? "text-purple-500 fill-purple-500/20 scale-110"
+                      ? "text-amber-600 fill-amber-500/20 scale-110"
                       : "text-text-muted/60 scale-100"
                   }`}
                 />
@@ -172,7 +172,7 @@ export function CreateWorkspaceModal({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-1.5 text-xs font-semibold text-text-main">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                <Sparkles className="w-3.5 h-3.5 text-accent" />
                 <span>AI Persona & Instructions</span>
                 <span className="text-[10px] font-normal text-text-faint">(Optional)</span>
               </label>
@@ -192,7 +192,7 @@ export function CreateWorkspaceModal({
               onChange={(e) => setSystemContext(e.target.value)}
               rows={2}
               placeholder="e.g., Act as an Agile Producer. Prioritize actionable tasks, owners, and delivery blockers."
-              className="w-full px-3.5 py-2 rounded-xl bg-surface-subtle border border-border-subtle text-xs text-text-main placeholder:text-text-faint focus:outline-none focus:border-indigo-500 font-medium resize-none transition-all leading-relaxed"
+              className="w-full px-3.5 py-2 rounded-lg bg-surface-subtle border border-border-subtle text-xs text-text-main placeholder:text-text-faint focus:outline-none focus:border-accent font-medium resize-none transition-all leading-relaxed"
             />
 
             {/* Helper Preset Chips */}
@@ -216,7 +216,7 @@ export function CreateWorkspaceModal({
                     "Act as a software architect. Prioritize data contracts, system boundaries, security risks, and APIs."
                   )
                 }
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20 border border-cyan-500/20 transition-all cursor-pointer dark:text-cyan-400"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-surface-hover text-text-main hover:bg-border-subtle border border-border-strong transition-all cursor-pointer"
               >
                 <span>📐 Software Architect</span>
               </button>
@@ -226,7 +226,7 @@ export function CreateWorkspaceModal({
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full py-3 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-md shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+              className="w-full py-3 px-5 rounded-lg bg-accent hover:bg-accent-hover text-on-accent font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
             >
               <span>Enter Workspace</span>
               <ArrowRight className="w-4 h-4" />

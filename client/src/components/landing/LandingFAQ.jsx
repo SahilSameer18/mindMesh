@@ -49,15 +49,12 @@ export default function LandingFAQ() {
         <div className="lg:col-span-5 space-y-5">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-border-subtle text-xs text-text-muted font-semibold shadow-subtle">
-              <HelpCircle className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <HelpCircle className="w-3.5 h-3.5 text-accent" />
               <span>Support &amp; Documentation</span>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-text-main tracking-tight leading-[1.15]">
-              Your Questions,{" "}
-              <span className="bg-gradient-to-r from-sky-500 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Our Answers.
-              </span>
+            <h2 className="text-3xl sm:text-4xl font-serif italic font-medium text-text-main tracking-tight leading-[1.15]">
+              Your questions, our answers.
             </h2>
 
             <p className="text-text-muted text-xs sm:text-sm leading-relaxed max-w-md">
@@ -69,7 +66,7 @@ export default function LandingFAQ() {
           {/* Elevated Support Card balancing the column */}
           <div className="p-5 rounded-2xl bg-surface border border-border-subtle shadow-subtle space-y-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-text-main">
-              <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <Mail className="w-4 h-4 text-accent" />
               <span>Still have questions?</span>
             </div>
             <p className="text-xs text-text-muted leading-relaxed">
@@ -77,7 +74,7 @@ export default function LandingFAQ() {
             </p>
             <a
               href="mailto:support@mindmesh.local"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold transition-colors cursor-pointer dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent border border-accent/25 text-xs font-semibold transition-colors cursor-pointer"
             >
               <span>Contact Support &rarr;</span>
             </a>
@@ -93,7 +90,7 @@ export default function LandingFAQ() {
                 key={faq.id}
                 className={`rounded-2xl border transition-all duration-300 ease-in-out overflow-hidden ${
                   isOpen
-                    ? "bg-surface border-indigo-500/60 shadow-elevated"
+                    ? "bg-surface border-accent/50 shadow-elevated"
                     : "bg-surface border-border-subtle hover:border-border-strong hover:bg-surface-hover shadow-subtle"
                 }`}
               >
@@ -106,7 +103,7 @@ export default function LandingFAQ() {
                 >
                   <span
                     className={`text-sm sm:text-base font-semibold transition-colors duration-200 ${
-                      isOpen ? "text-indigo-600 dark:text-indigo-400 font-bold" : "text-text-main group-hover:text-indigo-600"
+                      isOpen ? "text-accent font-bold" : "text-text-main group-hover:text-accent"
                     }`}
                   >
                     {faq.question}
@@ -114,7 +111,7 @@ export default function LandingFAQ() {
                   <div
                     className={`p-1.5 rounded-lg transition-all duration-300 ease-in-out shrink-0 ${
                       isOpen
-                        ? "rotate-180 text-indigo-700 bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-300 scale-105"
+                        ? "rotate-180 text-accent bg-accent/10 scale-105"
                         : "rotate-0 text-text-muted bg-surface-subtle group-hover:text-text-main group-hover:bg-surface-hover"
                     }`}
                   >

@@ -163,12 +163,11 @@ export default function LandingPage() {
   const userColor = getUserColor(userName || "Guest");
 
   return (
-    <div className="min-h-screen w-full bg-app text-text-main flex flex-col selection:bg-indigo-500/15 selection:text-indigo-900 overflow-x-hidden font-sans relative">
+    <div className="min-h-screen w-full bg-app text-text-main flex flex-col selection:bg-accent/20 selection:text-accent overflow-x-hidden font-sans relative">
       {/* Ambient Background Gradient Glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-indigo-200/40 via-violet-100/30 to-sky-100/40 blur-[130px] rounded-full" />
-        <div className="absolute top-[35%] -left-32 w-[500px] h-[400px] bg-purple-100/30 blur-[140px] rounded-full" />
-        <div className="absolute top-[65%] -right-32 w-[550px] h-[450px] bg-sky-100/30 blur-[140px] rounded-full" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-accent/[0.07] blur-[130px] rounded-full" />
+        <div className="absolute top-[65%] -right-32 w-[550px] h-[450px] bg-accent/[0.05] blur-[140px] rounded-full" />
       </div>
 
       {/* 1. Navbar — auth state is self-managed via useAuth() */}
@@ -204,9 +203,10 @@ export default function LandingPage() {
         <LandingFAQ />
       </main>
 
-      {/* 7. Enterprise SaaS Footer */}
+      {/* 7. Footer */}
       <LandingFooter
         onLaunchDemo={handleLaunchDemo}
+        onLaunchNewWorkspace={() => setIsLaunchModalOpen(true)}
       />
 
       {/* Focused Launch Workspace Modal */}

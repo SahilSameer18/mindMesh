@@ -8,8 +8,6 @@ import { useRouter } from "../../app.routes.jsx";
 
 const NAV_LINKS = [
   { href: "#how-it-works", label: "How It Works" },
-  { href: "#workspaces", label: "Workspaces" },
-  { href: "#compare", label: "Compare" },
   { href: "#faq", label: "FAQ" },
 ];
 
@@ -24,7 +22,7 @@ export default function LandingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const userInitials = user ? getUserInitials(user.name || "User") : "";
-  const userColor = user ? getUserColor(user.name || "User") : "#6366f1";
+  const userColor = user ? getUserColor(user.name || "User") : "#A8542E";
 
   // Dynamic glassmorphic transparency on scroll
   useEffect(() => {
@@ -64,10 +62,10 @@ export default function LandingNavbar() {
           className="flex items-center gap-2.5 group transition-transform duration-200 active:scale-95 shrink-0"
           title="mindMesh Home"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm shadow-indigo-500/25 ring-1 ring-black/5 group-hover:scale-105 group-hover:shadow-indigo-500/35 transition-all duration-300">
-            <BrandLogo className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-on-accent shadow-sm ring-1 ring-black/5 group-hover:bg-accent-hover transition-all duration-300">
+            <BrandLogo className="w-4 h-4 text-on-accent" />
           </div>
-          <span className="font-display font-bold text-lg sm:text-xl tracking-tight text-text-main group-hover:text-indigo-600 transition-colors duration-300">
+          <span className="font-serif italic font-medium text-lg sm:text-xl tracking-tight text-text-main group-hover:text-accent transition-colors duration-300">
             mindMesh
           </span>
         </a>
@@ -94,7 +92,7 @@ export default function LandingNavbar() {
               <button
                 type="button"
                 onClick={() => navigateToDashboard()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/20 border border-indigo-500/20 transition-all duration-200 active:scale-95 cursor-pointer group"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent hover:bg-accent-hover text-on-accent shadow-sm transition-all duration-200 active:scale-95 cursor-pointer group"
               >
                 <LayoutDashboard className="w-3.5 h-3.5" />
                 <span>Dashboard</span>
@@ -128,7 +126,7 @@ export default function LandingNavbar() {
               <button
                 type="button"
                 onClick={() => navigateToLogin()}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-text-muted hover:text-text-main hover:bg-surface-subtle transition-all duration-200 active:scale-95 cursor-pointer"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-text-main bg-surface border border-border-subtle hover:border-border-strong hover:bg-surface-subtle transition-all duration-200 active:scale-95 cursor-pointer"
               >
                 Sign In
               </button>
@@ -136,7 +134,7 @@ export default function LandingNavbar() {
               <button
                 type="button"
                 onClick={() => navigateToRegister()}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/20 border border-indigo-500/20 transition-all duration-200 active:scale-95 cursor-pointer group"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-accent hover:bg-accent-hover text-on-accent shadow-sm transition-all duration-200 active:scale-95 cursor-pointer group"
               >
                 <span>Start Free</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform duration-200" />
@@ -145,30 +143,12 @@ export default function LandingNavbar() {
           )}
         </div>
 
-        {/* Mobile Action & Hamburger Toggle */}
+        {/* Mobile Hamburger Toggle */}
         <div className="flex items-center gap-2 sm:hidden">
-          {user ? (
-            <button
-              type="button"
-              onClick={() => navigateToDashboard()}
-              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-all active:scale-95"
-            >
-              Dashboard
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => navigateToRegister()}
-              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-all active:scale-95"
-            >
-              Start
-            </button>
-          )}
-
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-subtle transition-all duration-200 active:scale-90 cursor-pointer"
+            className="p-2 rounded-lg text-text-main bg-surface border border-border-subtle hover:border-border-strong transition-all duration-200 active:scale-90 cursor-pointer shadow-subtle"
             aria-label="Toggle navigation menu"
             aria-expanded={isMobileMenuOpen}
           >
@@ -233,7 +213,7 @@ export default function LandingNavbar() {
                     setIsMobileMenuOpen(false);
                     navigateToDashboard();
                   }}
-                  className="w-full py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-2.5 rounded-xl text-xs font-semibold bg-accent hover:bg-accent-hover text-on-accent shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
                   Go to Dashboard
@@ -257,7 +237,7 @@ export default function LandingNavbar() {
                     setIsMobileMenuOpen(false);
                     navigateToRegister();
                   }}
-                  className="w-full py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-all active:scale-[0.99] cursor-pointer"
+                  className="w-full py-2.5 rounded-xl text-xs font-semibold bg-accent hover:bg-accent-hover text-on-accent shadow-sm transition-all active:scale-[0.99] cursor-pointer"
                 >
                   Start Free Workspace
                 </button>
