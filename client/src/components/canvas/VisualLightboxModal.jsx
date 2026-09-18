@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -8,21 +8,13 @@ import {
   ExternalLink,
   Image as ImageIcon,
 } from "lucide-react";
+import { useEscapeKey } from "../../hooks/useEscapeKey.js";
 
 export default function VisualLightboxModal({ node, onClose }) {
   const [isCopied, setIsCopied] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  // Close on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        onClose?.();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  useEscapeKey(() => onClose?.());
 
   if (!node || !node.metadata?.imageUrl) return null;
 

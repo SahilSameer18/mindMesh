@@ -5,6 +5,7 @@ import apiClient from "../api/apiClient.js";
 import { useRouter } from "../app.routes.jsx";
 import BrandLogo from "../components/ui/BrandLogo.jsx";
 import { useAuth } from "../hooks/useAuth.js";
+import { getUserInitials } from "../utils/colors.js";
 
 export default function GuestJoinPage() {
   const { token } = useParams();
@@ -172,7 +173,7 @@ export default function GuestJoinPage() {
               <div className="mb-4 p-3 rounded-xl bg-accent/[0.06] border border-accent/20 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-full bg-accent text-on-accent flex items-center justify-center font-bold text-xs shadow-sm">
-                    {authUser.name?.charAt(0)?.toUpperCase() || "U"}
+                    {authUser.name ? getUserInitials(authUser.name) : "U"}
                   </div>
                   <div>
                     <p className="font-semibold text-text-main leading-tight">{authUser.name}</p>

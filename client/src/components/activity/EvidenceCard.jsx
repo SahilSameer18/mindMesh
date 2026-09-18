@@ -1,7 +1,8 @@
-import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Quote, Clock, User, Target, Lightbulb, CheckSquare, CheckCircle2, HelpCircle, AlertTriangle, ArrowUpRight } from "lucide-react";
 import { NODE_CONFIGS, NODE_TYPES } from "../../utils/canvasConstants.js";
+import { useEscapeKey } from "../../hooks/useEscapeKey.js";
+import { getUserInitials } from "../../utils/colors.js";
 
 const ICON_MAP = {
   Target,
@@ -14,17 +15,8 @@ const ICON_MAP = {
 };
 
 export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
-  // Close on Escape key - hook must run unconditionally before any early returns
-  useEffect(() => {
-    if (!node) return;
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        onClose?.();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [node, onClose]);
+  // Hook must run unconditionally before any early returns
+  useEscapeKey(() => onClose?.(), Boolean(node));
 
   if (!node) return null;
 
@@ -144,7 +136,7 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
                 <div className="flex items-center justify-between pt-2 border-t border-border-subtle text-xs text-text-muted">
                   <div className="flex items-center gap-1.5">
                     <div className="w-5 h-5 rounded-full bg-accent/10 text-accent border border-accent/25 flex items-center justify-center text-[10px] font-bold">
-                      {speaker.charAt(0)}
+                      {getUserInitials(speaker)}
                     </div>
                     <span className="font-medium text-text-main">{speaker}</span>
                   </div>

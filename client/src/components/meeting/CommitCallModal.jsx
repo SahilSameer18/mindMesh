@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import confetti from "canvas-confetti";
 import { useRoom } from "../../hooks/useRoom.js";
+import { useEscapeKey } from "../../hooks/useEscapeKey.js";
 import {
   CheckCircle2,
   Cpu,
@@ -128,16 +129,6 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
     return () => clearInterval(interval);
   }, [isCommitting, SYNTHESIS_STEPS.length]);
 
-  // Close on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen && !isCommitting) {
-        onClose?.();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isCommitting, onClose]);
 
   const report = latestMeetingReport;
 
@@ -288,17 +279,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
     URL.revokeObjectURL(url);
   };
 
-  // Close on Escape key if not actively synthesizing
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape" && !isCommitting) {
-        onClose?.();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isCommitting, onClose]);
+  useEscapeKey(() => onClose?.(), isOpen && !isCommitting);
 
   if (!isOpen || typeof document === "undefined") return null;
 

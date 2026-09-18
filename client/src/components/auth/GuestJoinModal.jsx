@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Copy, Check, Users } from "lucide-react";
+import { useEscapeKey } from "../../hooks/useEscapeKey.js";
 
 export default function GuestJoinModal({ isOpen, onClose, roomId, inviteUrl }) {
   const [copied, setCopied] = useState(false);
+
+  useEscapeKey(() => onClose?.(), isOpen);
 
   if (!isOpen || typeof document === "undefined") return null;
 
@@ -15,10 +18,16 @@ export default function GuestJoinModal({ isOpen, onClose, roomId, inviteUrl }) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-text-main/20 backdrop-blur-xs animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="guest-join-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-text-main/20 backdrop-blur-xs animate-in fade-in duration-200"
+    >
       <div className="max-w-md w-full rounded-2xl bg-surface border border-border-subtle p-6 shadow-elevated relative text-left animate-in zoom-in-95 duration-150">
         <button
           onClick={onClose}
+          aria-label="Close"
           className="absolute top-4 right-4 text-text-muted hover:text-text-main p-1.5 rounded-lg hover:bg-surface-subtle transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
@@ -29,7 +38,7 @@ export default function GuestJoinModal({ isOpen, onClose, roomId, inviteUrl }) {
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-text-main font-serif italic">Invite Collaborators</h3>
+            <h3 id="guest-join-modal-title" className="text-base font-semibold text-text-main font-serif italic">Invite Collaborators</h3>
             <p className="text-xs text-text-muted">Anyone with this link can join as a guest</p>
           </div>
         </div>

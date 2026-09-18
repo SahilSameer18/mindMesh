@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useRoom } from "../../hooks/useRoom.js";
 import { useAuth } from "../../hooks/useAuth.js";
+import { useEscapeKey } from "../../hooks/useEscapeKey.js";
 import { useRouter } from "../../app.routes.jsx";
 import { roomsApi } from "../../api/rooms.api.js";
 import {
@@ -64,18 +65,11 @@ export default function WorkspaceHeader({
   const userMenuRef = useRef(null);
   const helpMenuRef = useRef(null);
 
-  // Close menus and modal on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        setShowLeaveModal(false);
-        setShowUserMenu(false);
-        setShowHelp(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  useEscapeKey(() => {
+    setShowLeaveModal(false);
+    setShowUserMenu(false);
+    setShowHelp(false);
+  });
 
   // Close menus on click outside
   useEffect(() => {

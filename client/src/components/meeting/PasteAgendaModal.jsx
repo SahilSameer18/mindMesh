@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X, ListOrdered, Sparkles, ArrowRight, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { aiApi } from "../../api/ai.api.js";
+import { useEscapeKey } from "../../hooks/useEscapeKey.js";
 
 const SAMPLE_AGENDA = `1. WebRTC P2P Mesh Video Calling & Low-Latency Signaling Relay
 2. Dual-Engine LLM Failover & Real-Time Context Priming
@@ -21,16 +22,7 @@ export default function PasteAgendaModal({ isOpen, onClose, roomId }) {
     }
   }, [isOpen]);
 
-  // Escape listener
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen && !isSubmitting) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isSubmitting, onClose]);
+  useEscapeKey(onClose, isOpen && !isSubmitting);
 
   if (!isOpen || typeof document === "undefined") return null;
 

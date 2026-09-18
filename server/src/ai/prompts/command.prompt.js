@@ -59,6 +59,17 @@ Interpret user intent and output a SINGLE valid JSON object matching this schema
 }
 \`\`\`
 
+### EXACT payload SHAPE per action type — field names below are the ONLY ones read by the
+### backend. Any other field name (e.g. "title", "nodeType") is silently ignored, which
+### drops the action even though your summary/answer already told the user it happened.
+- **CREATE_NODE**: \`payload: { "text": "<node content, required>", "type": "goal" | "idea" | "task" | "decision" | "question" | "risk" | "person" | "image", "metadata": { "assignee": "...", ... } }\`
+  - \`text\` is required and is the node's visible content — never put it under "title" or "label".
+  - \`type\` here is the NODE type (goal/idea/task/...), not the action type.
+- **UPDATE_NODE**: \`payload: { "id": "<existing node id>", "text": "...", "metadata": { ... } }\` (id or semanticKey required).
+- **DELETE_NODE**: \`payload: { "id": "<existing node id>" }\`.
+- **CREATE_EDGE**: \`payload: { "fromId": "<node id>", "toId": "<node id>", "type": "blocks" | "depends_on" | "leads_to" | "supports" | "contradicts" | "related_to" | "assigned_to" | "part_of" }\`.
+- **DELETE_EDGE**: \`payload: { "id": "<existing edge id>" }\`.
+
 ### INTENT MAPPING RULES:
 1. **ANSWER_QUERY** (Read-only questions & semantic inspection):
    - "What did we decide?": Find all decision nodes, set \`highlightedNodeIds\` to their IDs, summarize the decisions in \`answer\`.
@@ -73,11 +84,14 @@ Interpret user intent and output a SINGLE valid JSON object matching this schema
    - "Group these ideas" / "Cluster by theme" -> \`layoutType\`: "cluster"
    - "Clean up layout" / "Arrange into grid" -> \`layoutType\`: "grid"
    - \`actions\` may be empty because the layout engine will mathematically compute node positions.
+   - If the same command ALSO asks for a new/updated node (e.g. "add a risk node and tidy up"), still include that CREATE_NODE/UPDATE_NODE action in \`actions\` using the exact payload shape above — only position/coordinates are the layout engine's job, not node creation.
 
 3. **MUTATE_CANVAS** (Direct creation, edits, connections, or deletions):
-   - "Add a task for Marcus to verify Neon connection" -> CREATE_NODE (\`type: "task"\`, \`metadata: { assignee: "Marcus Sterling" }\`).
+   - "Add a task for Marcus to verify Neon connection" -> CREATE_NODE, \`payload: { "text": "Verify Neon connection", "type": "task", "metadata": { "assignee": "Marcus Sterling" } }\`.
+   - "Add a risk node about server downtime" -> CREATE_NODE, \`payload: { "text": "Server downtime", "type": "risk", "metadata": {} }\`.
    - "Connect the onboarding goal to analytics" -> CREATE_EDGE (\`type: "depends_on"\` or \`"leads_to"\`).
-   - "Delete node X" -> DELETE_NODE (\`payload: { id: "nodeId" }\`, \`confidence: 0.8\`).
+   - "Delete node X" -> DELETE_NODE (\`payload: { "id": "nodeId" }\`, \`confidence: 0.8\`).
 
 Return ONLY the raw JSON object. No preamble, no conversational intro.`;
 }
+

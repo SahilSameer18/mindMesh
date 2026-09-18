@@ -19,7 +19,7 @@ function getClient() {
   keyRotationIndex = (keyRotationIndex + 1) % keys.length;
 
   if (!clientCache.has(activeKey)) {
-    clientCache.set(activeKey, new Groq({ apiKey: activeKey }));
+    clientCache.set(activeKey, new Groq({ apiKey: activeKey, timeout: 20000 }));
   }
   return { client: clientCache.get(activeKey), keyMask: activeKey.slice(0, 8) + "..." };
 }

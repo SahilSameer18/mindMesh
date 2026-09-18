@@ -1,4 +1,5 @@
-import { createContext, useContext, useCallback, useMemo } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useCallback, useMemo, lazy, Suspense } from "react";
 import {
   useNavigate,
   useLocation,
@@ -8,13 +9,25 @@ import {
   useParams,
 } from "react-router-dom";
 import AppLayout from "./app.layout.jsx";
+// Landing stays eager — it's the default "/" route and should paint immediately.
+// Everything else (canvas/WebRTC/speech stack especially) is route-split so a
+// visitor who only ever sees the landing page never downloads it.
 import LandingPage from "./pages/LandingPage.jsx";
-import RoomPage from "./pages/RoomPage.jsx";
-import DashboardPage from "./pages/DashboardPage.jsx";
-import LoginPage from "./pages/auth/LoginPage.jsx";
-import RegisterPage from "./pages/auth/RegisterPage.jsx";
-import GuestJoinPage from "./pages/GuestJoinPage.jsx";
-import NotFoundPage from "./pages/NotFoundPage.jsx";
+
+const RoomPage = lazy(() => import("./pages/RoomPage.jsx"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage.jsx"));
+const LoginPage = lazy(() => import("./pages/auth/LoginPage.jsx"));
+const RegisterPage = lazy(() => import("./pages/auth/RegisterPage.jsx"));
+const GuestJoinPage = lazy(() => import("./pages/GuestJoinPage.jsx"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage.jsx"));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-app">
+      <div className="w-8 h-8 rounded-full border-2 border-border-strong border-t-accent animate-spin" />
+    </div>
+  );
+}
 
 const RouterContext = createContext(null);
 
@@ -127,17 +140,19 @@ function LegacyQueryRoomWrapper() {
 
 export function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/join/:token" element={<GuestJoinPage />} />
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<LegacyQueryRoomWrapper />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/room/:roomId" element={<RoomRouteWrapper />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/join/:token" element={<GuestJoinPage />} />
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<LegacyQueryRoomWrapper />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/room/:roomId" element={<RoomRouteWrapper />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }
 

@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth.js";
 import { useRouter } from "../app.routes.jsx";
 import { roomsApi } from "../api/rooms.api.js";
 import { getUserInitials, getUserColor } from "../utils/colors.js";
+import { useEscapeKey } from "../hooks/useEscapeKey.js";
 
 // Modular Landing Page Components
 import LandingNavbar from "../components/landing/LandingNavbar.jsx";
@@ -82,17 +83,10 @@ export default function LandingPage() {
     };
   }, []);
 
-  // Keyboard Escape listener
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        setRoomToDelete(null);
-        setIsLaunchModalOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  useEscapeKey(() => {
+    setRoomToDelete(null);
+    setIsLaunchModalOpen(false);
+  });
 
   // Roll new cool room slug
   const rollRoomSlug = () => {

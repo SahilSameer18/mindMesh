@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import {
   Activity,
   Zap,
@@ -57,6 +57,131 @@ function formatActionType(type) {
   }
 }
 
+// Extracted and memoized so a new activity event only re-renders the row that
+// actually changed, not the entire filtered list.
+const ActivityItem = memo(function ActivityItem({ item, onPanToNode, onApprove, onReject }) {
+  const Icon = ACTION_ICONS[item.type] || Activity;
+  const isProposed = item.status === "proposed" || item.status === "clarify";
+  const isClarify = item.status === "clarify";
+  const isApplied = item.status === "applied";
+  const isRejected = item.status === "rejected";
+
+  const payloadText =
+    item.payload?.text ||
+    item.payload?.query ||
+    (item.payload?.id ? `ID: ${item.payload.id.slice(0, 10)}...` : "");
+
+  return (
+    <div
+      className={`p-3.5 rounded-xl border transition-all flex flex-col gap-2 shadow-subtle ${
+        isProposed
+          ? isClarify
+            ? "bg-amber-50/80 border-amber-300 dark:bg-amber-950/20 dark:border-amber-800/50"
+            : "bg-accent/5 border-accent/25"
+          : isRejected
+          ? "bg-surface-subtle border-border-subtle opacity-60"
+          : "bg-surface border-border-subtle hover:border-border-strong"
+      }`}
+    >
+      {/* Header Row */}
+      <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center gap-1.5 font-semibold text-text-main">
+          <Icon className="w-3.5 h-3.5 text-accent" />
+          <span>{formatActionType(item.type)}</span>
+        </div>
+
+        {/* Status / Confidence Badge */}
+        {isApplied && (
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/50 flex items-center gap-1">
+            <Check className="w-2.5 h-2.5" />
+            <span>Applied {item.confidence ? `(${Math.round(item.confidence * 100)}%)` : ""}</span>
+          </span>
+        )}
+        {isProposed && (
+          <span
+            className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+              isClarify
+                ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700/60"
+                : "bg-accent/10 text-accent border-accent/25"
+            }`}
+          >
+            {isClarify
+              ? "⚠️ Needs Clarification"
+              : `⚡ Proposed (${Math.round((item.confidence ?? 0.7) * 100)}%)`}
+          </span>
+        )}
+        {isRejected && (
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-subtle text-text-muted">
+            Dismissed
+          </span>
+        )}
+      </div>
+
+      {/* Content Payload Preview */}
+      {payloadText && (
+        <p className="text-xs text-text-main font-medium leading-snug line-clamp-2">
+          {payloadText}
+        </p>
+      )}
+
+      {/* Reason Explanation */}
+      {item.reason && (
+        <p className="text-[11px] text-text-muted italic">
+          "{item.reason}"
+        </p>
+      )}
+
+      {/* Timestamp & Interactive Buttons */}
+      <div className="flex items-center justify-between pt-2 border-t border-border-subtle mt-0.5 text-[11px]">
+        <div className="flex items-center gap-1 text-text-faint">
+          <Clock className="w-3 h-3" />
+          <span>
+            {item.createdAt
+              ? new Date(item.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "Just now"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {item.payload?.id && (
+            <button
+              type="button"
+              onClick={() => onPanToNode?.(item.payload.id)}
+              className="text-text-muted hover:text-accent transition-colors cursor-pointer"
+              title="Locate on canvas"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {isProposed && (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onReject(item.id)}
+                className="px-2 py-1 rounded-md bg-surface-subtle hover:bg-surface-hover text-text-muted hover:text-text-main border border-border-subtle transition-colors text-[10px] font-medium cursor-pointer"
+              >
+                Dismiss
+              </button>
+              <button
+                type="button"
+                onClick={() => onApprove(item.id)}
+                className="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white transition-colors text-[10px] font-bold shadow-sm flex items-center gap-1 cursor-pointer"
+              >
+                <Check className="w-2.5 h-2.5" />
+                <span>Apply</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function ActivityStream({
   canvas,
   aiActivity: externalAIActivity,
@@ -88,13 +213,8 @@ export default function ActivityStream({
     }
   }, [transcripts, activeInterim, activeTab, isOpen, isMinimized]);
 
-  const handleApprove = (actionId) => {
-    approveAction(actionId);
-  };
-
-  const handleReject = (actionId) => {
-    rejectAction(actionId);
-  };
+  const handleApprove = useCallback((actionId) => approveAction(actionId), [approveAction]);
+  const handleReject = useCallback((actionId) => rejectAction(actionId), [rejectAction]);
 
   const handleSendTypedMessage = (e) => {
     e?.preventDefault();
@@ -328,129 +448,15 @@ export default function ActivityStream({
                 </p>
               </div>
             ) : (
-              filteredActions.map((item) => {
-                const Icon = ACTION_ICONS[item.type] || Activity;
-                const isProposed = item.status === "proposed" || item.status === "clarify";
-                const isClarify = item.status === "clarify";
-                const isApplied = item.status === "applied";
-                const isRejected = item.status === "rejected";
-
-                const payloadText =
-                  item.payload?.text ||
-                  item.payload?.query ||
-                  (item.payload?.id ? `ID: ${item.payload.id.slice(0, 10)}...` : "");
-
-                return (
-                  <div
-                    key={item.id}
-                    className={`p-3.5 rounded-xl border transition-all flex flex-col gap-2 shadow-subtle ${
-                      isProposed
-                        ? isClarify
-                          ? "bg-amber-50/80 border-amber-300 dark:bg-amber-950/20 dark:border-amber-800/50"
-                          : "bg-accent/5 border-accent/25"
-                        : isRejected
-                        ? "bg-surface-subtle border-border-subtle opacity-60"
-                        : "bg-surface border-border-subtle hover:border-border-strong"
-                    }`}
-                  >
-                    {/* Header Row */}
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1.5 font-semibold text-text-main">
-                        <Icon className="w-3.5 h-3.5 text-accent" />
-                        <span>{formatActionType(item.type)}</span>
-                      </div>
-
-                      {/* Status / Confidence Badge */}
-                      {isApplied && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/50 flex items-center gap-1">
-                          <Check className="w-2.5 h-2.5" />
-                          <span>Applied {item.confidence ? `(${Math.round(item.confidence * 100)}%)` : ""}</span>
-                        </span>
-                      )}
-                      {isProposed && (
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${
-                            isClarify
-                              ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700/60"
-                              : "bg-accent/10 text-accent border-accent/25"
-                          }`}
-                        >
-                          {isClarify
-                            ? "⚠️ Needs Clarification"
-                            : `⚡ Proposed (${Math.round((item.confidence ?? 0.7) * 100)}%)`}
-                        </span>
-                      )}
-                      {isRejected && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-subtle text-text-muted">
-                          Dismissed
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Content Payload Preview */}
-                    {payloadText && (
-                      <p className="text-xs text-text-main font-medium leading-snug line-clamp-2">
-                        {payloadText}
-                      </p>
-                    )}
-
-                    {/* Reason Explanation */}
-                    {item.reason && (
-                      <p className="text-[11px] text-text-muted italic">
-                        "{item.reason}"
-                      </p>
-                    )}
-
-                    {/* Timestamp & Interactive Buttons */}
-                    <div className="flex items-center justify-between pt-2 border-t border-border-subtle mt-0.5 text-[11px]">
-                      <div className="flex items-center gap-1 text-text-faint">
-                        <Clock className="w-3 h-3" />
-                        <span>
-                          {item.createdAt
-                            ? new Date(item.createdAt).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : "Just now"}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        {item.payload?.id && (
-                          <button
-                            type="button"
-                            onClick={() => canvas?.panToNode?.(item.payload.id)}
-                            className="text-text-muted hover:text-accent transition-colors cursor-pointer"
-                            title="Locate on canvas"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        {isProposed && (
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleReject(item.id)}
-                              className="px-2 py-1 rounded-md bg-surface-subtle hover:bg-surface-hover text-text-muted hover:text-text-main border border-border-subtle transition-colors text-[10px] font-medium cursor-pointer"
-                            >
-                              Dismiss
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleApprove(item.id)}
-                              className="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white transition-colors text-[10px] font-bold shadow-sm flex items-center gap-1 cursor-pointer"
-                            >
-                              <Check className="w-2.5 h-2.5" />
-                              <span>Apply</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+              filteredActions.map((item) => (
+                <ActivityItem
+                  key={item.id}
+                  item={item}
+                  onPanToNode={canvas?.panToNode}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                />
+              ))
             )}
           </div>
         </>

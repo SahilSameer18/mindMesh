@@ -396,6 +396,23 @@ export default function InfiniteCanvas({ canvas }) {
       setIsTidying(false);
       if (res && res.success !== false) {
         setTidyFeedback("success");
+
+        // Auto-layout always starts the leftmost/topmost node near canvas-space
+        // (0, 0), which can land directly under the fixed left toolbar rail
+        // depending on the current pan. Re-frame the viewport so the tidied
+        // layout's top-left corner clears the rail, using the actual applied
+        // move positions from the server (not local `nodes` state, which may
+        // not have caught up to the broadcast yet).
+        const moves = (res.result?.actions || [])
+          .filter((a) => a.type === "MOVE_NODE" && a.payload)
+          .map((a) => a.payload);
+        if (moves.length > 0) {
+          const minX = Math.min(...moves.map((m) => Number(m.x) || 0));
+          const minY = Math.min(...moves.map((m) => Number(m.y) || 0));
+          const RESERVED_LEFT = 150; // clears the ~86px-wide tools dock rail + margin
+          const RESERVED_TOP = 110;
+          flyTo(RESERVED_LEFT - minX * viewport.zoom, RESERVED_TOP - minY * viewport.zoom, viewport.zoom);
+        }
       } else {
         setTidyFeedback("error");
       }
@@ -579,8 +596,8 @@ export default function InfiniteCanvas({ canvas }) {
               onDelete={deleteNode}
               onStartConnect={handleStartConnect}
               onEndConnect={handleEndConnect}
-              onInspectEvidence={(n) => canvas.setInspectingNode?.(n)}
-              onInspectVisual={(n) => canvas.setInspectingVisualNode?.(n)}
+              onInspectEvidence={canvas.setInspectingNode}
+              onInspectVisual={canvas.setInspectingVisualNode}
             />
           ))}
         </div>

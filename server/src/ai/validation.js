@@ -81,6 +81,13 @@ export function validateAIAction(raw) {
   const reason = String(raw.reason || "").trim() || "Detected by AI";
 
   if (type === "CREATE_NODE") {
+    // The model occasionally drifts to near-miss field names (title/label for the
+    // node text, nodeType for the node type) despite the prompt's exact schema —
+    // fall back to those rather than silently dropping an otherwise-valid action.
+    if (!payload.text && typeof payload.title === "string") payload.text = payload.title;
+    if (!payload.text && typeof payload.label === "string") payload.text = payload.label;
+    if (!payload.type && typeof payload.nodeType === "string") payload.type = payload.nodeType;
+
     if (!payload.text || typeof payload.text !== "string" || !payload.text.trim()) {
       return null;
     }
