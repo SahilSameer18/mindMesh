@@ -1,9 +1,10 @@
-import { LogOut } from "lucide-react";
+import { LogOut, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import BrandLogo from "../ui/BrandLogo.jsx";
 import { getUserInitials, getUserColor } from "../../utils/colors.js";
 import { useAuth } from "../../hooks/useAuth.js";
 import { useRouter } from "../../app.routes.jsx";
+import { useTheme } from "../../hooks/useTheme.js";
 
 /**
  * Minimal app-shell header for authenticated surfaces (Dashboard).
@@ -13,6 +14,7 @@ import { useRouter } from "../../app.routes.jsx";
 export default function DashboardHeader() {
   const { user, logout } = useAuth();
   const { navigateToHome } = useRouter();
+  const { theme, toggleTheme } = useTheme();
 
   const userInitials = user ? getUserInitials(user.name || "User") : "";
   const userColor = user ? getUserColor(user.name || "User") : "#A8542E";
@@ -46,8 +48,18 @@ export default function DashboardHeader() {
         </span>
       </button>
 
-      {user && (
-        <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-subtle transition-all cursor-pointer"
+          aria-label="Toggle theme"
+          title="Toggle theme"
+        >
+          {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+        </button>
+        {user && (
+          <div className="flex items-center gap-2.5">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shadow-xs shrink-0"
             style={{ backgroundColor: userColor }}
@@ -61,14 +73,15 @@ export default function DashboardHeader() {
           <button
             type="button"
             onClick={handleLogout}
-            className="p-1.5 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+            className="p-1.5 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-all cursor-pointer"
             title="Log Out"
             aria-label="Log out"
           >
             <LogOut className="w-3.5 h-3.5" />
           </button>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </header>
   );
 }

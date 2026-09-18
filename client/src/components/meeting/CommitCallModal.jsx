@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import confetti from "canvas-confetti";
 import { useRoom } from "../../hooks/useRoom.js";
@@ -8,7 +8,6 @@ import {
   Check,
   Copy,
   Download,
-  ExternalLink,
   FileText,
   ListTodo,
   HelpCircle,
@@ -18,13 +17,10 @@ import {
   X,
   RotateCw,
   Clock,
-  User,
   Tag,
-  Layers,
   ShieldCheck,
   CheckSquare,
   Square,
-  Zap,
 } from "lucide-react";
 
 export default function CommitCallModal({ isOpen, onClose, canvas }) {
@@ -66,7 +62,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
         particleCount: 70,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ["#38bdf8", "#818cf8", "#c084fc", "#f43f5e", "#fbbf24"],
+        colors: ["#A8542E", "#f59e0b", "#059669", "#e11d48", "#8B5A7C"],
       });
       setTimeout(() => {
         confetti({
@@ -318,7 +314,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
         {/* Modal Top Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-500/20 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-accent flex items-center justify-center text-white shadow-lg shadow-accent/20 shrink-0">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
@@ -327,7 +323,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                   {report ? report.title || "Meeting Synthesis & Commit" : "Commit Meeting Call"}
                 </h2>
                 {report?.cached && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/40">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/25">
                     15s Cooldown Cache
                   </span>
                 )}
@@ -402,17 +398,17 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
             <div className="py-8 px-4 flex flex-col items-center justify-center max-w-xl mx-auto text-center space-y-6 animate-in fade-in duration-300">
               {/* Pulsing AI Logo & Pipeline Progress */}
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-violet-600 flex items-center justify-center shadow-xl shadow-violet-500/30 animate-pulse">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-accent flex items-center justify-center shadow-xl shadow-accent/30 animate-pulse">
                   <Cpu className="w-8 h-8 text-white" />
                 </div>
-                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-cyan-400 to-violet-500 opacity-30 blur animate-pulse" />
+                <div className="absolute -inset-1 rounded-2xl bg-accent opacity-20 blur animate-pulse" />
               </div>
 
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-text-main tracking-tight">
                   Synthesizing Dual-Source Meeting Intelligence
                 </h3>
-                <p className="text-xs sm:text-sm text-indigo-600 dark:text-sky-300 font-medium mt-1 animate-pulse">
+                <p className="text-xs sm:text-sm text-accent font-medium mt-1 animate-pulse">
                   {SYNTHESIS_STEPS[synthesisStep]}
                 </p>
                 <p className="text-[11px] text-text-muted mt-1 max-w-md">
@@ -462,7 +458,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                   value={meetingTitle}
                   onChange={(e) => setMeetingTitle(e.target.value)}
                   placeholder="e.g., Sprint Planning & Architecture Alignment"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-surface border border-border-subtle focus:border-indigo-500 text-sm text-text-main placeholder:text-text-faint outline-none transition-all shadow-subtle"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-surface border border-border-subtle focus:border-accent text-sm text-text-main placeholder:text-text-faint outline-none transition-all shadow-subtle"
                 />
               </div>
 
@@ -470,13 +466,13 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
               <div className="w-full grid grid-cols-3 gap-2.5 pt-1">
                 <div className="p-3 rounded-xl bg-surface border border-border-subtle text-center shadow-subtle">
                   <div className="text-xs text-text-muted font-medium">Canvas Nodes</div>
-                  <div className="text-lg font-bold text-sky-600 dark:text-sky-400 font-mono mt-0.5">
+                  <div className="text-lg font-bold text-accent font-mono mt-0.5">
                     {canvas?.nodes?.length || 0}
                   </div>
                 </div>
                 <div className="p-3 rounded-xl bg-surface border border-border-subtle text-center shadow-subtle">
-                  <div className="text-xs text-text-muted font-medium">Relationships</div>
-                  <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
+                  <div className="text-xs text-text-muted font-medium">Links</div>
+                  <div className="text-lg font-bold text-amber-600 font-mono mt-0.5">
                     {canvas?.edges?.length || 0}
                   </div>
                 </div>
@@ -490,7 +486,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
               <button
                 type="button"
                 onClick={handleRunCommit}
-                className="w-full py-3 px-4 rounded-xl text-sm font-bold bg-gradient-to-r from-amber-500 via-rose-500 to-violet-600 hover:from-amber-400 hover:via-rose-400 hover:to-violet-500 text-white shadow-xl shadow-violet-500/25 transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 px-4 rounded-xl text-sm font-bold bg-gradient-to-r from-amber-500 to-accent hover:from-amber-400 hover:to-accent-hover text-white shadow-xl shadow-accent/25 transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Generate Synthesis &amp; Commit Meeting</span>
@@ -510,7 +506,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                       : "text-text-muted hover:text-text-main"
                   }`}
                 >
-                  <FileText className="w-3.5 h-3.5 text-sky-600" />
+                  <FileText className="w-3.5 h-3.5 text-accent" />
                   <span>Executive Summary</span>
                 </button>
 
@@ -523,10 +519,10 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                       : "text-text-muted hover:text-text-main"
                   }`}
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>Key Decisions</span>
                   {report.keyDecisions?.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-mono">
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-mono">
                       {report.keyDecisions.length}
                     </span>
                   )}
@@ -541,10 +537,10 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                       : "text-text-muted hover:text-text-main"
                   }`}
                 >
-                  <ListTodo className="w-3.5 h-3.5 text-indigo-600" />
+                  <ListTodo className="w-3.5 h-3.5 text-accent" />
                   <span>Action Items</span>
                   {report.actionItems?.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-100 text-indigo-800 font-mono">
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-accent/10 text-accent font-mono">
                       {report.actionItems.length}
                     </span>
                   )}
@@ -559,10 +555,10 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                       : "text-text-muted hover:text-text-main"
                   }`}
                 >
-                  <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
+                  <HelpCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                   <span>Open Questions</span>
                   {report.unresolvedQuestions?.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-100 text-amber-800 font-mono">
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-mono">
                       {report.unresolvedQuestions.length}
                     </span>
                   )}
@@ -577,7 +573,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                       : "text-text-muted hover:text-text-main"
                   }`}
                 >
-                  <Share2 className="w-3.5 h-3.5 text-violet-600" />
+                  <Share2 className="w-3.5 h-3.5 text-accent" />
                   <span>Export Hub</span>
                 </button>
               </div>
@@ -588,12 +584,12 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                   <div className="p-4 sm:p-5 rounded-2xl bg-surface-subtle border border-border-subtle relative">
                     <div className="flex items-center justify-between pb-3 mb-3 border-b border-border-subtle">
                       <span className="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
-                        <FileText className="w-3.5 h-3.5 text-sky-500" /> Executive Synthesis
+                        <FileText className="w-3.5 h-3.5 text-accent" /> Executive Synthesis
                       </span>
                       <button
                         type="button"
                         onClick={() => handleCopy("summary", report.executiveSummary)}
-                        className="flex items-center gap-1 text-xs text-text-muted hover:text-sky-600 transition-colors"
+                        className="flex items-center gap-1 text-xs text-text-muted hover:text-accent transition-colors"
                       >
                         {copiedKey === "summary" ? (
                           <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -622,7 +618,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                             key={idx}
                             className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface text-text-main border border-border-subtle"
                           >
-                            <Tag className="w-2.5 h-2.5 text-sky-500" />
+                            <Tag className="w-2.5 h-2.5 text-accent" />
                             {t}
                           </span>
                         ))}
@@ -878,7 +874,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                           type="button"
                           disabled={exportStates.notion?.loading}
                           onClick={() => handleExport("notion")}
-                          className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                          className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-accent hover:bg-accent-hover text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                         >
                           <Send className="w-3 h-3" />
                           <span>
@@ -941,7 +937,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                           type="button"
                           disabled={exportStates.email?.loading}
                           onClick={() => handleExport("email")}
-                          className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                          className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-[#8B5A7C] hover:bg-[#7A4D6D] text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                         >
                           <Send className="w-3 h-3" />
                           <span>
@@ -998,7 +994,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
                           onClick={handleDownloadMarkdown}
                           className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-surface hover:bg-surface-subtle text-text-main border border-border-subtle transition-colors flex items-center justify-center gap-1.5"
                         >
-                          <Download className="w-3.5 h-3.5 text-sky-500" />
+                          <Download className="w-3.5 h-3.5 text-accent" />
                           <span>Download Markdown (.md)</span>
                         </button>
                         <button
@@ -1038,7 +1034,7 @@ export default function CommitCallModal({ isOpen, onClose, canvas }) {
               <button
                 type="button"
                 onClick={handleDownloadMarkdown}
-                className="hover:text-sky-600 transition-colors flex items-center gap-1"
+                className="hover:text-accent transition-colors flex items-center gap-1"
               >
                 <Download className="w-3 h-3" />
                 <span>Download .md</span>

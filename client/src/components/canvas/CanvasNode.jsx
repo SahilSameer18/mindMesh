@@ -164,7 +164,7 @@ function CanvasNodeComponent({
     <div
       id={`canvas-node-${node.id}`}
       style={{
-        transform: `translate(${node.x}px, ${node.y}px)`,
+        transform: `translate(${node.x}px, ${node.y}px)${isSelected && !isDragging ? " translateY(-2px)" : ""}`,
         touchAction: "none",
         transition: isDragging ? "none" : "transform 450ms cubic-bezier(0.16, 1, 0.3, 1)",
       }}
@@ -178,13 +178,13 @@ function CanvasNodeComponent({
         setEditText(node.text || "");
         setIsEditing(true);
       }}
-      className={`absolute select-none cursor-grab active:cursor-grabbing transition-shadow duration-150 rounded-2xl glass-panel group ${
+      className={`absolute select-none cursor-grab active:cursor-grabbing transition-[box-shadow,border-color] duration-150 rounded-2xl glass-panel group ${
         config.borderClass
       } ${
         isHighlighted
           ? "ring-4 ring-accent ring-offset-2 ring-offset-app shadow-[0_0_30px_rgba(168,84,46,0.35)] animate-pulse z-40"
           : isSelected
-          ? "ring-2 ring-accent shadow-elevated z-30"
+          ? "ring-2 ring-accent/60 shadow-elevated z-30"
           : isConnectingSource
           ? "ring-2 ring-amber-500 ring-dashed z-30"
           : "hover:border-border-strong shadow-card z-10"

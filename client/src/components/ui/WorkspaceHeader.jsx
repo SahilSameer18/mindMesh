@@ -256,7 +256,7 @@ export default function WorkspaceHeader({
               <button
                 type="button"
                 onClick={() => stopPresenting()}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 shadow-sm transition-all animate-pulse"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 shadow-sm transition-all animate-pulse"
                 title="You are currently broadcasting your screen to followers. Click to stop."
               >
                 <span className="w-2 h-2 rounded-full bg-rose-600" />
@@ -294,8 +294,8 @@ export default function WorkspaceHeader({
 
             {/* Inline Contested Presenter Alert Badge */}
             {presenterContestError && (
-              <div className="absolute top-10 right-0 whitespace-nowrap px-2.5 py-1 rounded-md bg-amber-50 border border-amber-300 text-amber-900 text-[11px] font-medium shadow-elevated flex items-center gap-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                <AlertCircle className="w-3 h-3 text-amber-600 shrink-0" />
+              <div className="absolute top-10 right-0 whitespace-nowrap px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-500/15 border border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200 text-[11px] font-medium shadow-elevated flex items-center gap-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>{presenterContestError}</span>
               </div>
             )}
@@ -307,7 +307,7 @@ export default function WorkspaceHeader({
             onClick={onToggleMic}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
               isListening
-                ? "bg-rose-50 text-rose-700 border-rose-300 shadow-sm animate-pulse"
+                ? "bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/40 shadow-sm animate-pulse"
                 : "text-text-main hover:bg-surface-hover bg-surface-subtle border-border-subtle"
             }`}
             title={isListening ? "Mute Live Voice Dictation (Hotkey: M)" : "Start Live Voice Dictation (Hotkey: M)"}

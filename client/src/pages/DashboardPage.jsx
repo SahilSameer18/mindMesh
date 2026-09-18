@@ -34,7 +34,7 @@ const COOL_ROOM_SLUGS = [
 const MODE_FILTERS = ["all", "operational", "brainstorm", "solo"];
 
 const MODE_BADGE = {
-  brainstorm: { icon: Brain, className: "bg-amber-50 text-amber-700 border-amber-200" },
+  brainstorm: { icon: Brain, className: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40" },
   solo: { icon: Layers, className: "bg-surface-hover text-text-main border-border-strong" },
   operational: { icon: Zap, className: "bg-accent/10 text-accent border-accent/25" },
 };
@@ -381,7 +381,7 @@ export default function WorkspacePage() {
                       <button
                         type="button"
                         onClick={(e) => handleDeleteClick(e, room)}
-                        className="p-2 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                        className="p-2 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-all cursor-pointer"
                         title={`Delete ${room.name || room.id}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -405,9 +405,35 @@ export default function WorkspacePage() {
         ) : rooms.length === 0 ? (
           /* No rooms at all */
           <div className="flex flex-col items-center justify-center py-20 sm:py-24 gap-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
-              <Layers className="w-8 h-8 text-accent" />
-            </div>
+            <svg
+              width="168"
+              height="118"
+              viewBox="0 0 168 118"
+              fill="none"
+              className="text-text-faint"
+              aria-hidden="true"
+            >
+              {/* Blank blueprint canvas plate */}
+              <rect
+                x="10.5" y="8.5" width="147" height="101" rx="10"
+                stroke="currentColor" strokeWidth="1.25" strokeDasharray="4 4" opacity="0.35"
+              />
+              {/* Empty node slots, sketched at slight rotations */}
+              <g className="text-accent" opacity="0.55">
+                <rect x="27" y="27" width="46" height="30" rx="6" transform="rotate(-3 50 42)" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="40" cy="39" r="4" transform="rotate(-3 50 42)" stroke="currentColor" strokeWidth="1.25" />
+              </g>
+              <g opacity="0.3">
+                <rect x="93" y="54" width="46" height="30" rx="6" transform="rotate(2 116 69)" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M104 66h24M104 73h16" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+              </g>
+              {/* Dashed connector between the two slots, with endpoint dots */}
+              <path d="M70 55c8 6 15 6 26 8" stroke="currentColor" strokeWidth="1.25" strokeDasharray="3 4" opacity="0.4" />
+              <circle cx="70" cy="55" r="2" fill="currentColor" opacity="0.5" />
+              <circle cx="96" cy="63" r="2" fill="currentColor" opacity="0.5" />
+              {/* Waiting-to-be-placed third card, just a corner sketch */}
+              <path d="M120 24h14v14" stroke="currentColor" strokeWidth="1.25" opacity="0.35" />
+            </svg>
             <div>
               <p className="text-base font-bold text-text-main">No workspaces yet</p>
               <p className="text-sm text-text-muted mt-1">Create your first room to start a collaborative session.</p>

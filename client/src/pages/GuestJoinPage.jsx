@@ -90,23 +90,22 @@ export default function GuestJoinPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-app p-4 text-text-main relative overflow-hidden font-sans selection:bg-indigo-500/15 selection:text-indigo-900">
-      {/* Ambient background glows matching landing page */}
-      <div className="absolute top-1/4 -left-20 w-[500px] h-[400px] bg-gradient-to-tr from-indigo-200/40 via-violet-100/30 to-sky-100/40 blur-[130px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-20 w-[500px] h-[400px] bg-purple-100/35 blur-[140px] rounded-full pointer-events-none" />
+    <div className="min-h-screen w-full flex items-center justify-center bg-app p-4 text-text-main relative overflow-hidden font-sans selection:bg-accent/20 selection:text-accent">
+      {/* Ambient background glow matching every other page */}
+      <div className="absolute top-1/4 -left-20 w-[500px] h-[400px] bg-accent/[0.07] blur-[130px] rounded-full pointer-events-none" />
 
       {/* Center Card */}
-      <div className="max-w-md w-full relative z-10 p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-surface border border-border-subtle shadow-card">
+      <div className="max-w-md w-full relative z-10 p-6 sm:p-8 rounded-2xl bg-surface border border-border-subtle shadow-card">
         {/* Brand header */}
         <div className="flex items-center justify-between mb-8">
           <button
             onClick={() => navigateToHome()}
             className="flex items-center gap-2.5 text-text-main hover:opacity-90 transition-opacity cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm shadow-indigo-500/25">
-              <BrandLogo size={18} className="text-white" />
+            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shadow-sm">
+              <BrandLogo size={18} className="text-on-accent" />
             </div>
-            <span className="font-display font-bold text-lg tracking-tight text-text-main">
+            <span className="font-serif italic font-medium text-lg tracking-tight text-text-main">
               mindMesh
             </span>
           </button>
@@ -114,8 +113,8 @@ export default function GuestJoinPage() {
           <span
             className={`text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border font-mono ${
               authUser
-                ? "text-indigo-700 bg-indigo-50 border-indigo-200"
-                : "text-emerald-700 bg-emerald-50 border-emerald-200"
+                ? "text-accent bg-accent/10 border-accent/25"
+                : "text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/15 dark:border-emerald-500/40"
             }`}
           >
             {authUser ? "Workspace Invite" : "Guest Invite"}
@@ -133,10 +132,10 @@ export default function GuestJoinPage() {
         ) : errorMessage && !inviteData ? (
           /* Error card if invite expired or invalid */
           <div className="py-4 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 mx-auto mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 dark:bg-rose-500/15 dark:border-rose-500/40 flex items-center justify-center text-rose-600 dark:text-rose-400 mx-auto mb-4">
               <AlertCircle className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-display font-bold text-text-main mb-2">Invite Link Unavailable</h2>
+            <h2 className="text-xl font-serif italic font-medium text-text-main mb-2">Invite Link Unavailable</h2>
             <p className="text-sm text-text-muted mb-6">{errorMessage}</p>
 
             <div className="flex flex-col gap-2.5">
@@ -149,7 +148,7 @@ export default function GuestJoinPage() {
               </button>
               <button
                 onClick={() => navigateToLogin()}
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 py-1 cursor-pointer transition-colors"
+                className="text-xs font-semibold text-accent hover:text-accent-hover py-1 cursor-pointer transition-colors"
               >
                 Sign in with existing account
               </button>
@@ -159,7 +158,7 @@ export default function GuestJoinPage() {
           /* Join Form */
           <div>
             <div className="mb-6">
-              <h1 className="text-2xl font-display font-bold text-text-main">
+              <h1 className="text-2xl font-serif italic font-medium text-text-main">
                 Join &ldquo;{inviteData?.roomName || "Workspace Room"}&rdquo;
               </h1>
               <p className="mt-1.5 text-xs text-text-muted">
@@ -170,9 +169,9 @@ export default function GuestJoinPage() {
             </div>
 
             {authUser && (
-              <div className="mb-4 p-3 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex items-center justify-between text-xs">
+              <div className="mb-4 p-3 rounded-xl bg-accent/[0.06] border border-accent/20 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                  <div className="w-7 h-7 rounded-full bg-accent text-on-accent flex items-center justify-center font-bold text-xs shadow-sm">
                     {authUser.name?.charAt(0)?.toUpperCase() || "U"}
                   </div>
                   <div>
@@ -180,14 +179,14 @@ export default function GuestJoinPage() {
                     <p className="text-[11px] text-text-muted">{authUser.email}</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-semibold text-indigo-700 bg-white/90 px-2 py-0.5 rounded-md border border-indigo-200/60 font-mono">
+                <span className="text-[10px] font-semibold text-accent bg-surface/90 px-2 py-0.5 rounded-md border border-accent/25 font-mono">
                   Member
                 </span>
               </div>
             )}
 
             {errorMessage && (
-              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs">
+              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 dark:bg-rose-500/15 dark:border-rose-500/40 flex items-start gap-2.5 text-rose-700 dark:text-rose-300 text-xs">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{errorMessage}</span>
               </div>
@@ -210,7 +209,7 @@ export default function GuestJoinPage() {
                     autoFocus
                     required
                     disabled={isSubmitting}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface border border-border-subtle text-text-main placeholder:text-text-faint focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 text-sm transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface border border-border-subtle text-text-main placeholder:text-text-faint focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 text-sm transition-all"
                   />
                 </div>
               </div>
@@ -218,17 +217,17 @@ export default function GuestJoinPage() {
               <div className="pt-2">
                 {isSubmitting ? (
                   /* Skeleton loader state — satisfies rule: prefer skeleton loaders over raw loading spinners */
-                  <div className="w-full h-11 rounded-xl bg-surface-subtle border border-border-subtle flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-500/15 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-                    <div className="flex items-center gap-2 text-indigo-600 text-sm font-semibold">
-                      <div className="w-4 h-4 rounded-full bg-indigo-500/30 animate-pulse" />
+                  <div className="w-full h-11 rounded-lg bg-surface-subtle border border-border-subtle flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent/15 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+                    <div className="flex items-center gap-2 text-accent text-sm font-semibold">
+                      <div className="w-4 h-4 rounded-full bg-accent/30 animate-pulse" />
                       <span>Entering room...</span>
                     </div>
                   </div>
                 ) : (
                   <button
                     type="submit"
-                    className="w-full h-11 rounded-xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 hover:from-sky-600 hover:via-indigo-600 hover:to-purple-700 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-md shadow-indigo-500/25 active:scale-[0.99] transition-all cursor-pointer"
+                    className="w-full h-11 rounded-lg bg-accent hover:bg-accent-hover text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] transition-all cursor-pointer"
                   >
                     <span>Enter Workspace</span>
                     <ArrowRight className="w-4 h-4" />

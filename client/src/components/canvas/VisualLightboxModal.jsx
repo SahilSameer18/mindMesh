@@ -78,7 +78,7 @@ export default function VisualLightboxModal({ node, onClose }) {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-rose-100/60 text-rose-900 border border-rose-300/60">
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-rose-100/60 dark:bg-rose-500/15 text-rose-900 dark:text-rose-300 border border-rose-300/60 dark:border-rose-500/40">
                   Visual Concept
                 </span>
                 <span className="text-[11px] text-text-muted font-mono hidden sm:inline truncate">

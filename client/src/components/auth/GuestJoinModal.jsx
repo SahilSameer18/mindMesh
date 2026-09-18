@@ -25,11 +25,11 @@ export default function GuestJoinModal({ isOpen, onClose, roomId, inviteUrl }) {
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+          <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-text-main font-display">Invite Collaborators</h3>
+            <h3 className="text-base font-semibold text-text-main font-serif italic">Invite Collaborators</h3>
             <p className="text-xs text-text-muted">Anyone with this link can join as a guest</p>
           </div>
         </div>
@@ -45,7 +45,7 @@ export default function GuestJoinModal({ isOpen, onClose, roomId, inviteUrl }) {
               </div>
               <button
                 onClick={handleCopy}
-                className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-xs"
+                className="px-3 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-xs"
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? "Copied!" : "Copy"}</span>

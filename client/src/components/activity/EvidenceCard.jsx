@@ -14,6 +14,18 @@ const ICON_MAP = {
 };
 
 export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
+  // Close on Escape key - hook must run unconditionally before any early returns
+  useEffect(() => {
+    if (!node) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose?.();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [node, onClose]);
+
   if (!node) return null;
 
   const config = NODE_CONFIGS[node.type] || NODE_CONFIGS[NODE_TYPES.IDEA];
@@ -53,18 +65,9 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
     (aiAction?.createdAt
       ? new Date(aiAction.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       : null) ||
-    new Date(node.createdAt || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-  // Close on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        onClose?.();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+    (node.createdAt
+      ? new Date(node.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : "Recently");
 
   if (typeof document === "undefined") return null;
 
@@ -94,8 +97,8 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <Quote className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
-                <span className="text-xs font-semibold tracking-wider uppercase text-violet-600 dark:text-violet-400">Why This Exists</span>
+                <Quote className="w-3.5 h-3.5 text-accent" />
+                <span className="text-xs font-semibold tracking-wider uppercase text-accent">Why This Exists</span>
               </div>
               <h3 className="text-sm font-semibold text-text-main capitalize">{node.type || "Concept"} Explanation</h3>
             </div>
@@ -121,7 +124,7 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
           {/* AI Rationale from Database AIAction */}
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">AI Reasoning</span>
-            <p className="text-sm text-text-main leading-relaxed bg-violet-50 border border-violet-200 p-3 rounded-xl dark:bg-violet-950/20 dark:border-violet-800/30 dark:text-violet-200/90">
+            <p className="text-sm text-text-main leading-relaxed bg-accent/[0.06] border border-accent/20 p-3 rounded-xl">
               {reason}
             </p>
           </div>
@@ -132,7 +135,7 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
               <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">Source Transcript Evidence</span>
               <div className="p-3.5 rounded-xl bg-surface-subtle border border-border-subtle flex flex-col gap-2.5">
                 <div className="flex items-start gap-2.5">
-                  <Quote className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+                  <Quote className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                   <p className="text-sm italic text-text-main leading-relaxed font-serif">
                     "{quote}"
                   </p>
@@ -140,7 +143,7 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
 
                 <div className="flex items-center justify-between pt-2 border-t border-border-subtle text-xs text-text-muted">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-800 border border-cyan-300 flex items-center justify-center text-[10px] font-bold dark:bg-cyan-900/60 dark:text-cyan-300 dark:border-cyan-500/40">
+                    <div className="w-5 h-5 rounded-full bg-accent/10 text-accent border border-accent/25 flex items-center justify-center text-[10px] font-bold">
                       {speaker.charAt(0)}
                     </div>
                     <span className="font-medium text-text-main">{speaker}</span>
@@ -157,7 +160,7 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
             <div className="p-3.5 rounded-xl bg-surface-subtle border border-border-subtle text-xs text-text-muted flex items-center justify-between">
               <span>Origin: {node.sourceType || "AI Workspace Action"}</span>
               {aiAction?.confidence && (
-                <span className="text-indigo-600 dark:text-cyan-400 font-mono font-medium">
+                <span className="text-accent font-mono font-medium">
                   Confidence: {Math.round(aiAction.confidence * 100)}%
                 </span>
               )}
@@ -176,13 +179,13 @@ export default function EvidenceCard({ node, aiAction, onClose, onPanToNode }) {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-surface-hover text-xs font-semibold text-text-main border border-border-subtle transition-colors shadow-subtle cursor-pointer"
           >
             <span>Jump to node on canvas</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
+            <ArrowUpRight className="w-3.5 h-3.5 text-accent" />
           </button>
 
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white transition-colors shadow-md cursor-pointer"
+            className="px-4 py-1.5 rounded-xl bg-accent hover:bg-accent-hover text-xs font-semibold text-white transition-colors shadow-sm cursor-pointer"
           >
             Done
           </button>

@@ -95,7 +95,7 @@ export default function PasteAgendaModal({ isOpen, onClose, roomId }) {
         {/* Modal Header */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400 border border-violet-200 dark:border-violet-500/30 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-accent/10 text-accent border border-accent/20 flex items-center justify-center shrink-0">
               <ListOrdered className="w-4 h-4" />
             </div>
             <h3 className="text-lg font-bold text-text-main tracking-tight">
@@ -118,7 +118,7 @@ export default function PasteAgendaModal({ isOpen, onClose, roomId }) {
                 type="button"
                 onClick={handleFillSample}
                 disabled={isSubmitting}
-                className="flex items-center gap-1 text-[11px] text-violet-600 dark:text-violet-400 hover:underline cursor-pointer disabled:opacity-40"
+                className="flex items-center gap-1 text-[11px] text-accent hover:underline cursor-pointer disabled:opacity-40"
               >
                 <BookOpen className="w-3 h-3" />
                 <span>Insert Sample Outline</span>
@@ -132,7 +132,7 @@ export default function PasteAgendaModal({ isOpen, onClose, roomId }) {
               onChange={(e) => setAgendaText(e.target.value)}
               disabled={isSubmitting}
               placeholder="e.g.&#10;1. Authentication & Session Cookies&#10;2. WebRTC Peer-to-Peer Video Signaling&#10;3. Canvas Edge Clustering & Real-Time Sync&#10;4. Production Deployment & Monitoring"
-              className="w-full p-3 rounded-xl bg-surface-subtle border border-border-subtle text-sm text-text-main placeholder:text-text-muted/60 focus:outline-none focus:border-violet-500 font-sans leading-relaxed resize-none disabled:opacity-50"
+              className="w-full p-3 rounded-xl bg-surface-subtle border border-border-subtle text-sm text-text-main placeholder:text-text-muted/60 focus:outline-none focus:border-accent font-sans leading-relaxed resize-none disabled:opacity-50"
               onKeyDown={(e) => {
                 if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                   handleSubmit(e);
@@ -160,7 +160,7 @@ export default function PasteAgendaModal({ isOpen, onClose, roomId }) {
             <button
               type="submit"
               disabled={isSubmitting || agendaText.trim().length < 15}
-              className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:hover:bg-violet-600 text-white text-xs font-semibold shadow-md shadow-violet-600/25 flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+              className="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-50 disabled:hover:bg-accent text-white text-xs font-semibold shadow-sm flex items-center gap-2 transition-all cursor-pointer active:scale-95"
             >
               {isSubmitting ? (
                 <>

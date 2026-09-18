@@ -103,8 +103,8 @@ export default function RegisterPage() {
 
             {/* Error Alert Box */}
             {activeError && (
-              <div className="mb-5 p-3 rounded-lg bg-rose-50 border border-rose-200 flex items-start gap-2.5 text-rose-700 text-xs animate-in fade-in duration-200">
-                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-rose-600" />
+              <div className="mb-5 p-3 rounded-lg bg-rose-50 border border-rose-200 dark:bg-rose-500/15 dark:border-rose-500/40 flex items-start gap-2.5 text-rose-700 dark:text-rose-300 text-xs animate-in fade-in duration-200">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-rose-600 dark:text-rose-400" />
                 <div className="flex-1">{activeError}</div>
               </div>
             )}

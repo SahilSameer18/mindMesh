@@ -28,7 +28,7 @@ export function DeleteWorkspaceModal({ room, isDeleting = false, onConfirm, onCl
         </button>
 
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 shadow-xs animate-pulse">
+          <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 dark:bg-rose-500/15 dark:border-rose-500/40 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0 shadow-xs animate-pulse">
             <AlertTriangle className="w-6 h-6" />
           </div>
           <div className="space-y-1.5 pt-0.5">

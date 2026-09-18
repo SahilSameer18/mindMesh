@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Edit2, User, PhoneOff } from "lucide-react";
+import { Edit2, User, PhoneOff, Moon, Sun } from "lucide-react";
+import { useTheme } from "../../../hooks/useTheme.js";
 
 /**
  * User Identity and Session Management dropdown menu.
@@ -14,6 +15,7 @@ export function UserProfileMenu({
 }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(currentUser?.name || "");
+  const { theme, toggleTheme } = useTheme();
 
   if (!isOpen || !currentUser) return null;
 
@@ -34,7 +36,7 @@ export function UserProfileMenu({
         <div className="text-[10px] text-text-muted truncate">
           {currentUser.email || "Guest Collaborator"}
         </div>
-        <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 font-mono dark:bg-sky-500/20 dark:text-sky-300">
+        <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-accent/10 text-accent border border-accent/20 font-mono">
           {currentUser.role || "Member"}
         </span>
       </div>
@@ -47,13 +49,13 @@ export function UserProfileMenu({
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             placeholder="New display name"
-            className="w-full px-2 py-1 rounded bg-surface-subtle border border-border-subtle text-xs text-text-main outline-none focus:border-indigo-500"
+            className="w-full px-2 py-1 rounded bg-surface-subtle border border-border-subtle text-xs text-text-main outline-none focus:border-accent"
             autoFocus
           />
           <div className="flex gap-1">
             <button
               type="submit"
-              className="px-2 py-0.5 bg-indigo-600 text-white rounded text-[10px] cursor-pointer"
+              className="px-2 py-0.5 bg-accent text-white rounded text-[10px] cursor-pointer"
             >
               Save
             </button>
@@ -79,6 +81,16 @@ export function UserProfileMenu({
           <span>Change Name</span>
         </button>
       )}
+
+      {/* Theme Toggle */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="w-full text-left px-2 py-1.5 rounded-lg text-text-muted hover:bg-surface-hover hover:text-text-main transition-colors flex items-center gap-1.5 cursor-pointer"
+      >
+        {theme === "dark" ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
+        <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+      </button>
 
       {/* Log Out & Clear Identity */}
       <button

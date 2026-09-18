@@ -91,7 +91,7 @@ export default function LandingWorkspaces({
                             className={`shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1 ${
                               isBrainstorm
                                 ? "bg-accent/10 text-accent border-accent/25"
-                                : "bg-sky-50 text-sky-700 border-sky-200"
+                                : "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/40"
                             }`}
                           >
                             {isBrainstorm ? <Brain className="w-2.5 h-2.5" /> : <Zap className="w-2.5 h-2.5" />}

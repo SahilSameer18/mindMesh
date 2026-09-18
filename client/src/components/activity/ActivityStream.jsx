@@ -128,8 +128,8 @@ export default function ActivityStream({
             </span>
           )}
           {proposedCount > 0 && (
-            <span className="flex items-center gap-1 text-[10px] text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded-full border border-amber-200">
-              <Zap className="w-2.5 h-2.5 text-amber-600" />
+            <span className="flex items-center gap-1 text-[10px] text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.2 rounded-full border border-amber-200 dark:border-amber-500/40">
+              <Zap className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
               <span>{proposedCount}</span>
             </span>
           )}

@@ -76,10 +76,10 @@ export default function LandingHero({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-              <div className="p-4 rounded-xl bg-surface border border-amber-200/90 space-y-2 shadow-subtle">
+              <div className="p-4 rounded-xl bg-surface border border-amber-200/90 dark:border-amber-500/30 space-y-2 shadow-subtle">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200/80 font-semibold text-[10px] flex items-center gap-1">
-                    <Target className="w-3 h-3 text-amber-600" /> Goal
+                  <span className="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-500/40 font-semibold text-[10px] flex items-center gap-1">
+                    <Target className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Goal
                   </span>
                   <span className="text-[10px] font-mono text-text-faint">Milestone</span>
                 </div>
@@ -91,28 +91,28 @@ export default function LandingHero({
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-surface border border-emerald-200/90 space-y-2 shadow-subtle">
+              <div className="p-4 rounded-xl bg-surface border border-emerald-200/90 dark:border-emerald-500/30 space-y-2 shadow-subtle">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold text-[10px] flex items-center gap-1">
-                    <CheckSquare className="w-3 h-3 text-emerald-600" /> Task
+                  <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/40 font-semibold text-[10px] flex items-center gap-1">
+                    <CheckSquare className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Task
                   </span>
-                  <span className="text-[10px] font-mono text-emerald-700 font-semibold">Marcus</span>
+                  <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-semibold">Marcus</span>
                 </div>
                 <p className="text-xs font-semibold text-text-main">
                   Redesign database indexing
                 </p>
                 <div className="text-[10px] text-text-faint pt-1 border-t border-border-subtle flex justify-between">
                   <span>In Progress</span>
-                  <span className="text-emerald-600 font-medium">High Priority</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">High Priority</span>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-surface border border-rose-200/90 space-y-2 shadow-subtle">
+              <div className="p-4 rounded-xl bg-surface border border-rose-200/90 dark:border-rose-500/30 space-y-2 shadow-subtle">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200/80 font-semibold text-[10px] flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3 text-rose-600" /> Risk
+                  <span className="px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-500/40 font-semibold text-[10px] flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3 text-rose-600 dark:text-rose-400" /> Risk
                   </span>
-                  <span className="text-[10px] font-mono text-rose-700 font-semibold">Blocker</span>
+                  <span className="text-[10px] font-mono text-rose-700 dark:text-rose-400 font-semibold">Blocker</span>
                 </div>
                 <p className="text-xs font-semibold text-text-main">
                   Analytics dashboard readiness dependency

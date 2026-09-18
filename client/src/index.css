@@ -46,28 +46,35 @@
   --shadow-elevated: 0 12px 28px -8px rgba(20, 19, 15, 0.16), 0 4px 10px -2px rgba(20, 19, 15, 0.06), 0 0 0 1px rgba(20, 19, 15, 0.06);
 }
 
-/* 2. Future-Proof: Dormant Dark Mode (Zero Component Changes Needed Later!) */
+/* 2. Dark mode — the same warm-ink language already proven in the auth showcase
+   panel and video dock, not a generic navy/slate dark theme. Activated by adding
+   .dark to the root (see useTheme.js). */
 .dark {
-  --bg-app: #090D16;
-  --bg-surface: #0F172A;
-  --bg-surface-subtle: #1E293B;
-  --bg-surface-hover: #273549;
+  --bg-app: #14110C;
+  --bg-surface: #1C1812;
+  --bg-surface-subtle: #242019;
+  --bg-surface-hover: #2C2620;
 
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
-  --text-faint: #64748B;
+  --text-main: #F3ECDD;
+  --text-muted: #8A8478;
+  --text-faint: #5C574C;
 
-  --border-subtle: #1E293B;
-  --border-strong: #334155;
+  --border-subtle: rgba(243, 236, 221, 0.08);
+  --border-strong: rgba(243, 236, 221, 0.16);
 
-  --grid-dot: rgba(255, 255, 255, 0.12);
+  /* Accent brightens slightly for better pop against near-black */
+  --accent: #C2703D;
+  --accent-hover: #D4864F;
+  --on-accent: #14110C;
 
-  --glass-header-bg: rgba(9, 13, 22, 0.80);
-  --glass-header-scrolled: rgba(15, 23, 42, 0.88);
+  --grid-dot: rgba(243, 236, 221, 0.10);
 
-  --shadow-subtle: 0 2px 4px rgba(0, 0, 0, 0.2);
-  --shadow-elevated: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --glass-header-bg: rgba(20, 17, 12, 0.85);
+  --glass-header-scrolled: rgba(28, 24, 18, 0.92);
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  --shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.15);
+  --shadow-elevated: 0 12px 28px -8px rgba(0, 0, 0, 0.5), 0 4px 10px -2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
 /* 3. Tailwind v4 @theme Semantic Binding */

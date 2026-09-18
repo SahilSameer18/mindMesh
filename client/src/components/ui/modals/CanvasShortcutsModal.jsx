@@ -15,7 +15,7 @@ export function CanvasShortcutsModal({ isOpen, onClose }) {
     >
       <div className="flex items-center justify-between pb-2 border-b border-border-subtle mb-3">
         <span id="shortcuts-modal-title" className="font-semibold text-text-main flex items-center gap-1.5">
-          <Layers className="w-4 h-4 text-sky-600 dark:text-sky-400" /> Canvas Shortcuts
+          <Layers className="w-4 h-4 text-accent" /> Canvas Shortcuts
         </span>
         <button
           type="button"

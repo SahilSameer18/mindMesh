@@ -1,10 +1,11 @@
-import { ArrowRight, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import { ArrowRight, LogOut, LayoutDashboard, Menu, X, Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import BrandLogo from "../ui/BrandLogo.jsx";
 import { getUserInitials, getUserColor } from "../../utils/colors.js";
 import { useAuth } from "../../hooks/useAuth.js";
 import { useRouter } from "../../app.routes.jsx";
+import { useTheme } from "../../hooks/useTheme.js";
 
 const NAV_LINKS = [
   { href: "#how-it-works", label: "How It Works" },
@@ -17,6 +18,7 @@ const NAV_LINKS = [
 export default function LandingNavbar() {
   const { user, logout } = useAuth();
   const { navigateToDashboard, navigateToLogin, navigateToRegister } = useRouter();
+  const { theme, toggleTheme } = useTheme();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -85,6 +87,15 @@ export default function LandingNavbar() {
 
         {/* Right Action Buttons (Desktop) */}
         <div className="hidden sm:flex items-center gap-3">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-text-muted hover:text-text-main bg-surface border border-border-subtle hover:border-border-strong transition-all duration-200 active:scale-90 cursor-pointer"
+            aria-label="Toggle theme"
+            title="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+          </button>
           {user ? (
             /* Authenticated State */
             <div className="flex items-center gap-3">
@@ -112,7 +123,7 @@ export default function LandingNavbar() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="p-1.5 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 cursor-pointer active:scale-90"
+                  className="p-1.5 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-all duration-200 cursor-pointer active:scale-90"
                   title="Log Out"
                   aria-label="Log out"
                 >
@@ -145,6 +156,14 @@ export default function LandingNavbar() {
 
         {/* Mobile Hamburger Toggle */}
         <div className="flex items-center gap-2 sm:hidden">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-text-muted hover:text-text-main bg-surface border border-border-subtle hover:border-border-strong transition-all duration-200 active:scale-90 cursor-pointer"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
