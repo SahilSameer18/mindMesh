@@ -14,7 +14,7 @@ export function setupTranscriptSocketHandlers(io, socket) {
    */
   socket.on("transcript:chunk", async (payload, callback) => {
     try {
-      const roomId = payload?.roomId || socket.data?.roomId;
+      const roomId = socket.data?.roomId;
       const text = (payload?.text || payload?.chunk?.text)?.trim();
 
       if (!roomId || !text) {
@@ -93,7 +93,7 @@ export function setupTranscriptSocketHandlers(io, socket) {
    */
   socket.on("transcript:flush", async (payload, callback) => {
     try {
-      const roomId = payload?.roomId || socket.data?.roomId;
+      const roomId = socket.data?.roomId;
       if (!roomId) {
         if (typeof callback === "function") callback({ success: false, error: "roomId required" });
         return;
@@ -119,7 +119,7 @@ export function setupTranscriptSocketHandlers(io, socket) {
    * Reset room dialogue queue
    */
   socket.on("transcript:reset", (payload, callback) => {
-    const roomId = payload?.roomId || socket.data?.roomId;
+    const roomId = socket.data?.roomId;
     if (roomId) {
       extractionQueue.reset(roomId);
     }

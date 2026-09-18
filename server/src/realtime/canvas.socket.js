@@ -4,6 +4,23 @@ import { approveAIAction, rejectAIAction } from "../ai/applyAIActions.js";
 import { getOrCreateRoom } from "../services/room.service.js";
 import { addPeer, getPeers, getActivePresenter, handleSocketDisconnect } from "../services/presence.service.js";
 
+// canvas:command triggers a paid LLM call — throttle per socket independently
+// of HTTP rate limiting, which doesn't cover the Socket.io transport at all.
+const COMMAND_RATE_LIMIT = 15;
+const COMMAND_RATE_WINDOW_MS = 5 * 60 * 1000;
+const commandRateState = new Map(); // socketId -> { count, resetAt }
+
+function isCommandRateLimited(socketId) {
+  const now = Date.now();
+  const entry = commandRateState.get(socketId);
+  if (!entry || now >= entry.resetAt) {
+    commandRateState.set(socketId, { count: 1, resetAt: now + COMMAND_RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > COMMAND_RATE_LIMIT;
+}
+
 /**
  * Initializes real-time canvas socket event handlers for a connected client
  * @param {import("socket.io").Server} io
@@ -19,6 +36,16 @@ export function initCanvasSocket(io, socket) {
   socket.on("canvas:join", async ({ roomId }, callback) => {
     if (!roomId) {
       if (typeof callback === "function") callback({ success: false, error: "Missing roomId" });
+      return;
+    }
+
+    // A guest token is scoped to the room its invite was minted for — never let it
+    // join a different room's canvas just because the client asked to.
+    const preAuthUser = socket.user || socket.data?.user;
+    if (preAuthUser?.isGuest && preAuthUser.roomId && preAuthUser.roomId !== roomId) {
+      if (typeof callback === "function") {
+        callback({ success: false, error: "Guest token is not authorized for this room" });
+      }
       return;
     }
 
@@ -195,6 +222,13 @@ export function initCanvasSocket(io, socket) {
     const targetRoomId = socket.roomId;
     if (!targetRoomId) {
       if (typeof callback === "function") callback({ success: false, error: "Not joined to a room" });
+      return;
+    }
+
+    if (isCommandRateLimited(socket.id)) {
+      if (typeof callback === "function") {
+        callback({ success: false, error: "Too many AI commands — please slow down." });
+      }
       return;
     }
 

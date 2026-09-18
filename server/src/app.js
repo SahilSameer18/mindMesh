@@ -22,15 +22,24 @@ const allowedOrigins = [
     : []),
 ].filter(Boolean);
 
+// Previously this allowed ANY origin whenever NODE_ENV wasn't exactly
+// "production" (a landmine if that var ever drifts on a real deploy, since
+// credentials: true was set alongside it). Now the allowlist always applies;
+// non-production only gets an extra allowance for localhost dev origins,
+// not a wildcard.
+const isLocalDevOrigin = (origin) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, server-to-server) or in non-production
-      if (!origin || config.nodeEnv !== "production") {
-        return callback(null, true);
-      }
+      // Allow requests with no origin (mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
       const normalizedOrigin = origin.replace(/\/+$/, "");
       if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+      if (config.nodeEnv !== "production" && isLocalDevOrigin(origin)) {
         return callback(null, true);
       }
       return callback(new Error(`[CORS] Blocked origin: ${origin}`));

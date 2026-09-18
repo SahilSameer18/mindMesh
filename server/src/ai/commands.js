@@ -267,9 +267,20 @@ export async function executeWorkspaceCommand({
     ];
   }
 
-  // Complementary actions proposed by AI (e.g. new nodes or edits, strictly not pure layout reorganizations)
-  if (intent !== "REORGANIZE_LAYOUT" && Array.isArray(rawResult.actions) && rawResult.actions.length > 0) {
-    const validated = processAIActions(rawResult.actions);
+  // Complementary actions proposed by AI (e.g. new nodes or edits) — applied
+  // regardless of the top-level classified intent. A single prompt like "add a
+  // risk node and tidy up" legitimately produces both a REORGANIZE_LAYOUT intent
+  // AND a CREATE_NODE action; previously any complementary actions were dropped
+  // whenever intent === "REORGANIZE_LAYOUT", so the model could report success
+  // on a node it never actually created. MOVE_NODE/REORGANIZE_LAYOUT entries are
+  // still filtered out here specifically, preserving the invariant above: the
+  // model classifies intent, only the deterministic layout engine ever supplies
+  // coordinates.
+  if (Array.isArray(rawResult.actions) && rawResult.actions.length > 0) {
+    const complementaryActions = rawResult.actions.filter(
+      (a) => !["MOVE_NODE", "REORGANIZE_LAYOUT"].includes(String(a?.type || "").toUpperCase())
+    );
+    const validated = processAIActions(complementaryActions);
     const deduplicated = deduplicateAndLinkActions(validated, nodes, edges);
     targetActions.push(...deduplicated);
   }

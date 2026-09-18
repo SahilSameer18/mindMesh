@@ -17,6 +17,16 @@ export function registerRoomSocketHandlers(io, socket) {
       return;
     }
 
+    // A guest token is scoped to the room its invite was minted for — never let it
+    // join a different room's channel just because the client asked to.
+    const guestUser = socket.user || socket.data?.user;
+    if (guestUser?.isGuest && guestUser.roomId && guestUser.roomId !== roomId) {
+      if (typeof callback === "function") {
+        callback({ success: false, error: "Guest token is not authorized for this room" });
+      }
+      return;
+    }
+
     socket.join(roomId);
     socket.roomId = roomId;
     // Authoritative identity from socket handshake (socketAuthMiddleware) — NEVER

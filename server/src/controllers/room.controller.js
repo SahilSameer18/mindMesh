@@ -52,10 +52,16 @@ export async function getRoom(req, res, next) {
   }
 }
 
+const UPDATABLE_ROOM_FIELDS = ["name", "systemContext", "mode"];
+
 export async function updateRoom(req, res, next) {
   try {
     const { roomId } = req.params;
-    const updated = await roomService.updateRoom(roomId, req.body);
+    const updates = {};
+    for (const field of UPDATABLE_ROOM_FIELDS) {
+      if (req.body?.[field] !== undefined) updates[field] = req.body[field];
+    }
+    const updated = await roomService.updateRoom(roomId, updates);
     return sendSuccess(res, "Room updated successfully", updated);
   } catch (err) {
     next(err);

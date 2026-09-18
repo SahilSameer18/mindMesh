@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { requireRoomAccess } from "../middlewares/auth.middleware.js";
+import { inviteRateLimiter } from "../middlewares/rateLimit.middleware.js";
 import * as inviteController from "../controllers/invite.controller.js";
 
 const router = Router();
 
 // Room invite endpoints
 router.post("/rooms/:roomId/invites", requireRoomAccess, inviteController.createInvite);
-router.get("/invites/:token", inviteController.resolveInvite);
-router.post("/invites/:token/join", inviteController.joinAsGuest);
+router.get("/invites/:token", inviteRateLimiter, inviteController.resolveInvite);
+router.post("/invites/:token/join", inviteRateLimiter, inviteController.joinAsGuest);
 
 export default router;

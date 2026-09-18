@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as authController from "../controllers/auth.controller.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
-import { authRateLimiter } from "../middlewares/rateLimit.middleware.js";
+import { authRateLimiter, refreshRateLimiter } from "../middlewares/rateLimit.middleware.js";
 
 const router = Router();
 
@@ -12,7 +12,7 @@ router.post("/login", authRateLimiter, authController.login);
 // CRITICAL GUARD: /refresh MUST NOT have requireAuth middleware!
 // The access token is expired by definition when this endpoint is requested.
 // Adding requireAuth creates an unrecoverable 401 infinite loop.
-router.post("/refresh", authController.refresh);
+router.post("/refresh", refreshRateLimiter, authController.refresh);
 
 // Protected Endpoints
 router.get("/me", requireAuth, authController.getMe);

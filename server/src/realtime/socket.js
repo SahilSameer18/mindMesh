@@ -13,15 +13,18 @@ let io = null;
 export function initSocketServer(httpServer) {
   io = new Server(httpServer, {
     cors: {
+      // Mirrors the Express CORS policy in app.js — allowlist always applies;
+      // non-production additionally allows localhost dev origins, not a wildcard.
       origin: (origin, callback) => {
-        if (!origin || process.env.NODE_ENV !== "production") {
-          return callback(null, true);
-        }
+        if (!origin) return callback(null, true);
         const allowed = [
           config.clientUrl,
           ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()) : []),
         ];
         if (allowed.includes(origin)) {
+          return callback(null, true);
+        }
+        if (process.env.NODE_ENV !== "production" && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
           return callback(null, true);
         }
         return callback(new Error(`[SocketCORS] Blocked origin: ${origin}`));

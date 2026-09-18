@@ -2,12 +2,15 @@ import { Router } from "express";
 import * as roomController from "../controllers/room.controller.js";
 import * as reportController from "../controllers/report.controller.js";
 import { requireRoomAccess } from "../middlewares/auth.middleware.js";
+import { roomCreateRateLimiter } from "../middlewares/rateLimit.middleware.js";
 
 const router = Router();
 
-// Room lifecycle & mode routes
+// Room lifecycle & mode routes.
+// Intentionally open to signed-out visitors (instant demo-room flow) — see
+// roomCreateRateLimiter for the abuse guard in place of an auth requirement.
 router.get("/", roomController.listRooms);
-router.post("/", roomController.createRoom);
+router.post("/", roomCreateRateLimiter, roomController.createRoom);
 router.get("/:roomId", requireRoomAccess, roomController.getRoom);
 router.post("/:roomId", requireRoomAccess, roomController.getOrCreateRoom);
 router.patch("/:roomId", requireRoomAccess, roomController.updateRoom);

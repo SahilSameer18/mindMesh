@@ -131,6 +131,10 @@ export async function upsertRoomIntegration(req, res, next) {
     const { roomId, provider } = req.params;
     const { config } = req.body || {};
 
+    if (req.roomRole !== "owner") {
+      return sendError(res, "Forbidden", ["Only the room owner can configure integrations"], 403);
+    }
+
     if (!config || typeof config !== "object") {
       return sendError(res, "Valid integration config object is required", [], 400);
     }
@@ -138,6 +142,23 @@ export async function upsertRoomIntegration(req, res, next) {
     const targetProvider = provider.toLowerCase();
     if (!["slack", "notion"].includes(targetProvider)) {
       return sendError(res, "Unsupported provider. Must be 'slack' or 'notion'", [], 400);
+    }
+
+    // Slack's webhookUrl is fetched server-side on export — restrict it to Slack's
+    // real webhook host so a room member can't redirect that server-side request
+    // (SSRF) at an internal service or arbitrary external host.
+    if (targetProvider === "slack" && config.webhookUrl !== undefined) {
+      const isValidSlackWebhook =
+        typeof config.webhookUrl === "string" &&
+        /^https:\/\/hooks\.slack\.com\//.test(config.webhookUrl.trim());
+      if (!isValidSlackWebhook) {
+        return sendError(
+          res,
+          "Invalid Slack webhook URL",
+          ["webhookUrl must be a valid https://hooks.slack.com/... URL"],
+          400
+        );
+      }
     }
 
     // Room-scoped integration query
