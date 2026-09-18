@@ -7,7 +7,6 @@ import {
   Check,
   ExternalLink,
   Image as ImageIcon,
-  Layers,
 } from "lucide-react";
 
 export default function VisualLightboxModal({ node, onClose }) {
@@ -74,12 +73,12 @@ export default function VisualLightboxModal({ node, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle bg-surface-subtle shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-500 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-rose-500/[0.08] border border-rose-500/25 flex items-center justify-center text-[#B5626F] shrink-0">
               <ImageIcon className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-500/20 dark:text-sky-300 dark:border-sky-500/40">
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-rose-100/60 text-rose-900 border border-rose-300/60">
                   Visual Concept
                 </span>
                 <span className="text-[11px] text-text-muted font-mono hidden sm:inline truncate">
@@ -95,7 +94,7 @@ export default function VisualLightboxModal({ node, onClose }) {
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={handleCopyUrl}
-              className="p-1.5 text-text-muted hover:text-sky-600 dark:hover:text-sky-300 hover:bg-surface-subtle rounded-lg transition-colors"
+              className="p-1.5 text-text-muted hover:text-accent hover:bg-surface-subtle rounded-lg transition-colors"
               title="Copy Image URL"
             >
               {isCopied ? (
@@ -106,7 +105,7 @@ export default function VisualLightboxModal({ node, onClose }) {
             </button>
             <button
               onClick={handleDownload}
-              className="p-1.5 text-text-muted hover:text-sky-600 dark:hover:text-sky-300 hover:bg-surface-subtle rounded-lg transition-colors"
+              className="p-1.5 text-text-muted hover:text-accent hover:bg-surface-subtle rounded-lg transition-colors"
               title="Download Image"
             >
               <Download className="w-4 h-4" />
@@ -115,7 +114,7 @@ export default function VisualLightboxModal({ node, onClose }) {
               href={imageUrl}
               target="_blank"
               rel="noreferrer"
-              className="p-1.5 text-text-muted hover:text-sky-600 dark:hover:text-sky-300 hover:bg-surface-subtle rounded-lg transition-colors"
+              className="p-1.5 text-text-muted hover:text-accent hover:bg-surface-subtle rounded-lg transition-colors"
               title="Open Original in New Tab"
             >
               <ExternalLink className="w-4 h-4" />
@@ -137,7 +136,7 @@ export default function VisualLightboxModal({ node, onClose }) {
           {!imgLoaded && (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
               <div className="w-64 h-48 rounded-xl bg-surface border border-border-subtle flex flex-col items-center justify-center p-4 animate-pulse relative overflow-hidden shadow-inner">
-                <div className="w-10 h-10 rounded-lg bg-surface-subtle border border-border-subtle flex items-center justify-center text-sky-500/70 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-surface-subtle border border-border-subtle flex items-center justify-center text-accent/70 mb-3">
                   <ImageIcon className="w-5 h-5 animate-pulse" />
                 </div>
                 <div className="h-2.5 w-36 bg-surface-subtle rounded-full mb-2" />
@@ -164,7 +163,7 @@ export default function VisualLightboxModal({ node, onClose }) {
         <div className="px-4 py-3 border-t border-border-subtle bg-surface-subtle flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs shrink-0">
           <div className="flex items-center gap-2 text-text-muted">
             <span className="flex items-center gap-1 text-text-main font-medium">
-              <ImageIcon className="w-3.5 h-3.5 text-violet-500" /> Prompt:
+              <ImageIcon className="w-3.5 h-3.5 text-accent" /> Prompt:
             </span>
             <span className="italic text-text-main line-clamp-1 max-w-md">{prompt}</span>
           </div>

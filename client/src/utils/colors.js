@@ -1,14 +1,14 @@
+// Reuses the same 8 tones already locked in for canvas card types (canvasConstants.js)
+// instead of a separate bright SaaS palette — one consistent color language app-wide.
 export const AVATAR_PALETTES = [
-  "#6366f1", // indigo
-  "#06b6d4", // cyan
-  "#10b981", // emerald
+  "#A8542E", // accent (rust)
   "#f59e0b", // amber
-  "#ec4899", // pink
-  "#8b5cf6", // violet
-  "#14b8a6", // teal
-  "#f97316", // orange
-  "#3b82f6", // blue
-  "#ef4444", // rose
+  "#059669", // emerald
+  "#e11d48", // rose
+  "#3B7A78", // teal
+  "#8B5A7C", // plum
+  "#B5626F", // clay
+  "#475569", // slate
 ];
 
 export function getUserColor(nameOrId = "") {
@@ -22,12 +22,8 @@ export function getUserColor(nameOrId = "") {
 }
 
 export function getUserInitials(name = "User") {
-  if (!name) return "U";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  const trimmed = (name || "").trim();
+  return trimmed ? trimmed[0].toUpperCase() : "U";
 }
 
 export const NODE_COLORS = {};

@@ -12,6 +12,7 @@ import {
   GitFork,
   X,
   Bookmark,
+  Plus,
 } from "lucide-react";
 import { CanvasNode } from "./CanvasNode.jsx";
 import { CanvasEdge } from "./CanvasEdge.jsx";
@@ -73,6 +74,7 @@ export default function InfiniteCanvas({ canvas }) {
   const [isTidying, setIsTidying] = useState(false);
   const [tidyFeedback, setTidyFeedback] = useState(null); // null | "success" | "empty" | "error"
   const [showZonesPanel, setShowZonesPanel] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [newZoneName, setNewZoneName] = useState("");
   const panStartRef = useRef({ x: 0, y: 0 });
   const touchDistRef = useRef(null);
@@ -91,6 +93,7 @@ export default function InfiniteCanvas({ canvas }) {
         setSelectedNodeId(null);
         setSelectedEdgeId(null);
         setShowZonesPanel(false);
+        setShowCreateMenu(false);
       } else if ((e.ctrlKey || e.metaKey) && (e.key === "+" || e.key === "=" || e.key === "-" || e.key === "0")) {
         // Prevent browser whole-page zoom and apply to canvas instead
         e.preventDefault();
@@ -361,6 +364,7 @@ export default function InfiniteCanvas({ canvas }) {
       x,
       y,
     });
+    setShowCreateMenu(false);
   };
 
   // Connection Linking
@@ -435,7 +439,7 @@ export default function InfiniteCanvas({ canvas }) {
             <div className="relative w-full h-40 flex items-center justify-center">
               {/* Central root pillar skeleton */}
               <div className="absolute top-2 w-48 h-12 rounded-xl bg-surface border border-border-subtle shadow-card p-2.5 flex items-center gap-2 animate-pulse">
-                <div className="w-6 h-6 rounded-lg bg-indigo-500/20" />
+                <div className="w-6 h-6 rounded-lg bg-accent/20" />
                 <div className="flex-1 space-y-1">
                   <div className="h-2.5 bg-surface-hover rounded w-3/4" />
                   <div className="h-2 bg-surface-hover/70 rounded w-1/2" />
@@ -461,7 +465,7 @@ export default function InfiniteCanvas({ canvas }) {
             {/* Shimmering status indicator */}
             <div className="space-y-2 text-center">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-border-subtle shadow-sm text-xs font-semibold text-text-main font-mono">
-                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-accent animate-ping" />
                 <span>Hydrating Spatial Canvas...</span>
               </div>
               <p className="text-[11px] text-text-muted">
@@ -517,7 +521,7 @@ export default function InfiniteCanvas({ canvas }) {
           {(zones || []).map((zone) => (
             <div
               key={zone.id}
-              className="absolute pointer-events-auto rounded-3xl border-2 border-dashed border-indigo-500/35 bg-indigo-500/[0.03] dark:border-indigo-400/25 dark:bg-indigo-500/[0.02] transition-all group hover:border-indigo-500/60"
+              className="absolute pointer-events-auto rounded-3xl border-2 border-dashed border-accent/35 bg-accent/[0.03] transition-all group hover:border-accent/60"
               style={{
                 left: `${zone.x - 300}px`,
                 top: `${zone.y - 200}px`,
@@ -526,13 +530,13 @@ export default function InfiniteCanvas({ canvas }) {
               }}
             >
               {/* Zone Header Tag */}
-              <div className="absolute -top-3.5 left-6 px-3 py-1 rounded-full bg-surface/95 border border-indigo-500/40 text-xs font-semibold text-indigo-700 dark:text-indigo-300 shadow-sm flex items-center gap-1.5 backdrop-blur-sm select-none">
-                <Bookmark className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <div className="absolute -top-3.5 left-6 px-3 py-1 rounded-full bg-surface/95 border border-accent/40 text-xs font-semibold text-accent shadow-sm flex items-center gap-1.5 backdrop-blur-sm select-none">
+                <Bookmark className="w-3.5 h-3.5 text-accent shrink-0" />
                 <span className="font-medium tracking-wide">{zone.name}</span>
                 <button
                   type="button"
                   onClick={() => flyToZone(zone)}
-                  className="ml-1.5 text-[10px] text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                  className="ml-1.5 text-[10px] text-accent hover:text-accent-hover bg-accent/10 hover:bg-accent/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
                   title="Fly to this zone"
                 >
                   Jump
@@ -587,8 +591,8 @@ export default function InfiniteCanvas({ canvas }) {
 
       {/* Connecting Mode Banner */}
       {connectingNodeId && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-surface/95 border border-sky-500/50 px-4 py-2 rounded-full shadow-elevated flex items-center gap-3 backdrop-blur-md">
-          <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-surface/95 border border-accent/50 px-4 py-2 rounded-full shadow-elevated flex items-center gap-3 backdrop-blur-md">
+          <span className="w-2 h-2 rounded-full bg-accent animate-ping" />
           <span className="text-xs font-medium text-text-main">
             Click another card to connect, or press Esc to cancel
           </span>
@@ -601,82 +605,58 @@ export default function InfiniteCanvas({ canvas }) {
         </div>
       )}
 
-      {/* Option 2A: Vertical Canvas Creation Dock (Left rail, like Figma/Miro) */}
+      {/* Canvas Tools Dock — pinned near the bottom, stacked just above the zoom pill.
+          Both are fixed-size (never grow), so anchoring them together from the bottom
+          is safe. The video dock takes the top of the rail instead, since it's the one
+          that actually grows with peer count — it needs room to expand, not a fixed slot.
+          Node creation collapses behind one "+" trigger since it's a secondary path (AI
+          extraction from speech is primary); Tidy/Zones stay visible as their own
+          whole-canvas tools, not per-node actions. */}
       <aside
-        aria-label="Canvas Creation Tools"
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-1.5 p-1.5 bg-surface/90 backdrop-blur-xl border border-border-subtle rounded-2xl shadow-elevated pointer-events-auto"
+        aria-label="Canvas Tools"
+        className="absolute left-4 top-20 sm:top-auto sm:bottom-16 z-30 flex flex-col items-center gap-1.5 p-1.5 bg-surface/90 backdrop-blur-xl border border-border-subtle rounded-2xl shadow-elevated pointer-events-auto"
       >
-        <button
-          type="button"
-          title="Add Goal (Target)"
-          onClick={() => handleQuickAdd(NODE_TYPES.GOAL)}
-          className="p-2.5 rounded-xl text-amber-600 dark:text-amber-300 hover:bg-amber-500/15 border border-transparent hover:border-amber-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
-        >
-          <Target className="w-4 h-4 text-amber-500" />
-          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-surface border border-border-subtle text-xs font-medium text-text-main shadow-elevated opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Add Goal (Target)
-          </span>
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            title="Add a card"
+            onClick={() => setShowCreateMenu((prev) => !prev)}
+            className={`p-2.5 rounded-xl border transition-all relative flex items-center justify-center cursor-pointer ${
+              showCreateMenu
+                ? "text-on-accent bg-accent border-accent shadow-sm"
+                : "text-accent hover:bg-accent/10 border-transparent hover:border-accent/30"
+            }`}
+          >
+            <Plus className={`w-4 h-4 transition-transform duration-200 ${showCreateMenu ? "rotate-45" : ""}`} />
+          </button>
 
-        <button
-          type="button"
-          title="Add Idea"
-          onClick={() => handleQuickAdd(NODE_TYPES.IDEA)}
-          className="p-2.5 rounded-xl text-sky-600 dark:text-sky-300 hover:bg-sky-500/15 border border-transparent hover:border-sky-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
-        >
-          <Lightbulb className="w-4 h-4 text-sky-500" />
-          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-surface border border-border-subtle text-xs font-medium text-text-main shadow-elevated opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Add Idea
-          </span>
-        </button>
-
-        <button
-          type="button"
-          title="Add Task"
-          onClick={() => handleQuickAdd(NODE_TYPES.TASK)}
-          className="p-2.5 rounded-xl text-emerald-600 dark:text-emerald-300 hover:bg-emerald-500/15 border border-transparent hover:border-emerald-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
-        >
-          <CheckSquare className="w-4 h-4 text-emerald-500" />
-          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-surface border border-border-subtle text-xs font-medium text-text-main shadow-elevated opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Add Task
-          </span>
-        </button>
-
-        <button
-          type="button"
-          title="Add Decision"
-          onClick={() => handleQuickAdd(NODE_TYPES.DECISION)}
-          className="p-2.5 rounded-xl text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/15 border border-transparent hover:border-indigo-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
-        >
-          <CheckCircle2 className="w-4 h-4 text-indigo-500" />
-          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-surface border border-border-subtle text-xs font-medium text-text-main shadow-elevated opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Add Decision
-          </span>
-        </button>
-
-        <button
-          type="button"
-          title="Add Question"
-          onClick={() => handleQuickAdd(NODE_TYPES.QUESTION)}
-          className="p-2.5 rounded-xl text-purple-600 dark:text-purple-300 hover:bg-purple-500/15 border border-transparent hover:border-purple-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
-        >
-          <HelpCircle className="w-4 h-4 text-purple-500" />
-          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-surface border border-border-subtle text-xs font-medium text-text-main shadow-elevated opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Add Question
-          </span>
-        </button>
-
-        <button
-          type="button"
-          title="Add Risk"
-          onClick={() => handleQuickAdd(NODE_TYPES.RISK)}
-          className="p-2.5 rounded-xl text-rose-600 dark:text-rose-300 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition-all relative group flex items-center justify-center cursor-pointer"
-        >
-          <AlertTriangle className="w-4 h-4 text-rose-500" />
-          <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-surface border border-border-subtle text-xs font-medium text-text-main shadow-elevated opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Add Risk
-          </span>
-        </button>
+          {showCreateMenu && (
+            <div
+              role="menu"
+              aria-label="Add a card"
+              className="absolute left-full top-0 ml-2.5 z-50 flex flex-col gap-1 p-1.5 bg-surface border border-border-subtle rounded-2xl shadow-elevated animate-in fade-in slide-in-from-left-2 duration-150"
+            >
+              {[
+                { type: NODE_TYPES.GOAL, label: "Goal", icon: Target, cls: "text-amber-600 hover:bg-amber-500/15" },
+                { type: NODE_TYPES.IDEA, label: "Idea", icon: Lightbulb, cls: "text-[#3B7A78] hover:bg-[#3B7A78]/10" },
+                { type: NODE_TYPES.TASK, label: "Task", icon: CheckSquare, cls: "text-emerald-600 hover:bg-emerald-500/15" },
+                { type: NODE_TYPES.DECISION, label: "Decision", icon: CheckCircle2, cls: "text-accent hover:bg-accent/10" },
+                { type: NODE_TYPES.QUESTION, label: "Question", icon: HelpCircle, cls: "text-[#8B5A7C] hover:bg-[#8B5A7C]/10" },
+                { type: NODE_TYPES.RISK, label: "Risk", icon: AlertTriangle, cls: "text-rose-600 hover:bg-rose-500/15" },
+              ].map(({ type, label, icon: Icon, cls }) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => handleQuickAdd(type)}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-text-main transition-all cursor-pointer whitespace-nowrap ${cls}`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="w-5 h-px bg-border-subtle my-0.5" />
 
@@ -692,21 +672,21 @@ export default function InfiniteCanvas({ canvas }) {
           onClick={handleTidyGraph}
           className={`p-2.5 rounded-xl transition-all relative group flex items-center justify-center cursor-pointer ${
             tidyFeedback === "success"
-              ? "text-emerald-600 dark:text-emerald-300 bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+              ? "text-emerald-600 bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
               : tidyFeedback === "empty"
-              ? "text-amber-600 dark:text-amber-300 bg-amber-500/20 border-amber-500/40"
+              ? "text-amber-600 bg-amber-500/20 border-amber-500/40"
               : tidyFeedback === "error"
-              ? "text-rose-600 dark:text-rose-300 bg-rose-500/20 border-rose-500/40"
+              ? "text-rose-600 bg-rose-500/20 border-rose-500/40"
               : isTidying
-              ? "text-cyan-600 dark:text-cyan-200 bg-cyan-500/25 border-cyan-500/50 animate-pulse"
+              ? "text-accent bg-accent/15 border-accent/40 animate-pulse"
               : nodes.length === 0
               ? "text-text-muted/40 cursor-not-allowed opacity-50 border-transparent"
-              : "text-cyan-600 dark:text-cyan-300 hover:bg-cyan-500/15 border-transparent hover:border-cyan-500/30"
+              : "text-accent hover:bg-accent/10 border-transparent hover:border-accent/30"
           } border`}
         >
           <GitFork
             className={`w-4 h-4 rotate-180 transition-transform ${
-              isTidying ? "animate-spin text-cyan-500 dark:text-cyan-200" : tidyFeedback === "success" ? "text-emerald-500 scale-110" : "text-cyan-500"
+              isTidying ? "animate-spin text-accent" : tidyFeedback === "success" ? "text-emerald-500 scale-110" : "text-accent"
             }`}
           />
           <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-surface border border-border-subtle text-xs font-medium text-text-main shadow-elevated opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
@@ -731,11 +711,11 @@ export default function InfiniteCanvas({ canvas }) {
           onClick={() => setShowZonesPanel((prev) => !prev)}
           className={`p-2.5 rounded-xl border transition-all relative group flex items-center justify-center cursor-pointer ${
             showZonesPanel
-              ? "text-indigo-600 dark:text-indigo-300 bg-indigo-500/20 border-indigo-500/40 shadow-sm"
-              : "text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/15 border-transparent hover:border-indigo-500/30"
+              ? "text-accent bg-accent/15 border-accent/40 shadow-sm"
+              : "text-accent hover:bg-accent/10 border-transparent hover:border-accent/30"
           }`}
         >
-          <Bookmark className="w-4 h-4 text-indigo-500" />
+          <Bookmark className="w-4 h-4" />
           <span className="absolute left-full ml-2.5 px-2 py-1 rounded-lg bg-surface border border-border-subtle text-xs font-medium text-text-main shadow-elevated opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
             Context Zones ({zones?.length || 0})
           </span>
@@ -744,10 +724,10 @@ export default function InfiniteCanvas({ canvas }) {
 
       {/* Context Zones Quick-Jump & Creation Drawer */}
       {showZonesPanel && (
-        <div className="absolute left-20 top-1/2 -translate-y-1/2 z-40 w-72 bg-surface/95 backdrop-blur-xl border border-border-subtle rounded-2xl shadow-elevated p-4 flex flex-col gap-3 animate-in fade-in slide-in-from-left-4 duration-150 pointer-events-auto">
+        <div className="absolute left-72 top-20 sm:top-auto sm:bottom-24 z-40 w-72 bg-surface/95 backdrop-blur-xl border border-border-subtle rounded-2xl shadow-elevated p-4 flex flex-col gap-3 animate-in fade-in slide-in-from-left-4 duration-150 pointer-events-auto">
           <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
             <div className="flex items-center gap-2">
-              <Bookmark className="w-4 h-4 text-indigo-500" />
+              <Bookmark className="w-4 h-4 text-accent" />
               <span className="text-sm font-semibold text-text-main">Context Zones</span>
             </div>
             <button
@@ -783,12 +763,12 @@ export default function InfiniteCanvas({ canvas }) {
               placeholder="Zone name..."
               value={newZoneName}
               onChange={(e) => setNewZoneName(e.target.value)}
-              className="flex-1 px-2.5 py-1.5 rounded-lg bg-surface-subtle border border-border-subtle text-xs text-text-main placeholder-text-muted focus:outline-none focus:border-indigo-500"
+              className="flex-1 px-2.5 py-1.5 rounded-lg bg-surface-subtle border border-border-subtle text-xs text-text-main placeholder-text-muted focus:outline-none focus:border-accent"
             />
             <button
               type="submit"
               disabled={!newZoneName.trim()}
-              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-medium transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 text-on-accent text-xs font-medium transition-colors cursor-pointer"
             >
               Save View
             </button>
@@ -811,7 +791,7 @@ export default function InfiniteCanvas({ canvas }) {
                     onClick={() => flyToZone(z)}
                     className="flex-1 text-left flex flex-col cursor-pointer"
                   >
-                    <span className="text-xs font-medium text-text-main group-hover:text-indigo-500 transition-colors">
+                    <span className="text-xs font-medium text-text-main group-hover:text-accent transition-colors">
                       {z.name}
                     </span>
                     <span className="text-[10px] text-text-muted">
@@ -833,10 +813,11 @@ export default function InfiniteCanvas({ canvas }) {
         </div>
       )}
 
-      {/* Compact Viewport Controls (Bottom-Left Mini-Pill) */}
+      {/* Compact Viewport Controls (Bottom-Left Mini-Pill). Hidden on mobile — the
+          Active Command Bar owns that row there, and touch already has pinch-to-zoom. */}
       <aside
         aria-label="Viewport Controls"
-        className="absolute bottom-6 left-6 z-30 flex items-center gap-1 p-1 bg-surface/90 backdrop-blur-xl border border-border-subtle rounded-2xl shadow-subtle pointer-events-auto"
+        className="hidden sm:flex absolute bottom-6 left-6 z-30 items-center gap-1 p-1 bg-surface/90 backdrop-blur-xl border border-border-subtle rounded-2xl shadow-subtle pointer-events-auto"
       >
         <button
           type="button"

@@ -77,10 +77,10 @@ function CanvasEdgeComponent({
       <path
         d={pathD}
         fill="none"
-        stroke={isHighlighted ? "#06b6d4" : strokeColor}
+        stroke={isHighlighted ? "#A8542E" : strokeColor}
         strokeWidth={isHighlighted ? 4 : isSelected ? 3.5 : config.strokeWidth || 2}
         strokeDasharray={isHighlighted ? "6 3" : config.strokeDasharray}
-        className={`transition-all duration-150 ${isHighlighted ? "animate-pulse drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" : "group-hover:stroke-sky-300"}`}
+        className={`transition-all duration-150 ${isHighlighted ? "animate-pulse drop-shadow-[0_0_8px_rgba(168,84,46,0.5)]" : "group-hover:stroke-accent"}`}
         strokeLinecap="round"
       />
 
@@ -107,7 +107,7 @@ function CanvasEdgeComponent({
         <div
           className={`inline-flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border backdrop-blur-md shadow-subtle transition-transform group-hover:scale-105 ${
             isSelected
-              ? "bg-surface border-sky-500 text-sky-600 dark:text-sky-300 shadow-sm"
+              ? "bg-surface border-accent text-accent shadow-sm"
               : "bg-surface/95 border-border-subtle text-text-muted hover:border-border-muted"
           }`}
           style={{ borderColor: isSelected ? undefined : strokeColor }}

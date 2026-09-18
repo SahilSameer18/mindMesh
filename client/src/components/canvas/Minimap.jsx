@@ -26,10 +26,11 @@ export function Minimap({
   flyTo = null,
   setViewportDirect = null,
 }) {
-  // Auto-collapse minimap on small tablet/mobile viewports to prevent covering the canvas
+  // Default expanded only on genuinely spacious desktops — below that, the Active
+  // Command Bar shares this same bottom strip and needs the room (see ActiveCommandBar).
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
-      return window.innerWidth < 768;
+      return window.innerWidth < 1536;
     }
     return false;
   });
@@ -226,17 +227,25 @@ export function Minimap({
   return (
     <aside
       aria-label="Canvas Minimap"
-      className="fixed bottom-6 right-6 z-40 select-none transition-all duration-300 pointer-events-auto"
+      className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-40 select-none transition-all duration-300 pointer-events-auto"
     >
       <div className="bg-surface/90 backdrop-blur-xl border border-border-subtle rounded-2xl shadow-elevated p-2.5 overflow-hidden">
         {/* Radar Header */}
-        <div className="flex items-center justify-between px-1 pb-1.5 border-b border-border-subtle text-[11px] font-medium text-text-main">
+        <div
+          className={`flex items-center justify-between text-[11px] font-medium text-text-main ${
+            isCollapsed ? "gap-2" : "px-1 pb-1.5 border-b border-border-subtle"
+          }`}
+        >
           <div className="flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-violet-500" />
-            <span>Radar Minimap</span>
-            <span className="text-[10px] text-text-muted font-normal">
-              ({nodes.length} {nodes.length === 1 ? "node" : "nodes"})
-            </span>
+            <Compass className="w-3.5 h-3.5 text-accent" />
+            {!isCollapsed && (
+              <>
+                <span>Radar Minimap</span>
+                <span className="text-[10px] text-text-muted font-normal">
+                  ({nodes.length} {nodes.length === 1 ? "node" : "nodes"})
+                </span>
+              </>
+            )}
           </div>
           <button
             onClick={() => setIsCollapsed((prev) => !prev)}
@@ -321,7 +330,7 @@ export function Minimap({
 
             {/* Current User Camera Rectangle */}
             <div
-              className="absolute pointer-events-none rounded-lg border-2 border-violet-500 bg-violet-500/10 shadow-[0_0_8px_rgba(139,92,246,0.25)] transition-all"
+              className="absolute pointer-events-none rounded-lg border-2 border-accent bg-accent/10 shadow-[0_0_8px_rgba(168,84,46,0.25)] transition-all"
               style={{
                 left: `${userCameraRect.x}px`,
                 top: `${userCameraRect.y}px`,
@@ -329,7 +338,7 @@ export function Minimap({
                 height: `${userCameraRect.height}px`,
               }}
             >
-              <div className="absolute inset-0 border border-violet-400/30 rounded-md" />
+              <div className="absolute inset-0 border border-accent/30 rounded-md" />
             </div>
           </div>
         )}

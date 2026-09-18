@@ -182,9 +182,9 @@ function CanvasNodeComponent({
         config.borderClass
       } ${
         isHighlighted
-          ? "ring-4 ring-cyan-500 ring-offset-2 ring-offset-app shadow-[0_0_30px_rgba(6,182,212,0.4)] animate-pulse z-40"
+          ? "ring-4 ring-accent ring-offset-2 ring-offset-app shadow-[0_0_30px_rgba(168,84,46,0.35)] animate-pulse z-40"
           : isSelected
-          ? `ring-2 ring-sky-500 shadow-elevated z-30 ${config.glowClass}`
+          ? "ring-2 ring-accent shadow-elevated z-30"
           : isConnectingSource
           ? "ring-2 ring-amber-500 ring-dashed z-30"
           : "hover:border-border-strong shadow-card z-10"
@@ -219,9 +219,9 @@ function CanvasNodeComponent({
                     e.stopPropagation();
                     onInspectEvidence?.(node);
                   }}
-                  className="p-1 text-text-muted hover:text-violet-600 hover:bg-surface-subtle rounded transition-colors cursor-pointer"
+                  className="p-1 text-text-muted hover:text-accent hover:bg-surface-subtle rounded transition-colors cursor-pointer"
                 >
-                  <Quote className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+                  <Quote className="w-3.5 h-3.5 text-accent" />
                 </button>
               )}
 
@@ -233,9 +233,9 @@ function CanvasNodeComponent({
                   e.stopPropagation();
                   onInspectVisual?.(node);
                 }}
-                className="p-1 text-text-muted hover:text-sky-600 hover:bg-surface-subtle rounded transition-colors cursor-pointer"
+                className="p-1 text-text-muted hover:text-accent hover:bg-surface-subtle rounded transition-colors cursor-pointer"
               >
-                <Maximize2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                <Maximize2 className="w-3.5 h-3.5 text-accent" />
               </button>
             )}
 
@@ -284,7 +284,7 @@ function CanvasNodeComponent({
                   onChange={(e) => setEditText(e.target.value)}
                   onBlur={handleFinishEditing}
                   onKeyDown={handleKeyDown}
-                  className="w-full text-sm bg-surface text-text-main p-1 rounded border border-sky-500 outline-none resize-none font-sans"
+                  className="w-full text-sm bg-surface text-text-main p-1 rounded border border-accent outline-none resize-none font-sans"
                   rows={2}
                 />
               ) : (
@@ -304,25 +304,25 @@ function CanvasNodeComponent({
               {!displayImageUrl || node.metadata?.status === "generating" ? (
                 /* Generating Phase: Shimmering skeleton loader */
                 <div className="w-full h-32 rounded-xl bg-surface-subtle border border-border-subtle flex flex-col items-center justify-center p-3 relative overflow-hidden animate-pulse shadow-inner">
-                  <ImageIcon className="w-5 h-5 text-sky-600 dark:text-sky-400 mb-2 animate-pulse" />
+                  <ImageIcon className="w-5 h-5 text-accent mb-2 animate-pulse" />
                   <span className="text-xs font-semibold text-text-main">Synthesizing visual concept...</span>
                   <span className="text-[10px] text-text-muted mt-1">Generative Concept</span>
                 </div>
               ) : imgError ? (
                 /* Fallback Phase: Sleek Concept Blueprint container with subtle retry trigger */
-                <div className="w-full min-h-32 rounded-xl bg-gradient-to-br from-indigo-50/70 via-purple-50/40 to-slate-50 border border-indigo-200/80 dark:from-indigo-950/30 dark:via-purple-950/20 dark:to-surface-subtle dark:border-indigo-800/40 p-3 flex flex-col justify-between relative overflow-hidden shadow-subtle group/fallback">
+                <div className="w-full min-h-32 rounded-xl bg-gradient-to-br from-accent/[0.06] via-amber-500/[0.05] to-surface-subtle border border-accent/20 p-3 flex flex-col justify-between relative overflow-hidden shadow-subtle group/fallback">
                   {/* Subtle decorative blueprint grid lines */}
-                  <div className="absolute inset-0 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:12px_12px] opacity-15 pointer-events-none" />
-                  
+                  <div className="absolute inset-0 bg-[radial-gradient(#A8542E_1px,transparent_1px)] [background-size:12px_12px] opacity-[0.08] pointer-events-none" />
+
                   <div className="relative z-10 flex items-center justify-between gap-2 mb-1.5">
                     <div className="flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <Sparkles className="w-3.5 h-3.5 text-accent" />
                       <span className="text-[11px] font-semibold text-text-main tracking-tight">Concept Blueprint</span>
                     </div>
                     <button
                       type="button"
                       onClick={handleRetryImage}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface border border-border hover:border-indigo-400 text-[10px] font-medium text-text-muted hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors shadow-subtle cursor-pointer active:scale-95"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface border border-border hover:border-accent/50 text-[10px] font-medium text-text-muted hover:text-accent transition-colors shadow-subtle cursor-pointer active:scale-95"
                       title="Regenerate visual representation"
                     >
                       <RotateCw className="w-2.5 h-2.5" />
@@ -334,7 +334,7 @@ function CanvasNodeComponent({
                     {node.metadata?.prompt || node.text || "Generative concept visual blueprint"}
                   </p>
 
-                  <div className="relative z-10 mt-2 flex items-center justify-between text-[9px] text-text-faint pt-1 border-t border-indigo-100 dark:border-indigo-900/40">
+                  <div className="relative z-10 mt-2 flex items-center justify-between text-[9px] text-text-faint pt-1 border-t border-accent/15">
                     <span>Generative AI Service</span>
                     <span className="font-mono">Offline Fallback</span>
                   </div>
@@ -376,7 +376,7 @@ function CanvasNodeComponent({
                   {imgLoaded && (
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-end justify-between p-2">
                       <span className="text-[10px] font-medium text-white flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/20 shadow">
-                        <Maximize2 className="w-2.5 h-2.5 text-sky-400" />
+                        <Maximize2 className="w-2.5 h-2.5 text-accent" />
                         Inspect
                       </span>
                     </div>
@@ -396,7 +396,7 @@ function CanvasNodeComponent({
                   onChange={(e) => setEditText(e.target.value)}
                   onBlur={handleFinishEditing}
                   onKeyDown={handleKeyDown}
-                  className="w-full text-sm bg-surface text-text-main p-1.5 rounded border border-sky-500 outline-none resize-none font-sans"
+                  className="w-full text-sm bg-surface text-text-main p-1.5 rounded border border-accent outline-none resize-none font-sans"
                   rows={2}
                 />
               ) : (
@@ -411,7 +411,7 @@ function CanvasNodeComponent({
         {/* Card Footer: Origin Metadata (e.g. Echo Voice speech-to-text indicator) */}
         {node.sourceType === "transcript" && (
           <div className="mt-1.5 pt-1 border-t border-border-subtle flex items-center justify-end text-[10px]">
-            <span className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 font-medium bg-sky-50 dark:bg-sky-950/40 px-1.5 py-0.5 rounded border border-sky-200 dark:border-sky-800/50">
+            <span className="inline-flex items-center gap-1 text-accent font-medium bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">
               Echo Voice
             </span>
           </div>
@@ -420,13 +420,13 @@ function CanvasNodeComponent({
         {/* Right Connection Port Anchor Handle */}
         <button
           title="Drag or click to link"
-          className="connect-handle absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface border-2 border-border-strong hover:border-sky-500 hover:bg-sky-50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-subtle cursor-crosshair z-40"
+          className="connect-handle absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface border-2 border-border-strong hover:border-accent hover:bg-accent/10 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-subtle cursor-crosshair z-40"
           onClick={(e) => {
             e.stopPropagation();
             onStartConnect(node.id);
           }}
         >
-          <div className="w-1.5 h-1.5 rounded-full bg-border-strong group-hover:bg-sky-500" />
+          <div className="w-1.5 h-1.5 rounded-full bg-border-strong group-hover:bg-accent" />
         </button>
       </div>
     </div>

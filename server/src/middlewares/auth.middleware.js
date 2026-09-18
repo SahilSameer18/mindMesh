@@ -8,7 +8,7 @@ export const DEMO_USER = {
   name: "Elena Vance",
   email: "elena@mindmesh.ai",
   role: "owner",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena",
+  avatar: "E",
   color: "#8B5CF6", // glowing violet
   isDemo: true,
 };
@@ -18,7 +18,7 @@ export const SECONDARY_DEMO_USER = {
   name: "Marcus Sterling",
   email: "marcus@mindmesh.ai",
   role: "member",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus",
+  avatar: "M",
   color: "#06B6D4", // neon cyan
   isDemo: true,
 };
@@ -37,7 +37,7 @@ function createAnonymousGuestUser(socketId) {
     id: `anon-${socketId}`,
     name: `Guest ${shortId}`,
     role: "Guest",
-    avatar: shortId.slice(0, 2),
+    avatar: shortId.slice(0, 1),
     isGuest: true,
     isDemo: true,
   };

@@ -1,24 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useWebRTC } from "../../hooks/useWebRTC.js";
 import { useRoom } from "../../hooks/useRoom.js";
-import { Mic, MicOff, Video, VideoOff, Users, ChevronDown, ChevronUp, GripHorizontal } from "lucide-react";
+import { getUserInitials } from "../../utils/colors.js";
+import { Mic, MicOff, Video, VideoOff, Users, ChevronDown, GripHorizontal, GripVertical } from "lucide-react";
 
 /**
  * Functional P2P Video Conference Bar.
  * Renders local & remote WebRTC video tiles with zero-CPU track status indicators,
  * ambient avatar fallbacks, adaptive 1-to-4 layout, and a non-overlapping draggable dock.
  */
-
-function getInitials(name = "?") {
-  return name
-    .trim()
-    .split(" ")
-    .map((p) => p[0])
-    .filter(Boolean)
-    .join("")
-    .slice(0, 2)
-    .toUpperCase() || "?";
-}
 
 function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompact = false }) {
   const videoRef = useRef(null);
@@ -34,8 +24,8 @@ function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompac
 
   return (
     <div
-      className={`relative rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 flex items-center justify-center shadow-subtle shrink-0 select-none ${
-        isCompact ? "w-28 h-20" : "w-36 h-24"
+      className={`relative rounded-xl overflow-hidden bg-[#0B0906] border border-[#F3ECDD]/10 flex items-center justify-center shadow-subtle shrink-0 select-none ${
+        isCompact ? "w-24 h-16" : "w-28 h-20"
       }`}
     >
       {showVideo ? (
@@ -50,18 +40,18 @@ function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompac
         <div className="flex flex-col items-center justify-center text-white">
           <div
             className={`rounded-full flex items-center justify-center font-bold shadow-subtle border border-white/20 ${
-              isCompact ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm"
+              isCompact ? "w-6 h-6 text-[10px]" : "w-8 h-8 text-xs"
             }`}
-            style={{ backgroundColor: color || (isLocal ? "#0284c7" : "#059669") }}
+            style={{ backgroundColor: color || (isLocal ? "#A8542E" : "#059669") }}
           >
-            {getInitials(name)}
+            {getUserInitials(name)}
           </div>
         </div>
       )}
 
       {/* Name and Mute Status Overlay */}
       <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-xs text-[10px] text-white">
-        <span className="truncate max-w-[70px] font-medium leading-none">
+        <span className="truncate max-w-[50px] font-medium leading-none">
           {displayName}
         </span>
         {isMuted ? (
@@ -88,9 +78,11 @@ export default function VideoConferenceBar({
   const currentUser = propCurrentUser || room?.currentUser;
   const peers = propPeers || room?.peers || [];
 
+  // Default expanded only on genuinely spacious desktops — below that, the Active
+  // Command Bar shares this same bottom strip and needs the room (see ActiveCommandBar).
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
-      return window.innerWidth < 768;
+      return window.innerWidth < 1536;
     }
     return false;
   });
@@ -164,8 +156,12 @@ export default function VideoConferenceBar({
     ? { left: `${position.x}px`, top: `${position.y}px` }
     : undefined;
 
-  // Non-overlapping default position: bottom-6 left-44 (clear of both zoom controls and left toolbar)
-  const positionClass = position ? "fixed z-40" : "fixed bottom-20 left-4 sm:bottom-6 sm:left-44 z-40 max-w-[calc(100vw-2rem)]";
+  // Default position: a vertical dock at the top of the left rail — it's the element
+  // that actually grows with peer count, so it gets room to expand downward rather
+  // than a fixed slot. The canvas tools dock anchors from the bottom instead, since
+  // it's fixed-size. Mobile keeps its own safe bottom-row spot since a vertical dock
+  // there would eat too much of a short viewport. Always draggable.
+  const positionClass = position ? "fixed z-40" : "fixed bottom-20 left-4 sm:bottom-auto sm:top-20 sm:left-4 z-40 max-w-[calc(100vw-2rem)]";
 
   // Collapsed Mode: Micro-pill
   if (isCollapsed) {
@@ -175,25 +171,26 @@ export default function VideoConferenceBar({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        className={`${positionClass} flex items-center gap-1.5 p-1.5 rounded-2xl bg-zinc-900/95 border border-zinc-700/80 text-white shadow-elevated backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 pointer-events-auto cursor-grab active:cursor-grabbing select-none`}
+        className={`${positionClass} flex flex-col items-center gap-1 p-1.5 rounded-2xl bg-[#14110C]/95 border border-[#F3ECDD]/10 text-[#F3ECDD] shadow-elevated backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 pointer-events-auto cursor-grab active:cursor-grabbing select-none`}
       >
-        <GripHorizontal className="w-3.5 h-3.5 text-zinc-500 shrink-0 ml-0.5" />
+        <GripVertical className="w-3.5 h-3.5 text-[#8A8478] shrink-0" />
+
         <button
           type="button"
           onClick={() => setIsCollapsed(false)}
-          className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold cursor-pointer transition-colors"
-          title="Expand Video Call"
+          className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl bg-[#1C1812] hover:bg-[#242019] cursor-pointer transition-colors"
+          title={`Expand Video Call — ${totalParticipants} in call`}
         >
-          <Users className="w-3.5 h-3.5 text-sky-400" />
-          <span>{totalParticipants} in call</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <Users className="w-3.5 h-3.5 text-accent" />
+          <span className="text-[10px] font-mono font-semibold">{totalParticipants}</span>
+          <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
         </button>
 
         <button
           type="button"
           onClick={toggleMic}
           className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-            isMuted ? "bg-rose-600 hover:bg-rose-500 text-white" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+            isMuted ? "bg-rose-600 hover:bg-rose-500 text-white" : "bg-[#1C1812] hover:bg-[#242019] text-[#8A8478]"
           }`}
           title={isMuted ? "Unmute microphone" : "Mute microphone"}
           aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
@@ -205,7 +202,7 @@ export default function VideoConferenceBar({
           type="button"
           onClick={toggleCamera}
           className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-            isCameraOn ? "bg-sky-600 hover:bg-sky-500 text-white" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400"
+            isCameraOn ? "bg-accent hover:bg-accent-hover text-white" : "bg-[#1C1812] hover:bg-[#242019] text-[#8A8478]"
           }`}
           title={isCameraOn ? "Turn camera off" : "Turn camera on"}
           aria-label={isCameraOn ? "Turn camera off" : "Turn camera on"}
@@ -216,11 +213,11 @@ export default function VideoConferenceBar({
         <button
           type="button"
           onClick={() => setIsCollapsed(false)}
-          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg text-[#8A8478] hover:text-[#F3ECDD] hover:bg-[#1C1812] transition-colors cursor-pointer"
           title="Expand video tiles"
           aria-label="Expand video tiles"
         >
-          <ChevronUp className="w-3.5 h-3.5" />
+          <ChevronDown className="w-3.5 h-3.5" />
         </button>
       </div>
     );
@@ -233,22 +230,21 @@ export default function VideoConferenceBar({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      className={`${positionClass} flex flex-col gap-2 p-2 rounded-2xl bg-zinc-900/95 border border-zinc-700/80 text-white shadow-elevated backdrop-blur-xl transition-shadow duration-200 animate-in fade-in zoom-in-95 select-none pointer-events-auto cursor-grab active:cursor-grabbing`}
+      className={`${positionClass} flex flex-col gap-2 p-2 rounded-2xl bg-[#14110C]/95 border border-[#F3ECDD]/10 text-[#F3ECDD] shadow-elevated backdrop-blur-xl transition-shadow duration-200 animate-in fade-in zoom-in-95 select-none pointer-events-auto cursor-grab active:cursor-grabbing`}
     >
       {/* Dock Header with Drag Grip */}
-      <div className="flex items-center justify-between px-1 pb-1 border-b border-zinc-800/80 text-xs">
-        <div className="flex items-center gap-1.5">
-          <GripHorizontal className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-semibold text-zinc-200 text-[11px]">Video Chat</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-zinc-800 text-[9px] font-mono text-zinc-400">
+      <div className="flex items-center justify-between px-1 pb-1 border-b border-[#F3ECDD]/10 text-xs">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <GripHorizontal className="w-3.5 h-3.5 text-[#8A8478] shrink-0" />
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="px-1.5 py-0.2 rounded-full bg-[#1C1812] text-[9px] font-mono text-[#8A8478] shrink-0">
             {totalParticipants}
           </span>
         </div>
         <button
           type="button"
           onClick={() => setIsCollapsed(true)}
-          className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+          className="p-1 rounded-lg text-[#8A8478] hover:text-[#F3ECDD] hover:bg-[#1C1812] transition-colors cursor-pointer shrink-0"
           title="Collapse to pill"
           aria-label="Collapse to pill"
         >
@@ -256,14 +252,12 @@ export default function VideoConferenceBar({
         </button>
       </div>
 
-      {/* Video Tiles Grid: Adaptive 1, 2, or 2x2 layout */}
-      <div
-        className={
-          isMultiPeer
-            ? "grid grid-cols-2 gap-1.5 max-w-[240px] max-h-[50vh] overflow-y-auto"
-            : "flex items-center gap-1.5 max-w-[calc(100vw-3rem)] overflow-x-auto"
-        }
-      >
+      {/* Video Tiles: stacked vertically to match the left-rail dock orientation.
+          Max-height is tied to the canvas tools dock's actual reserved footprint
+          (its own height + bottom offset + a safety gap) so a crowded call's tile
+          list can never grow into it, at any viewport height — a flat vh percentage
+          doesn't hold that guarantee on shorter screens. */}
+      <div className="flex flex-col gap-1.5 max-h-[calc(100vh-27rem)] overflow-y-auto">
         {/* Local User Tile */}
         <VideoTile
           stream={localStream}
@@ -295,46 +289,46 @@ export default function VideoConferenceBar({
         })}
       </div>
 
-      {/* Control Buttons Bar */}
-      <div className="flex items-center justify-between pt-1 border-t border-zinc-800/80 gap-1.5">
+      {/* Control Buttons Bar — icon-only to match the narrower rail dock */}
+      <div className="flex items-center justify-between pt-1 border-t border-[#F3ECDD]/10 gap-1.5">
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={toggleMic}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
               isMuted
                 ? "bg-rose-600 hover:bg-rose-500 text-white shadow-sm"
-                : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700"
+                : "bg-[#1C1812] hover:bg-[#242019] text-[#F3ECDD] border border-[#F3ECDD]/10"
             }`}
             title={isMuted ? "Unmute microphone" : "Mute microphone"}
             aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
           >
-            {isMuted ? <MicOff className="w-3 h-3" /> : <Mic className="w-3 h-3 text-emerald-400" />}
-            <span>{isMuted ? "Muted" : "Mute"}</span>
+            {isMuted ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5 text-emerald-400" />}
           </button>
 
           <button
             type="button"
             onClick={toggleCamera}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
               isCameraOn
-                ? "bg-sky-600 hover:bg-sky-500 text-white shadow-sm"
-                : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 border border-zinc-700"
+                ? "bg-accent hover:bg-accent-hover text-white shadow-sm"
+                : "bg-[#1C1812] hover:bg-[#242019] text-[#8A8478] border border-[#F3ECDD]/10"
             }`}
             title={isCameraOn ? "Turn camera off" : "Turn camera on"}
             aria-label={isCameraOn ? "Turn camera off" : "Turn camera on"}
           >
-            {isCameraOn ? <Video className="w-3 h-3" /> : <VideoOff className="w-3 h-3 text-zinc-400" />}
-            <span>{isCameraOn ? "Cam On" : "Cam Off"}</span>
+            {isCameraOn ? <Video className="w-3.5 h-3.5" /> : <VideoOff className="w-3.5 h-3.5" />}
           </button>
         </div>
 
         <button
           type="button"
           onClick={() => setIsCollapsed(true)}
-          className="text-[10px] text-zinc-400 hover:text-zinc-200 px-1.5 py-0.5 rounded hover:bg-zinc-800 transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg text-[#8A8478] hover:text-[#F3ECDD] hover:bg-[#1C1812] transition-colors cursor-pointer"
+          title="Collapse to pill"
+          aria-label="Collapse to pill"
         >
-          Collapse
+          <ChevronDown className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

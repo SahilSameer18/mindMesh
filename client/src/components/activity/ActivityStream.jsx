@@ -117,19 +117,19 @@ export default function ActivityStream({
             setIsOpen(true);
             setIsMinimized(false);
           }}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-surface/90 hover:bg-surface-hover border border-border-subtle hover:border-violet-300 backdrop-blur-2xl shadow-elevated text-xs font-semibold text-text-main transition-all cursor-pointer group active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-surface/90 hover:bg-surface-hover border border-border-subtle hover:border-accent/40 backdrop-blur-2xl shadow-elevated text-xs font-semibold text-text-main transition-all cursor-pointer group active:scale-95"
           title="Open Live Transcript & Activity"
         >
-          <MessageSquareQuote className="w-4 h-4 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform" />
+          <MessageSquareQuote className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
           <span>Transcript</span>
           {transcripts.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-violet-100 text-violet-800 border border-violet-200 dark:bg-violet-600/30 dark:text-violet-300 dark:border-violet-500/40">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-accent/10 text-accent border border-accent/25">
               {transcripts.length}
             </span>
           )}
           {proposedCount > 0 && (
-            <span className="flex items-center gap-1 text-[10px] text-cyan-800 bg-cyan-100 px-1.5 py-0.2 rounded-full border border-cyan-200 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-800/50">
-              <Zap className="w-2.5 h-2.5 text-cyan-600 dark:text-cyan-400" />
+            <span className="flex items-center gap-1 text-[10px] text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded-full border border-amber-200">
+              <Zap className="w-2.5 h-2.5 text-amber-600" />
               <span>{proposedCount}</span>
             </span>
           )}
@@ -151,7 +151,7 @@ export default function ActivityStream({
             setActiveTab("transcript");
             setIsMinimized(false);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-600 text-white text-xs font-semibold shadow-subtle cursor-pointer active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent text-on-accent text-xs font-semibold shadow-subtle cursor-pointer active:scale-95"
         >
           <MessageSquareQuote className="w-3.5 h-3.5" />
           <span>Transcript</span>
@@ -170,10 +170,10 @@ export default function ActivityStream({
           }}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-hover text-xs font-medium cursor-pointer transition-colors active:scale-95"
         >
-          <Activity className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+          <Activity className="w-3.5 h-3.5 text-accent" />
           <span>Activity</span>
           {proposedCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-500 text-white font-bold">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-white font-bold">
               {proposedCount}
             </span>
           )}
@@ -213,7 +213,7 @@ export default function ActivityStream({
             onClick={() => setActiveTab("transcript")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "transcript"
-                ? "bg-violet-600 text-white shadow-subtle"
+                ? "bg-accent text-on-accent shadow-subtle"
                 : "text-text-muted hover:text-text-main"
             }`}
           >
@@ -231,14 +231,14 @@ export default function ActivityStream({
             onClick={() => setActiveTab("activity")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "activity"
-                ? "bg-violet-600 text-white shadow-subtle"
+                ? "bg-accent text-on-accent shadow-subtle"
                 : "text-text-muted hover:text-text-main"
             }`}
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Activity</span>
             {proposedCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-cyan-500 text-white">
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white">
                 {proposedCount}
               </span>
             )}
@@ -287,7 +287,7 @@ export default function ActivityStream({
               onClick={() => setFilter("proposed")}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
                 filter === "proposed"
-                  ? "bg-cyan-100 text-cyan-800 border border-cyan-300 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-800/50"
+                  ? "bg-accent/10 text-accent border border-accent/25"
                   : "text-text-muted hover:text-text-main"
               }`}
             >
@@ -321,7 +321,7 @@ export default function ActivityStream({
               </div>
             ) : filteredActions.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-text-faint">
-                <Activity className="w-8 h-8 mb-2 opacity-30 text-violet-600 dark:text-violet-400" />
+                <Activity className="w-8 h-8 mb-2 opacity-30 text-accent" />
                 <p className="text-sm font-medium text-text-main">No activity recorded yet</p>
                 <p className="text-xs mt-1 text-text-muted">
                   Run commands via the Command Bar (⌘K) or speak via microphone to populate the canvas.
@@ -347,7 +347,7 @@ export default function ActivityStream({
                       isProposed
                         ? isClarify
                           ? "bg-amber-50/80 border-amber-300 dark:bg-amber-950/20 dark:border-amber-800/50"
-                          : "bg-cyan-50/80 border-cyan-300 dark:bg-cyan-950/20 dark:border-cyan-800/50"
+                          : "bg-accent/5 border-accent/25"
                         : isRejected
                         ? "bg-surface-subtle border-border-subtle opacity-60"
                         : "bg-surface border-border-subtle hover:border-border-strong"
@@ -356,7 +356,7 @@ export default function ActivityStream({
                     {/* Header Row */}
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1.5 font-semibold text-text-main">
-                        <Icon className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+                        <Icon className="w-3.5 h-3.5 text-accent" />
                         <span>{formatActionType(item.type)}</span>
                       </div>
 
@@ -372,7 +372,7 @@ export default function ActivityStream({
                           className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${
                             isClarify
                               ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700/60"
-                              : "bg-cyan-100 text-cyan-800 border-cyan-300 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-700/60"
+                              : "bg-accent/10 text-accent border-accent/25"
                           }`}
                         >
                           {isClarify
@@ -420,7 +420,7 @@ export default function ActivityStream({
                           <button
                             type="button"
                             onClick={() => canvas?.panToNode?.(item.payload.id)}
-                            className="text-text-muted hover:text-indigo-600 transition-colors cursor-pointer"
+                            className="text-text-muted hover:text-accent transition-colors cursor-pointer"
                             title="Locate on canvas"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
@@ -570,12 +570,12 @@ export default function ActivityStream({
               value={typedMessage}
               onChange={(e) => setTypedMessage(e.target.value)}
               placeholder="Type into transcript or speak (M)..."
-              className="flex-1 bg-surface border border-border-subtle rounded-xl px-3 py-2 text-xs text-text-main placeholder:text-text-faint focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 transition-all"
+              className="flex-1 bg-surface border border-border-subtle rounded-xl px-3 py-2 text-xs text-text-main placeholder:text-text-faint focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all"
             />
             <button
               type="submit"
               disabled={!typedMessage.trim()}
-              className="p-2 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:hover:bg-violet-600 text-white transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
+              className="p-2 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:hover:bg-accent text-on-accent transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
               title="Post message to room transcript"
             >
               <Send className="w-3.5 h-3.5" />

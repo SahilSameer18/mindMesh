@@ -114,12 +114,15 @@ export default function ActiveCommandBar({ canvas }) {
   };
 
   return (
-    <aside aria-label="Active Command Bar" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-2xl flex flex-col items-center gap-2 pointer-events-none">
+    <aside
+      aria-label="Active Command Bar"
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2 pointer-events-none w-[calc(100%-2rem)] sm:max-w-[min(42rem,calc(100vw-24rem))] max-w-2xl"
+    >
       {/* Answer Modal / Result Flyout */}
       {lastResponse && (
         <div className="w-full pointer-events-auto backdrop-blur-2xl bg-surface/95 border border-border-subtle rounded-2xl shadow-elevated p-4 text-text-main animate-in fade-in slide-in-from-bottom-4 duration-200">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-border-subtle">
-            <div className="flex items-center gap-2 text-xs font-semibold text-violet-600 dark:text-violet-400">
+            <div className="flex items-center gap-2 text-xs font-semibold text-accent">
               <Cpu className="w-3.5 h-3.5" />
               <span>{lastResponse.summary || "AI Workspace Response"}</span>
             </div>
@@ -151,7 +154,7 @@ export default function ActiveCommandBar({ canvas }) {
               <button
                 type="button"
                 onClick={() => canvas?.panToNode?.(lastResponse.highlightedNodeIds[0])}
-                className="text-indigo-600 dark:text-cyan-400 font-medium hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-accent font-medium hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <span>Jump to node</span>
                 <ArrowRight className="w-3 h-3" />
@@ -168,7 +171,7 @@ export default function ActiveCommandBar({ canvas }) {
           className="w-full pointer-events-auto backdrop-blur-2xl bg-surface/95 border border-border-subtle rounded-2xl shadow-elevated p-3 text-text-main animate-in fade-in slide-in-from-bottom-2 duration-150"
         >
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-border-subtle text-xs">
-            <div className="flex items-center gap-1.5 font-semibold text-violet-600 dark:text-violet-400">
+            <div className="flex items-center gap-1.5 font-semibold text-accent">
               <Command className="w-3.5 h-3.5" />
               <span>Prompt Suggestions</span>
             </div>
@@ -183,9 +186,9 @@ export default function ActiveCommandBar({ canvas }) {
                   key={pill.label}
                   type="button"
                   onClick={() => handleSelectPrompt(pill.prompt)}
-                  className="group flex items-start gap-2.5 p-2 rounded-xl text-left bg-surface-subtle hover:bg-surface-hover border border-border-subtle hover:border-violet-300 transition-all cursor-pointer"
+                  className="group flex items-start gap-2.5 p-2 rounded-xl text-left bg-surface-subtle hover:bg-surface-hover border border-border-subtle hover:border-accent/40 transition-all cursor-pointer"
                 >
-                  <div className="p-1.5 rounded-lg bg-surface border border-border-subtle group-hover:bg-violet-50 text-violet-600 dark:text-violet-400 transition-colors shrink-0 mt-0.5">
+                  <div className="p-1.5 rounded-lg bg-surface border border-border-subtle group-hover:bg-accent/10 text-accent transition-colors shrink-0 mt-0.5">
                     <Icon className="w-3.5 h-3.5" />
                   </div>
                   <div className="flex flex-col min-w-0">
@@ -204,15 +207,15 @@ export default function ActiveCommandBar({ canvas }) {
       )}
 
       {/* The Floating Command Bar */}
-      <div className="w-full pointer-events-auto backdrop-blur-2xl bg-surface/90 border border-border-subtle focus-within:border-violet-500 focus-within:shadow-[0_0_25px_rgba(139,92,246,0.25)] rounded-2xl shadow-elevated transition-all duration-200 p-1.5 flex flex-col">
+      <div className="w-full pointer-events-auto backdrop-blur-2xl bg-surface/90 border border-border-subtle focus-within:border-accent focus-within:shadow-[0_0_25px_rgba(168,84,46,0.18)] rounded-2xl shadow-elevated transition-all duration-200 p-1.5 flex flex-col">
         {/* Skeleton Thinking Loader */}
         {isThinking && (
           <div className="px-4 py-2 flex flex-col gap-1.5 animate-pulse border-b border-border-subtle">
-            <div className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400 font-medium">
+            <div className="flex items-center gap-2 text-xs text-accent font-medium">
               <Cpu className="w-3.5 h-3.5 animate-pulse" />
               <span>Reasoning across workspace canvas...</span>
             </div>
-            <div className="h-2 bg-gradient-to-r from-violet-500/30 via-sky-500/40 to-violet-500/30 rounded-full w-3/4 animate-pulse" />
+            <div className="h-2 bg-gradient-to-r from-accent/30 via-amber-400/40 to-accent/30 rounded-full w-3/4 animate-pulse" />
           </div>
         )}
 
@@ -224,12 +227,12 @@ export default function ActiveCommandBar({ canvas }) {
             onClick={() => setIsPromptsOpen((prev) => !prev)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 ${
               isPromptsOpen
-                ? "bg-violet-600 text-white shadow-md border border-violet-500"
-                : "bg-surface-subtle hover:bg-surface-hover text-text-main border border-border-subtle hover:border-violet-300"
+                ? "bg-accent text-on-accent shadow-sm border border-accent-hover"
+                : "bg-surface-subtle hover:bg-surface-hover text-text-main border border-border-subtle hover:border-accent/40"
             }`}
             title="View prompt suggestions"
           >
-            <Command className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+            <Command className="w-3.5 h-3.5 text-accent" />
             <span className="hidden sm:inline">Prompts</span>
             {isPromptsOpen ? (
               <ChevronDown className="w-3 h-3 opacity-80" />
@@ -242,10 +245,10 @@ export default function ActiveCommandBar({ canvas }) {
           <button
             type="button"
             onClick={() => setIsAgendaModalOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-surface-subtle hover:bg-surface-hover text-text-main border border-border-subtle hover:border-violet-300 transition-all cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-surface-subtle hover:bg-surface-hover text-text-main border border-border-subtle hover:border-accent/40 transition-all cursor-pointer shrink-0"
             title="Import meeting agenda & topic anchors"
           >
-            <ListOrdered className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+            <ListOrdered className="w-3.5 h-3.5 text-accent" />
             <span className="hidden sm:inline">Agenda</span>
           </button>
 
@@ -268,7 +271,7 @@ export default function ActiveCommandBar({ canvas }) {
               type="submit"
               disabled={!prompt.trim() || isThinking}
               aria-label="Submit workspace command"
-              className="p-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:hover:bg-violet-600 text-white transition-all shadow-md active:scale-95 cursor-pointer"
+              className="p-1.5 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:hover:bg-accent text-on-accent transition-all shadow-sm active:scale-95 cursor-pointer"
             >
               <CornerDownLeft className="w-4 h-4" />
             </button>

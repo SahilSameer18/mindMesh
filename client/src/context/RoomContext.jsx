@@ -67,7 +67,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
           name: "Marcus Sterling",
           role: "Tech Lead",
           color: "#06b6d4",
-          avatar: "MS",
+          avatar: "M",
           isDemo: true,
         };
       }
@@ -78,7 +78,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
           name: "Elena Vance",
           role: "Product Lead",
           color: "#8b5cf6",
-          avatar: "EV",
+          avatar: "E",
           isDemo: true,
         };
       }
