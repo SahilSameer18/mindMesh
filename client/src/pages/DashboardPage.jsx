@@ -20,8 +20,7 @@ import {
 import { roomsApi } from "../api/rooms.api.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useRouter } from "../app.routes.jsx";
-import LandingNavbar from "../components/landing/LandingNavbar.jsx";
-import LandingFooter from "../components/landing/LandingFooter.jsx";
+import DashboardHeader from "../components/dashboard/DashboardHeader.jsx";
 import CreateWorkspaceModal from "../components/landing/modals/CreateWorkspaceModal.jsx";
 import DeleteWorkspaceModal from "../components/landing/modals/DeleteWorkspaceModal.jsx";
 import { getUserInitials, getUserColor } from "../utils/colors.js";
@@ -33,6 +32,12 @@ const COOL_ROOM_SLUGS = [
 ];
 
 const MODE_FILTERS = ["all", "operational", "brainstorm", "solo"];
+
+const MODE_BADGE = {
+  brainstorm: { icon: Brain, className: "bg-amber-50 text-amber-700 border-amber-200" },
+  solo: { icon: Layers, className: "bg-surface-hover text-text-main border-border-strong" },
+  operational: { icon: Zap, className: "bg-accent/10 text-accent border-accent/25" },
+};
 
 export default function WorkspacePage() {
   const { user } = useAuth();
@@ -176,21 +181,18 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen w-full bg-app text-text-main flex flex-col">
-      {/* Shared Navbar — self-contained via useAuth/useRouter */}
-      <LandingNavbar
-        onLaunchNewWorkspace={() => setIsCreateModalOpen(true)}
-        onLaunchDemo={() => navigateToRoom("demo-room")}
-      />
+      {/* Dedicated app-shell header — not LandingNavbar, no marketing chrome here */}
+      <DashboardHeader />
 
-      {/* Page Content — pt-16 to clear fixed navbar */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 space-y-8">
+      {/* Page Content */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-16 space-y-6 sm:space-y-8">
 
         {/* ── Page Header ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <LayoutDashboard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-text-main tracking-tight">
+              <LayoutDashboard className="w-5 h-5 text-accent" />
+              <h1 className="text-2xl sm:text-3xl font-serif italic font-medium text-text-main tracking-tight">
                 Dashboard
               </h1>
             </div>
@@ -207,7 +209,7 @@ export default function WorkspacePage() {
               type="button"
               onClick={() => fetchRooms(true)}
               disabled={isRefreshing}
-              className="p-2 rounded-xl border border-border-subtle bg-surface text-text-muted hover:text-text-main hover:bg-surface-subtle transition-all cursor-pointer disabled:opacity-50"
+              className="p-2 rounded-lg border border-border-subtle bg-surface text-text-muted hover:text-text-main hover:bg-surface-subtle transition-all cursor-pointer disabled:opacity-50"
               title="Refresh rooms"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
@@ -218,7 +220,7 @@ export default function WorkspacePage() {
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold shadow-md shadow-indigo-600/20 border border-white/10 transition-all active:scale-[0.98] cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-on-accent text-sm font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>New Room</span>
@@ -227,7 +229,7 @@ export default function WorkspacePage() {
               <button
                 type="button"
                 onClick={() => navigateToLogin()}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-on-accent text-sm font-semibold shadow-sm transition-all active:scale-[0.98] cursor-pointer"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Sign In</span>
@@ -240,17 +242,17 @@ export default function WorkspacePage() {
         {!isLoading && rooms.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Total Rooms", value: rooms.length, icon: Layers, color: "text-indigo-600" },
-              { label: "Total Cards", value: rooms.reduce((s, r) => s + (r._count?.nodes || 0), 0), icon: Zap, color: "text-violet-600" },
-              { label: "Transcripts", value: rooms.reduce((s, r) => s + (r._count?.transcriptChunks || 0), 0), icon: MessageSquare, color: "text-sky-600" },
+              { label: "Total Rooms", value: rooms.length, icon: Layers, color: "text-accent" },
+              { label: "Total Cards", value: rooms.reduce((s, r) => s + (r._count?.nodes || 0), 0), icon: Zap, color: "text-amber-600" },
+              { label: "Transcripts", value: rooms.reduce((s, r) => s + (r._count?.transcriptChunks || 0), 0), icon: MessageSquare, color: "text-text-muted" },
               { label: "Members", value: rooms.reduce((s, r) => s + (r._count?.members || 0), 0), icon: Users, color: "text-emerald-600" },
             ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="bg-surface border border-border-subtle rounded-2xl p-4 space-y-1 shadow-subtle">
+              <div key={label} className="bg-surface border border-border-subtle rounded-2xl p-4 space-y-1 shadow-subtle transition-all hover:border-border-strong hover:shadow-card">
                 <div className={`flex items-center gap-1.5 text-xs font-medium ${color}`}>
                   <Icon className="w-3.5 h-3.5" />
                   <span>{label}</span>
                 </div>
-                <p className="text-2xl font-bold text-text-main font-display">{value}</p>
+                <p className="text-2xl font-bold text-text-main font-serif">{value}</p>
               </div>
             ))}
           </div>
@@ -266,21 +268,21 @@ export default function WorkspacePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search rooms by name or ID..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-surface border border-border-subtle text-sm text-text-main placeholder-text-muted/60 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-all"
+              className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-surface border border-border-subtle text-sm text-text-main placeholder-text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent/15 focus:border-accent transition-all"
             />
           </div>
 
           {/* Mode Filter */}
-          <div className="flex items-center gap-1.5 bg-surface border border-border-subtle rounded-xl p-1">
+          <div className="flex items-center gap-1.5 bg-surface border border-border-subtle rounded-lg p-1 overflow-x-auto">
             <SlidersHorizontal className="w-3.5 h-3.5 text-text-muted ml-2 shrink-0" />
             {MODE_FILTERS.map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => setModeFilter(m)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all capitalize cursor-pointer ${
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all capitalize cursor-pointer shrink-0 ${
                   modeFilter === m
-                    ? "bg-indigo-600 text-white shadow-sm"
+                    ? "bg-accent text-on-accent shadow-sm"
                     : "text-text-muted hover:text-text-main hover:bg-surface-subtle"
                 }`}
               >
@@ -304,43 +306,37 @@ export default function WorkspacePage() {
                   <div className="h-3 bg-surface-hover rounded w-12" />
                   <div className="h-3 bg-surface-hover rounded w-14" />
                 </div>
-                <div className="h-9 bg-surface-hover rounded-xl w-full mt-1" />
+                <div className="h-9 bg-surface-hover rounded-lg w-full mt-1" />
               </div>
             ))}
           </div>
         ) : filteredRooms.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredRooms.map((room) => {
-              const isBrainstorm = room.mode === "brainstorm";
-              const isSolo = room.mode === "solo";
               const nodeCount = room._count?.nodes || 0;
               const memberCount = room._count?.members || 0;
               const transcriptCount = room._count?.transcriptChunks || 0;
+              const badge = MODE_BADGE[room.mode] || MODE_BADGE.operational;
+              const BadgeIcon = badge.icon;
 
               return (
                 <div
                   key={room.id}
-                  className="group p-5 rounded-2xl bg-surface border border-border-subtle hover:border-indigo-300 dark:hover:border-indigo-500/40 transition-all flex flex-col gap-4 shadow-subtle hover:shadow-elevated cursor-pointer"
+                  className="group p-5 rounded-2xl bg-surface border border-border-subtle hover:border-accent/40 transition-all duration-300 ease-out flex flex-col gap-4 shadow-subtle hover:shadow-elevated hover:-translate-y-0.5 cursor-pointer"
                   onClick={() => navigateToRoom(room.id)}
                 >
                   {/* Card Header */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-text-main group-hover:text-indigo-600 transition-colors truncate">
+                      <p className="text-sm font-bold text-text-main group-hover:text-accent transition-colors truncate">
                         {room.name || room.id}
                       </p>
                       <p className="text-[11px] text-text-faint font-mono truncate mt-0.5">{room.id}</p>
                     </div>
                     <span
-                      className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1 ${
-                        isBrainstorm
-                          ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/30"
-                          : isSolo
-                          ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30"
-                          : "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30"
-                      }`}
+                      className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1 ${badge.className}`}
                     >
-                      {isBrainstorm ? <Brain className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
+                      <BadgeIcon className="w-3 h-3" />
                       <span className="capitalize">{room.mode || "operational"}</span>
                     </span>
                   </div>
@@ -373,7 +369,7 @@ export default function WorkspacePage() {
                       type="button"
                       onClick={(e) => handleCopyLink(e, room.id)}
                       className="p-2 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-subtle transition-all cursor-pointer"
-                      title="Copy invite link"
+                      title="Copy room link"
                     >
                       {copiedId === room.id
                         ? <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -385,7 +381,7 @@ export default function WorkspacePage() {
                       <button
                         type="button"
                         onClick={(e) => handleDeleteClick(e, room)}
-                        className="p-2 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all cursor-pointer"
+                        className="p-2 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
                         title={`Delete ${room.name || room.id}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -396,7 +392,7 @@ export default function WorkspacePage() {
                     <button
                       type="button"
                       onClick={() => navigateToRoom(room.id)}
-                      className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-surface-subtle hover:bg-indigo-600 text-xs font-semibold text-text-main hover:text-white border border-border-subtle transition-all cursor-pointer shadow-subtle"
+                      className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-surface-subtle hover:bg-accent text-xs font-semibold text-text-main hover:text-on-accent border border-border-subtle transition-all cursor-pointer shadow-subtle"
                     >
                       Open Canvas
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -408,9 +404,9 @@ export default function WorkspacePage() {
           </div>
         ) : rooms.length === 0 ? (
           /* No rooms at all */
-          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-100 to-violet-100 dark:from-indigo-500/10 dark:to-violet-500/10 flex items-center justify-center">
-              <Layers className="w-8 h-8 text-indigo-400" />
+          <div className="flex flex-col items-center justify-center py-20 sm:py-24 gap-4 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+              <Layers className="w-8 h-8 text-accent" />
             </div>
             <div>
               <p className="text-base font-bold text-text-main">No workspaces yet</p>
@@ -420,7 +416,7 @@ export default function WorkspacePage() {
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all cursor-pointer shadow-md shadow-indigo-600/20"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-on-accent text-sm font-semibold transition-all cursor-pointer shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 Create First Room
@@ -436,16 +432,13 @@ export default function WorkspacePage() {
             <button
               type="button"
               onClick={() => { setSearchQuery(""); setModeFilter("all"); }}
-              className="text-xs text-indigo-600 hover:underline cursor-pointer"
+              className="text-xs text-accent hover:underline cursor-pointer"
             >
               Clear filters
             </button>
           </div>
         )}
       </main>
-
-      {/* Shared Footer */}
-      <LandingFooter onLaunchDemo={() => navigateToRoom("demo-room")} />
 
       {/* Create Room Modal (reused from landing) */}
       <CreateWorkspaceModal

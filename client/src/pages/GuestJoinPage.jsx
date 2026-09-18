@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Users, ArrowRight, Sparkles, AlertCircle, ArrowLeft } from "lucide-react";
+import { Users, ArrowRight, AlertCircle, ArrowLeft } from "lucide-react";
 import apiClient from "../api/apiClient.js";
 import { useRouter } from "../app.routes.jsx";
 import BrandLogo from "../components/ui/BrandLogo.jsx";
@@ -159,10 +159,6 @@ export default function GuestJoinPage() {
           /* Join Form */
           <div>
             <div className="mb-6">
-              <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 mb-2">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Collaborative Room Invitation</span>
-              </div>
               <h1 className="text-2xl font-display font-bold text-text-main">
                 Join &ldquo;{inviteData?.roomName || "Workspace Room"}&rdquo;
               </h1>

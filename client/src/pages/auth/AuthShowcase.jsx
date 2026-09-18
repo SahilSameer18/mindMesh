@@ -1,110 +1,103 @@
-import { Sparkles, Brain, ShieldCheck, ArrowUpRight } from "lucide-react";
+import { Layers, Brain, UserPlus } from "lucide-react";
 import BrandLogo from "../../components/ui/BrandLogo.jsx";
+import { useRouter } from "../../app.routes.jsx";
 
+const FEATURES = [
+  {
+    icon: Layers,
+    title: "Multi-player spatial canvas",
+    description:
+      "Live cursors, infinite pan and zoom, and cards that cluster themselves by topic as the conversation moves.",
+    badge: "Real-time",
+  },
+  {
+    icon: Brain,
+    title: "Live synthesis, not transcription",
+    description:
+      "Speech is continuously turned into structured decisions, tasks, and risks — attributed to whoever said it.",
+    badge: "AI Powered",
+  },
+  {
+    icon: UserPlus,
+    title: "Frictionless room invites",
+    description:
+      "Share a link. Teammates join as guests and start talking — no registration wall in the way.",
+    badge: "Guest Engine",
+  },
+];
+
+const FACTS = [
+  { value: "60fps", label: "Spatial Canvas" },
+  { value: "Zero", label: "Manual Typing" },
+  { value: "4", label: "Max Per Room" },
+];
+
+/**
+ * The dark cover of the ledger — the light form panel is the pages inside.
+ */
 export default function AuthShowcase() {
-  const features = [
-    {
-      icon: Sparkles,
-      iconColor: "text-sky-400 bg-sky-500/10 border-sky-500/20",
-      title: "Multi-Player Spatial Canvas",
-      description:
-        "Sub-15ms cursor presence, infinite pan & zoom, fluid semantic node clustering, and independent context zones.",
-      badge: "Real-time",
-      badgeStyle: "text-sky-300 bg-sky-500/15 border-sky-500/30",
-    },
-    {
-      icon: Brain,
-      iconColor: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
-      title: "Autonomous Live Synthesis",
-      description:
-        "Continuous AI audio transcription instantly converted into structured decisions, actionable tasks, and risk tags.",
-      badge: "AI Powered",
-      badgeStyle: "text-indigo-300 bg-indigo-500/15 border-indigo-500/30",
-    },
-    {
-      icon: ShieldCheck,
-      iconColor: "text-purple-400 bg-purple-500/10 border-purple-500/20",
-      title: "Frictionless Room Invites",
-      description:
-        "Tokenized disposable invite links. Teammates and clients collaborate immediately without registration barriers.",
-      badge: "Guest Engine",
-      badgeStyle: "text-purple-300 bg-purple-500/15 border-purple-500/30",
-    },
-  ];
+  const { navigateToHome } = useRouter();
 
   return (
-    <div className="hidden lg:flex lg:w-[50%] xl:w-[52%] relative bg-[#090D16] text-slate-100 border-r border-[#1E293B] flex-col justify-between p-10 xl:p-14 overflow-hidden select-none">
-      {/* Atmospheric Dark Neon Glows */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/20 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute top-1/2 -right-20 w-80 h-80 bg-purple-600/15 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute -bottom-28 left-1/4 w-96 h-96 bg-sky-600/15 rounded-full blur-[130px] pointer-events-none" />
+    <div className="hidden lg:flex lg:w-[50%] xl:w-[52%] relative bg-[#14110C] text-[#F3ECDD] flex-col p-8 xl:p-10 overflow-hidden select-none">
+      {/* Warm ink glows, not neon */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-accent/[0.12] rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute -bottom-28 right-0 w-96 h-96 bg-amber-500/[0.06] rounded-full blur-[140px] pointer-events-none" />
 
-      {/* Top Header Badge */}
-      <div className="relative z-10 flex items-center justify-between">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-white/[0.08] shadow-lg shadow-black/20 backdrop-blur-md">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-          </span>
-          <span className="text-xs font-semibold text-slate-200 tracking-wider uppercase font-mono">
-            mindMesh Spatial Engine
-          </span>
+      {/* Logo row — clickable, with the live indicator folded in instead of its own row */}
+      <button
+        type="button"
+        onClick={() => navigateToHome()}
+        className="relative z-10 flex items-center gap-2.5 self-start group cursor-pointer"
+        title="mindMesh Home"
+      >
+        <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-on-accent shadow-md group-hover:bg-accent-hover transition-colors">
+          <BrandLogo size={18} className="text-on-accent" />
         </div>
-
-        <span className="text-xs text-slate-400 font-mono">v4.2 Production</span>
-      </div>
+        <span className="font-serif italic font-medium text-xl tracking-tight text-[#F3ECDD]">
+          mindMesh
+        </span>
+        <span className="flex items-center gap-1.5 ml-1 pl-2.5 border-l border-[#F3ECDD]/15 text-[10px] font-mono uppercase tracking-widest text-[#8A8478]">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shrink-0" />
+          Live
+        </span>
+      </button>
 
       {/* Main Content & Feature Stack */}
-      <div className="relative z-10 my-auto py-8">
-        <div className="max-w-lg mb-8">
-          <div className="inline-flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/30">
-              <BrandLogo size={18} className="text-white" />
-            </div>
-            <span className="font-display font-bold text-xl tracking-tight text-white">
-              mindMesh
-            </span>
-          </div>
-
-          <h2 className="text-3xl xl:text-4xl font-display font-bold tracking-tight text-white leading-snug">
-            Think, synthesize &amp; align{" "}
-            <span className="bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-              in real-time space.
-            </span>
+      <div className="relative z-10 flex-1 flex flex-col justify-center min-h-0 py-6">
+        <div className="max-w-lg mb-6">
+          <h2 className="text-2xl xl:text-3xl font-serif italic font-medium tracking-tight text-[#F3ECDD] leading-snug">
+            Think, synthesize, and align — in real time.
           </h2>
-          <p className="mt-3 text-sm xl:text-base text-slate-400 leading-relaxed font-sans">
-            The collaborative intelligence workspace that turns spoken conversation into living,
-            interactive knowledge graphs.
+          <p className="mt-2.5 text-sm text-[#8A8478] leading-relaxed font-sans">
+            The collaborative workspace that turns spoken conversation into a living,
+            interactive knowledge graph.
           </p>
         </div>
 
-        {/* Feature Cards matching dark glassmorphic design */}
-        <div className="space-y-3.5">
-          {features.map((item, idx) => {
+        {/* Feature Cards — warm ink surfaces, not glassmorphic navy */}
+        <div className="space-y-2.5">
+          {FEATURES.map((item) => {
             const Icon = item.icon;
             return (
               <div
-                key={idx}
-                className="group relative rounded-2xl p-4 xl:p-4.5 bg-slate-900/60 hover:bg-slate-900/90 border border-white/[0.08] hover:border-indigo-500/30 shadow-lg shadow-black/20 backdrop-blur-md transition-all duration-300"
+                key={item.title}
+                className="group relative rounded-xl p-3.5 bg-[#1C1812]/70 hover:bg-[#1C1812] border border-[#F3ECDD]/[0.08] hover:border-accent/30 shadow-lg shadow-black/20 backdrop-blur-md transition-all duration-300"
               >
-                <div className="flex items-start gap-4">
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${item.iconColor} transition-transform group-hover:scale-105 duration-300 shadow-sm`}
-                  >
-                    <Icon className="w-5 h-5" />
+                <div className="flex items-start gap-3.5">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border bg-accent/10 border-accent/25 text-accent transition-transform group-hover:scale-105 duration-300">
+                    <Icon className="w-4.5 h-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-sm font-semibold text-slate-100 group-hover:text-indigo-300 transition-colors">
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                      <h3 className="text-sm font-semibold text-[#F3ECDD] group-hover:text-accent transition-colors">
                         {item.title}
                       </h3>
-                      <span
-                        className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${item.badgeStyle}`}
-                      >
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border border-[#F3ECDD]/15 text-[#8A8478] shrink-0">
                         {item.badge}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 leading-relaxed font-sans">
+                    <p className="text-xs text-[#8A8478] leading-relaxed font-sans">
                       {item.description}
                     </p>
                   </div>
@@ -115,29 +108,14 @@ export default function AuthShowcase() {
         </div>
       </div>
 
-      {/* Bottom Performance Metrics Strip */}
-      <div className="relative z-10 pt-4 border-t border-slate-800/80 flex items-center justify-between text-slate-400">
-        <div className="flex items-center gap-6 xl:gap-8">
-          <div>
-            <div className="text-lg font-bold font-display text-white">15ms</div>
-            <div className="text-[11px] text-slate-400 uppercase tracking-wider">Sync Latency</div>
+      {/* Bottom facts strip — true of the product, not invented metrics */}
+      <div className="relative z-10 pt-4 border-t border-[#F3ECDD]/10 flex items-center gap-6 xl:gap-8 text-[#8A8478] shrink-0">
+        {FACTS.map((fact) => (
+          <div key={fact.label}>
+            <div className="text-lg font-bold font-serif text-[#F3ECDD]">{fact.value}</div>
+            <div className="text-[11px] uppercase tracking-wider">{fact.label}</div>
           </div>
-          <div className="h-7 w-px bg-slate-800" />
-          <div>
-            <div className="text-lg font-bold font-display text-white">Zero</div>
-            <div className="text-[11px] text-slate-400 uppercase tracking-wider">Conflict Replicas</div>
-          </div>
-          <div className="h-7 w-px bg-slate-800" />
-          <div>
-            <div className="text-lg font-bold font-display text-white">15-min</div>
-            <div className="text-[11px] text-slate-400 uppercase tracking-wider">Rotating Tokens</div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1 text-xs text-indigo-400 font-semibold hover:text-indigo-300 cursor-pointer transition-colors">
-          <span>Explore platform</span>
-          <ArrowUpRight className="w-3.5 h-3.5" />
-        </div>
+        ))}
       </div>
     </div>
   );
