@@ -29,7 +29,7 @@
 [![Google Gemini](https://img.shields.io/badge/Gemini-Multi_Key_Pool-4285F4.svg?style=flat-square&logo=google)](https://ai.google.dev/)
 [![Auth: Dual-Token JWT](https://img.shields.io/badge/Auth-Dual_Token_JWT-7C3AED.svg?style=flat-square&logo=jsonwebtokens)](https://jwt.io/)
 [![Security: CORS & Rate-Limited](https://img.shields.io/badge/Security-CORS_%26_Rate_Limited-10B981.svg?style=flat-square)](https://expressjs.com/)
-[![Tests Passing](https://img.shields.io/badge/Tests-130%2B_Passing-success.svg?style=flat-square)](https://github.com/SahilSameer18/mindMesh)
+[![Tests](https://img.shields.io/badge/Tests-7_Integration_Suites-success.svg?style=flat-square)](https://github.com/SahilSameer18/mindMesh)
 
 [Live App](https://mindmesh-s.vercel.app/) • [Quick Start](#-quick-start) • [Production Deployment](#-production-deployment) • [Product Tour](#-product-tour) • [System Architecture](#-system-architecture) • [Engineering Invariants](#-hardened-engineering-invariants) • [Ontology](#-the-canvas-knowledge-ontology) • [API Reference](#-api--websocket-reference)
 
@@ -129,23 +129,30 @@ mindMesh Flow:
   - `session`: 15-minute short-lived rotating JWT access token stored in an `httpOnly` cookie (`path: /`).
   - `refresh`: 7-day long-lived refresh token stored in an `httpOnly` cookie restricted strictly to `/api/auth`.
   - Transparent Axios response interceptor intercepts 401s, rotates the session token via `/api/auth/refresh`, and transparently replays failed requests without UX disruption.
-- **Anti-Brute-Force Rate Limiting**: `express-rate-limit` guards `/api/auth/signup` and `/api/auth/login` (15 requests per 15-minute window per IP) against automated credential abuse.
+- **Rate Limiting Across Every Sensitive Surface**: `express-rate-limit` guards `/api/auth/signup` and `/api/auth/login` (15 req/15min/IP), `/api/auth/refresh` (30 req/15min/IP), invite resolution & join (30 req/15min/IP), room creation (20 req/15min/IP — the demo flow stays signup-free, but is throttled, not unbounded), and AI-triggered routes (30 req/5min/IP). The `canvas:command` Socket.io event additionally carries its own per-socket in-memory limiter, since HTTP rate limiting doesn't cover the WebSocket transport.
 - **Active Refresh Token Session Ceiling (`MAX_SESSIONS = 10`)**: Automatically prunes the oldest refresh token sessions when a user signs in across multiple devices, bounding bcrypt verification loops and eliminating session bloat.
 - **Multi-Tenant Data Isolation & RBAC**:
   - `requireRoomAccess` middleware enforces room membership boundaries.
-  - Creator is attached as `"owner"` in `RoomMember`; room deletion (`DELETE /api/rooms/:roomId`) is strictly guarded (`403 Forbidden` for non-owners).
+  - Creator is attached as `"owner"` in `RoomMember`; room deletion and integration-credential writes (`PUT /api/rooms/:roomId/integrations/:provider`) are both strictly owner-gated (`403 Forbidden` for non-owners/guests).
   - Room listing (`listRooms(userId)`) returns only workspaces the authenticated user belongs to; unauthenticated callers see zero rooms, closing cross-tenant discovery leaks.
+  - `PATCH /api/rooms/:roomId` writes through an explicit field whitelist (`name`, `mode`, `systemContext`) rather than the raw request body, closing a mass-assignment path.
+- **Room-Scoped Socket Authority**: Every real-time handler (`canvas:join`, `room:join`, `transcript:chunk`, WebRTC signaling relay) trusts only the server-assigned `socket.data.roomId`, never a client-supplied payload value — a guest token minted for one room cannot be used to join, inject transcript data into, or signal peers in a different room.
 
 ### 11. 🎟️ Frictionless Guest Invite System
 - **Cryptographic Disposable Invites**: Workspace owners generate tokenized URLs (`/join/:token`) with configurable member or guest privileges.
-- **Scoped 8-Hour Guest Sessions**: Guests enter their display name and receive a cryptographically signed `guest_session` HTTP-only cookie restricted strictly to the invited `roomId`.
+- **Scoped 8-Hour Guest Sessions**: Guests enter their display name and receive a cryptographically signed `guest_session` HTTP-only cookie restricted strictly to the invited `roomId` — enforced both at the HTTP layer and, on the socket layer, at every room-join event.
 - **Ephemeral Storage Isolation**: Guest identity is saved to tab-scoped `sessionStorage` (`mindmesh_guest_name`), preventing permanent `localStorage` pollution.
 - **Frictionless Account Upgrade**: Logged-in users opening an invite link are automatically upserted as permanent `RoomMember` records without issuing temporary guest cookies.
 
 ### 12. 🛡️ Production Deployment & Cross-Domain Hardening
 - **Cross-Domain Cookie Transmission**: Cookies dynamically adapt flags based on environment (`sameSite: isProd ? "none" : "lax"`, `secure: isProd`), enabling seamless cross-domain deployments (e.g. Vercel frontend + Render/Railway backend) with `credentials: true`.
-- **Express & WebSocket HTTP CORS Lockdown**: Production origin validation strictly whitelists `config.clientUrl` and `ALLOWED_ORIGINS` across both Express HTTP endpoints and Socket.io handshakes, rejecting unauthorized cross-origin credentialed requests.
+- **Express & WebSocket HTTP CORS Lockdown**: The origin allowlist (`config.clientUrl` + `ALLOWED_ORIGINS`) is always enforced, in every environment; outside strict production it additionally permits localhost dev origins only, never a blanket wildcard.
+- **SSRF-Safe Integration Webhooks**: Slack webhook URLs are validated against a `hooks.slack.com` allowlist before the server ever fetches them, and only the room owner can set them — closing a path where a guest could otherwise redirect a server-side request at an internal service.
 - **Integration Credential Masking**: Room integration settings automatically mask sensitive credentials (incoming Slack webhooks and Notion API keys) to prevent client-side credential exposure.
+- **Generic Error Responses in Production**: Unexpected database-layer errors are masked to a generic message before reaching the client; deliberate, user-facing validation errors are left intact.
+
+> [!NOTE]
+> **Known, deliberately open items**: no per-call timeout on Groq/Gemini API requests (a hung provider call can still block that request indefinitely), no `helmet` security headers, and room-integration credentials are stored as plaintext JSON rather than encrypted at rest. None of these block normal use; they're the next hardening pass, not silent gaps.
 
 ### 13. 🌌 Spatial 404 Canvas & Performance Optimization
 - **Immersive Spatial 404 Page (`NotFoundPage.jsx`)**: Responsive, Linear/Stripe-tier 404 experience featuring atmospheric glows, live telemetry badge (`STATUS: UNMAPPED ROUTE`), dynamic path feedback, and floating spatial mock cards (Goal, Decision, Task) linked by an animated SVG gradient thread.
@@ -294,14 +301,14 @@ mindMesh classifies every piece of conversational intelligence into **8 distinct
 
 | Type | Icon | Color Accent | Purpose & Behavior |
 | :--- | :---: | :---: | :--- |
-| **Goal** | 🎯 | Sky Blue | Strategic milestones, high-level objectives, and sprint deliverables. |
-| **Idea** | 💡 | Amber | Creative concepts, exploratory thoughts, architectural hypotheses. |
-| **Task** | 🟢 | Emerald | Assignable action items with interactive completion checkboxes. |
-| **Decision** | 🔵 | Violet | Finalized architectural choices, consensus agreements, approvals. |
-| **Question** | 🟣 | Fuchsia | Open inquiries, missing requirements, clarification requests. |
+| **Goal** | 🎯 | Amber | Strategic milestones, high-level objectives, and sprint deliverables. |
+| **Idea** | 💡 | Teal | Creative concepts, exploratory thoughts, architectural hypotheses. |
+| **Task** | ✅ | Emerald | Assignable action items with interactive completion checkboxes. |
+| **Decision** | 🧭 | Rust (Accent) | Finalized architectural choices, consensus agreements, approvals. |
+| **Question** | ❓ | Plum | Open inquiries, missing requirements, clarification requests. |
 | **Risk** | 🔴 | Rose | Technical debt, blockers, single points of failure, security risks. |
 | **Person** | 👤 | Slate | Stakeholders, meeting participants, and action item assignees. |
-| **Visual** | 🖼️ | Indigo | Generative diagrams, system mockups, visual concept cards. |
+| **Visual** | 🖼️ | Clay | Generative diagrams, system mockups, visual concept cards. |
 
 ### Edge Relationships
 
@@ -433,25 +440,27 @@ mindMesh is deployed live in production:
 
 ---
 
-## 🧪 Comprehensive Test Suites (130+ Passing)
+## 🧪 Backend Integration Test Suites
 
-The repository features comprehensive automated test suites validating every layer of the stack:
+The backend has 7 hand-rolled integration scripts (not a formal framework like Jest/Vitest — plain `assert`-based scripts that exercise real code paths against a live database connection). They validate specific phases of the backend, not the frontend:
 
 ```bash
 cd server
 
-# Phase 3: AI Fallback, Confidence Routing & Jaccard Mutation (19 tests)
-node test/phase3_ai.test.js
+node test/canvas_dedup.test.js         # Jaccard deduplication & semanticKey mutation
+node test/phase3_ai.test.js            # AI fallback chain & confidence routing
+node test/phase4_backend.test.js       # Command bar, layout engine & AIAction persistence
+node test/phase5_extraction.test.js    # Live speech extraction & persistence
+node test/phase6_presence.test.js      # Multiplayer presence & presenter lock
+node test/phase7_commit.test.js        # Meeting commit, confetti trigger & integrations
+node test/phase8_voice_layout.test.js  # Dagre topological sort & voice-driven layout commands
 
-# Phase 4: Command Bar, Layout Engine & AIAction Persistence (34 tests)
-node test/phase4_backend.test.js
-
-# Phase 7: Dual-Source Meeting Commit, Confetti & Integrations (42 tests)
-node test/phase7_commit.test.js
-
-# Phase 8: Dagre Topological Sort, Diamond Dependencies & Voice Commands (36 tests)
-node --test test/phase8_voice_layout.test.js
+# Or run them all in sequence:
+npm test
 ```
+
+> [!NOTE]
+> These are integration checks against real logic and a real database, which is meaningful coverage — but they aren't isolated unit tests, aren't wired into CI, and there is currently **no frontend test suite at all** (no Vitest/Jest/RTL). Treat this as a starting point, not a safety net for regressions.
 
 ---
 
@@ -520,7 +529,7 @@ Peer-to-peer WebRTC video conferencing is fully operational in mindMesh:
 - **Zero Server Media Overhead**: Node.js backend acts purely as an ephemeral signaling relay for SDP offers, answers, and ICE candidates.
 - **Ambient Presence**: Integrated with room presence; auto-reconnects and cleanly unmounts video elements on disconnect with zero ghost tiles.
 
-For the full architectural specification and signaling sequence, see [**`WEBRTC.md`**](WEBRTC.md).
+The section above is the full spec — signaling flow, mesh limits, and cleanup guarantees. There's no separate architecture doc; this README is the single source of truth.
 
 ---
 
@@ -534,24 +543,25 @@ mindMesh/
 │   │   ├── components/
 │   │   │   ├── auth/                     # GuestJoinModal (Frictionless room share dialog)
 │   │   │   ├── landing/                  # Navbar, Hero, HowItWorks, Workspaces, Comparison, FAQ, Footer
-│   │   │   ├── canvas/                   # InfiniteCanvas, CanvasNode, CanvasEdge, VisualLightboxModal
+│   │   │   ├── canvas/                   # InfiniteCanvas, CanvasNode, CanvasEdge, VisualLightboxModal, Minimap
 │   │   │   ├── command/                  # ActiveCommandBar (Floating OS bar)
 │   │   │   ├── activity/                 # ActivityStream & EvidenceCard
-│   │   │   ├── meeting/                  # SpeechIntelligenceController, CommitCallModal, PasteAgendaModal
-│   │   │   ├── webrtc/                   # VideoConferenceDock (Floating P2P video mesh bar)
-│   │   │   └── ui/                       # BrandLogo, WorkspaceHeader, Minimap, Avatar
+│   │   │   ├── meeting/                  # CommitCallModal, PasteAgendaModal, SpeechIntelligenceController, VideoConferenceBar (P2P video dock)
+│   │   │   ├── dashboard/                # DashboardHeader
+│   │   │   ├── presence/                 # PresenterFollowBanner
+│   │   │   └── ui/                       # BrandLogo, WorkspaceHeader, ErrorBoundary, menus/, modals/
 │   │   ├── context/                      # RoomContext, AuthContext (JWT & guest auth lifecycle)
-│   │   ├── hooks/                        # useCanvas, useAIActions, useSpeechRecognition, useWebRTC, useAuth
-│   │   ├── pages/                        # LandingPage, DashboardPage, GuestJoinPage, NotFoundPage (Spatial 404)
-│   │   │   └── auth/                     # LoginPage, RegisterPage, AuthShowcase (Obsidian Dark Mode)
-│   │   ├── app.routes.jsx                # React Router v7 routes & navigation hooks
-│   │   └── utils/                        # canvasConstants, color tokens
+│   │   ├── hooks/                        # useCanvas, useAIActions, useSpeechRecognition, useWebRTC, useAuth, useTheme, useEscapeKey
+│   │   ├── pages/                        # LandingPage, DashboardPage, GuestJoinPage, RoomPage, NotFoundPage
+│   │   │   └── auth/                     # LoginPage, RegisterPage, AuthShowcase (dark showcase panel)
+│   │   ├── app.routes.jsx                # React Router v7 routes, lazy-loaded pages & navigation hooks
+│   │   └── utils/                        # canvasConstants, color tokens, layout helpers
 │   ├── vercel.json                       # Vercel SPA Client Route Rewrites
 │   └── package.json
 │
 ├── server/                               # Node.js + Express 5 Backend
 │   ├── prisma/
-│   │   ├── schema.prisma                 # 11 PostgreSQL data models (User, RoomMember, Room, AIAction, etc.)
+│   │   ├── schema.prisma                 # 13 PostgreSQL data models (User, RoomMember, Room, AIAction, MeetingReport, etc.)
 │   │   └── seed.js                       # Elena & Marcus demo seeding
 │   ├── src/
 │   │   ├── ai/
@@ -559,36 +569,33 @@ mindMesh/
 │   │   │   ├── agenda.js                 # Strategic agenda pillar extraction service
 │   │   │   ├── extraction.js             # Live speech-to-graph extraction engine
 │   │   │   ├── commands.js               # Workspace command execution engine
-│   │   │   ├── validation.js             # Confidence routing & 3-layer key sanitization
+│   │   │   ├── validation.js             # Action-shape validation & confidence routing
 │   │   │   ├── prompts/                  # extraction, agenda, command & summary prompts
-│   │   │   └── providers/                # Groq (Dual-Key) & Gemini (3.5 Flash Lite) with failover
+│   │   │   └── providers/                # Groq (multi-key pool) & Gemini fallback
 │   │   ├── canvas/
 │   │   │   ├── canvasDocument.js         # In-memory single source of truth
-│   │   │   ├── canvasLayout.js           # Dagre & Geometric spatial layout engine
+│   │   │   ├── canvasLayout.js           # Dagre & geometric spatial layout engine
 │   │   │   ├── canvasDeduplication.js    # Jaccard token & semanticKey mutator
 │   │   │   ├── canvasPersistence.js      # Neon PostgreSQL Prisma writer
-│   │   │   └── canvasValidation.js       # Payload schema validators
-│   │   ├── controllers/                  # auth.controller, room.controller, invite.controller, report.controller
-│   │   ├── services/                     # auth.service, guest.service, room.service, presence.service
+│   │   │   ├── canvasValidation.js       # Payload schema validators
+│   │   │   └── canvasActions.js          # Action application to the in-memory document
+│   │   ├── controllers/                  # auth, room, invite, report, ai controllers
+│   │   ├── services/                     # auth, guest, room, presence, ai services
 │   │   ├── middlewares/                  # auth (requireRoomAccess), rateLimit, validation, error
 │   │   ├── realtime/
 │   │   │   ├── socket.js                 # Socket.io bootstrap with production origin whitelisting
 │   │   │   ├── canvas.socket.js          # Canvas action & authoritative join handshake
+│   │   │   ├── room.socket.js            # Room channel join/leave lifecycle
 │   │   │   ├── transcript.socket.js      # Live speech streaming & chunk persistence
-│   │   │   ├── webrtc.socket.js          # WebRTC P2P signaling mesh
+│   │   │   ├── webrtc.socket.js          # WebRTC P2P signaling relay
 │   │   │   └── presence.socket.js        # Multiplayer cursor & presenter relays
 │   │   ├── routes/                       # REST API routes (auth, room, ai, invite)
 │   │   ├── utils/                        # tokens (JWT & guest crypto), hash, response
 │   │   └── app.js                        # Express app configuration, CORS whitelist, cookie parser
-│   ├── test/
-│   │   ├── phase3_ai.test.js             # 19 Phase 3 AI extraction tests
-│   │   ├── phase4_backend.test.js        # 34 Phase 4 backend integration tests
-│   │   ├── phase5_extraction.test.js     # 7 Phase 5 extraction & persistence tests
-│   │   ├── phase7_commit.test.js         # 42 Phase 7 commit & integration tests
-│   │   └── phase8_voice_layout.test.js   # 36 Phase 8 Dagre & command tests
+│   ├── test/                             # 7 hand-rolled integration suites run against a real DB — see §Testing
 │   └── package.json
 │
-├── WEBRTC.md                             # Full WebRTC P2P Video Calling Architecture Specification
+├── LICENSE                               # ISC License
 ├── ROADMAP.md                            # Master 8-Phase Architectural Plan
 └── README.md                             # Production Showcase & Documentation
 ```
