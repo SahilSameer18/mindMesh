@@ -1,9 +1,68 @@
+import crypto from "crypto";
 import { withFallback } from "./providers/index.js";
 import { getCanvasDocument } from "../canvas/canvasDocument.js";
 import { applyAIActions } from "./applyAIActions.js";
 import { deduplicateAndLinkActions } from "../canvas/canvasDeduplication.js";
-import { validateAIAction } from "./validation.js";
+import { validateAIAction, slugifyText } from "./validation.js";
 import { getOrCreateRoom } from "../services/room.service.js";
+
+const AGENDA_PILLAR_STRIDE_X = 340; // matches ai.controller.js's generateAgenda spacing
+const AGENDA_PILLAR_Y = -150; // matches ai.controller.js's generateAgenda + extraction.prompt.js's y <= -100 pillar detection
+
+function isAgendaPillar(node) {
+  return Boolean(node?.metadata?.isAgendaTopic || (node?.type === "goal" && typeof node?.y === "number" && node.y <= -100));
+}
+
+/**
+ * When the model proposes a brand-new topic pillar mid-conversation (a real
+ * off-topic shift, not just filler — see extraction.prompt.js), synthesize the
+ * same kind of CREATE_NODE the Paste Agenda flow creates and put it FIRST in
+ * the actions array. deduplicateAndLinkActions() incrementally grows its
+ * `resolvedNodes` shadow array as it processes each action in order, so by the
+ * time it reaches the entities that reference this new topic's key, the pillar
+ * is already "on the canvas" as far as findMatchingAgendaPillar() is concerned
+ * — same column-snapping and part_of-edge logic the agenda flow already uses,
+ * no new linking code needed.
+ */
+function buildProposedTopicAction(proposedTopic, existingNodes) {
+  if (!proposedTopic || typeof proposedTopic !== "object") return null;
+  const title = typeof proposedTopic.title === "string" ? proposedTopic.title.trim() : "";
+  if (!title) return null;
+
+  const semanticKey = proposedTopic.key ? slugifyText(proposedTopic.key) : slugifyText(title);
+  if (!semanticKey) return null;
+
+  const existingPillars = existingNodes.filter(isAgendaPillar);
+  // Already exists (model re-proposed a topic that's already anchored) — skip, the
+  // entity's matchedTopicKey will just match the existing pillar normally.
+  if (existingPillars.some((p) => (p.semanticKey || p.id)?.toLowerCase() === semanticKey.toLowerCase())) {
+    return null;
+  }
+
+  const x = existingPillars.length > 0 ? Math.max(...existingPillars.map((p) => p.x)) + AGENDA_PILLAR_STRIDE_X : 0;
+
+  return {
+    type: "CREATE_NODE",
+    confidence: 1.0,
+    status: "auto",
+    reason: `New topic detected mid-conversation: ${title}`,
+    payload: {
+      id: `node-topic-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`,
+      text: title,
+      type: "goal",
+      semanticKey,
+      x,
+      y: AGENDA_PILLAR_Y,
+      metadata: {
+        isAgendaTopic: true,
+        semanticKey,
+        description: "Auto-detected topic shift",
+        status: "active",
+        priority: "medium",
+      },
+    },
+  };
+}
 
 /**
  * Format an array of dialogue chunks into a speaker-attributed dialogue script.
@@ -83,6 +142,11 @@ export async function processDialogueBatch({ roomId, chunks = [], sourceId, io =
   });
 
   const rawActions = Array.isArray(aiResult?.actions) ? aiResult.actions : [];
+
+  // 3b. New-topic detection: if the model flagged a genuine off-topic shift,
+  // synthesize its pillar CREATE_NODE and put it first (see buildProposedTopicAction).
+  const proposedTopicAction = buildProposedTopicAction(aiResult?.proposedTopic, existingNodes);
+  if (proposedTopicAction) rawActions.unshift(proposedTopicAction);
 
   // 4. Schema validation & confidence routing sanitization
   const validActions = rawActions.map(validateAIAction).filter(Boolean);

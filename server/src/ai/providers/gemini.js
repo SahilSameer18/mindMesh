@@ -81,6 +81,7 @@ export async function extractMeetingElements({ transcript, existingNodes = [], r
   return {
     summary: parsed.summary || "Dialogue processed by Gemini",
     actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+    proposedTopic: parsed.proposedTopic || null,
     provider: "gemini",
     model: usedModel,
   };

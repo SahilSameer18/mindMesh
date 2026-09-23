@@ -70,6 +70,10 @@ export function findMatchingNode(existingNodes = [], targetKey = "", targetText 
  */
 export function findMatchingAgendaPillar(action, resolvedNodes = []) {
   if (!action || !action.payload) return null;
+  // A pillar-creation action is itself a new top-level topic — it must never be
+  // nested under another pillar via token-similarity match (e.g. two pillars
+  // that happen to share a few words shouldn't become parent/child).
+  if (action.payload.metadata?.isAgendaTopic) return null;
   const pillars = resolvedNodes.filter(
     (n) => n.metadata?.isAgendaTopic || (n.type === "goal" && typeof n.y === "number" && n.y <= -100)
   );

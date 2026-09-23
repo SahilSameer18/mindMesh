@@ -42,6 +42,13 @@ ${agendaTopics.length > 0 ? `Active agenda topic pillars are anchored horizontal
 - If an entity directly discusses an active agenda topic pillar above, specify "matchedTopicKey": "<pillar_semantic_key>" in the node's payload.
 - If the discussion is general, administrative, or does not clearly relate to any pillar, specify "matchedTopicKey": null.` : "If no agenda topic pillars exist, place entities naturally in the main canvas area."}
 
+### DETECTING A GENUINELY NEW TOPIC (OFF-TOPIC DRIFT):
+Sometimes the conversation shifts to a substantial new subject that isn't administrative/filler AND doesn't fit any existing pillar above — e.g. the group was discussing onboarding and now pivots into a real discussion about billing infrastructure. When that happens, propose a NEW topic pillar instead of leaving the new entities ungrouped:
+- Set the top-level "proposedTopic" field to \`{ "key": "<lowercase_snake_case_slug>", "title": "<Short Title, 2-5 words>" }\`.
+- Only propose one at a time, and only when there's a real, substantive, multi-utterance shift — not for a single stray remark. A brief tangent that returns to the current topic within the same transcript is NOT a new topic.
+- Every entity in THIS response that belongs to the new topic must set "matchedTopicKey" to that exact same key — the pillar itself will be created for you from "proposedTopic", so treat it as if it already existed on the canvas.
+- If nothing warrants a new topic, set "proposedTopic": null (this will be the common case — don't force it).
+
 ### PHONETIC AUTO-CORRECTION & CONTEXT PRIMING RULES:
 The transcript comes from real-time microphone speech-to-text. It often contains phonetic mishears, phonetic transcriptions, or software jargon errors:
 - E.g. "off flow" or "odd flow" -> "auth flow"
@@ -87,6 +94,7 @@ Always use the Participant Roster and Existing Canvas Entities to automatically 
 You must respond with valid JSON strictly conforming to this schema:
 {
   "summary": "Brief 1-sentence recap of what was understood",
+  "proposedTopic": null,
   "actions": [
     {
       "type": "CREATE_NODE",

@@ -1,6 +1,7 @@
 import { sendSuccess, sendError } from "../utils/response.js";
 import * as roomService from "../services/room.service.js";
 import { getCurrentUser } from "../middlewares/auth.middleware.js";
+import { issueGuestSession } from "../services/guest.service.js";
 import prisma from "../lib/prisma.js";
 import { getIO } from "../realtime/socket.js";
 
@@ -16,6 +17,18 @@ export async function createRoom(req, res, next) {
       systemContext: systemContext || null,
       userId: user && !user.isDemo ? user.id : null,
     });
+
+    // Anonymous demo-flow creator of an unclaimed room (no members at all — never
+    // owned by a real account) gets an owner-scoped guest cookie for it, same
+    // mechanism as an invited guest. Without this, the person who just created the
+    // room has no credential at all and can't generate a share link for their own
+    // room. Never overwrite an existing guest_session (would kick them out of
+    // whatever room that one was scoped to), and never grant it on a room some
+    // real account already has a claim on.
+    if (!user && !req.cookies?.guest_session && (room.members?.length || 0) === 0) {
+      issueGuestSession(res, finalRoomId, "Room Creator", "owner");
+    }
+
     return sendSuccess(res, "Room created successfully", room, 201);
   } catch (err) {
     next(err);

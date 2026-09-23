@@ -126,7 +126,10 @@ export async function requireRoomAccess(req, res, next) {
       const guest = verifyGuestToken(guestToken);
       if (!roomId || guest.roomId === roomId) {
         req.user = { id: `guest-${guest.name}`, name: guest.name, isGuest: true, isDemo: false };
-        req.roomRole = "member";
+        // Signed by us — only the anonymous-room-creator token (see room.controller.js)
+        // ever carries role: "owner"; invite-issued guest tokens have no role claim
+        // and default to "member" as before.
+        req.roomRole = guest.role || "member";
         return next();
       }
     } catch {

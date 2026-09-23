@@ -16,21 +16,92 @@ const RTC_CONFIG = {
   iceCandidatePoolSize: 10,
 };
 
+function readStoredDevice(key) {
+  try {
+    return localStorage.getItem(key) || "";
+  } catch {
+    return "";
+  }
+}
+
+function writeStoredDevice(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // ignore (private browsing / storage disabled)
+  }
+}
+
 export function useWebRTC({ socket, roomId }) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState(new Map());
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(false);
+  const [isLocalSpeaking, setIsLocalSpeaking] = useState(false);
   const [peerMediaStates, setPeerMediaStates] = useState(new Map());
+
+  // ---------- Device selection (camera/mic/speaker, Meet/Zoom-style) ----------
+  const [audioInputs, setAudioInputs] = useState([]);
+  const [videoInputs, setVideoInputs] = useState([]);
+  const [audioOutputs, setAudioOutputs] = useState([]);
+  const [selectedMicId, setSelectedMicIdState] = useState(() => readStoredDevice("mindmesh:micId"));
+  const [selectedCameraId, setSelectedCameraIdState] = useState(() => readStoredDevice("mindmesh:cameraId"));
+  const [selectedSpeakerId, setSelectedSpeakerIdState] = useState(() => readStoredDevice("mindmesh:speakerId"));
+
+  const setSelectedMicId = useCallback((id) => {
+    setSelectedMicIdState(id);
+    writeStoredDevice("mindmesh:micId", id);
+  }, []);
+  const setSelectedCameraId = useCallback((id) => {
+    setSelectedCameraIdState(id);
+    writeStoredDevice("mindmesh:cameraId", id);
+  }, []);
+  const setSelectedSpeakerId = useCallback((id) => {
+    setSelectedSpeakerIdState(id);
+    writeStoredDevice("mindmesh:speakerId", id);
+  }, []);
+
+  const refreshDevices = useCallback(async () => {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      setAudioInputs(devices.filter((d) => d.kind === "audioinput"));
+      setVideoInputs(devices.filter((d) => d.kind === "videoinput"));
+      setAudioOutputs(devices.filter((d) => d.kind === "audiooutput"));
+    } catch (err) {
+      console.warn("[useWebRTC] Failed to enumerate devices:", err.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time device enumeration on mount, not a render loop
+    refreshDevices();
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.addEventListener) return;
+    navigator.mediaDevices.addEventListener("devicechange", refreshDevices);
+    return () => navigator.mediaDevices.removeEventListener("devicechange", refreshDevices);
+  }, [refreshDevices]);
 
   const localStreamRef = useRef(null); // mirror of localStream for use inside callbacks/listeners
   const peerConnections = useRef(new Map()); // socketId -> RTCPeerConnection
   const candidateQueues = useRef(new Map()); // socketId -> RTCIceCandidateInit[] buffered before remote description is set
   const isNegotiating = useRef(new Set()); // socketIds currently creating an offer (synchronous lock)
+  const disconnectTimers = useRef(new Map()); // socketId -> grace-period timeout before treating "disconnected" as terminal
+  const isMutedRef = useRef(false);
+  const isCameraOnRef = useRef(false);
+  const isSpeakingRef = useRef(false);
+  const speakingAnalyserRef = useRef(null); // { audioCtx, analyser, rafId, aboveSinceMs, belowSinceMs }
 
   useEffect(() => {
     localStreamRef.current = localStream;
   }, [localStream]);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
+
+  useEffect(() => {
+    isCameraOnRef.current = isCameraOn;
+  }, [isCameraOn]);
 
   // ---------- Local media ----------
 
@@ -43,12 +114,26 @@ export function useWebRTC({ socket, roomId }) {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: video ? { width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { max: 30 } } : false,
-        audio: audio ? { echoCancellation: true, noiseSuppression: true } : false,
+        video: video
+          ? {
+              width: { ideal: 640 },
+              height: { ideal: 360 },
+              frameRate: { max: 30 },
+              ...(selectedCameraId ? { deviceId: { exact: selectedCameraId } } : {}),
+            }
+          : false,
+        audio: audio
+          ? {
+              echoCancellation: true,
+              noiseSuppression: true,
+              ...(selectedMicId ? { deviceId: { exact: selectedMicId } } : {}),
+            }
+          : false,
       });
       setLocalStream(stream);
       setIsCameraOn(video);
       setIsMuted(!audio);
+      refreshDevices(); // device labels only populate after permission is granted
 
       // Attach to any peer connections that were created before media was ready
       peerConnections.current.forEach((pc) => {
@@ -70,7 +155,7 @@ export function useWebRTC({ socket, roomId }) {
       setIsCameraOn(false);
       return null;
     }
-  }, [socket, roomId]);
+  }, [socket, roomId, selectedCameraId, selectedMicId, refreshDevices]);
 
   const emitMediaState = useCallback(
     (nextMuted, nextCameraOn) => {
@@ -78,6 +163,7 @@ export function useWebRTC({ socket, roomId }) {
         roomId,
         isMuted: nextMuted,
         isCameraOn: nextCameraOn,
+        isSpeaking: isSpeakingRef.current,
       });
     },
     [socket, roomId]
@@ -160,6 +246,161 @@ export function useWebRTC({ socket, roomId }) {
     }
   }, [isCameraOn, isMuted, emitMediaState]);
 
+  // ---------- Device switching (mid-call, Meet/Zoom-style device picker) ----------
+
+  const switchCamera = useCallback(
+    async (deviceId) => {
+      setSelectedCameraId(deviceId);
+      if (!isCameraOnRef.current) return; // persisted for next time camera turns on
+      try {
+        const freshStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: deviceId }, width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { max: 30 } },
+        });
+        const newTrack = freshStream.getVideoTracks()[0];
+        if (!newTrack) return;
+
+        const stream = localStreamRef.current;
+        const updatedStream = stream ? new MediaStream(stream.getTracks()) : new MediaStream();
+        updatedStream.getVideoTracks().forEach((t) => {
+          t.stop();
+          updatedStream.removeTrack(t);
+        });
+        updatedStream.addTrack(newTrack);
+
+        peerConnections.current.forEach((pc) => {
+          const sender = pc.getSenders().find((s) => s.kind === "video" || (s.track && s.track.kind === "video"));
+          if (sender) sender.replaceTrack(newTrack).catch(() => {});
+          else pc.addTrack(newTrack, updatedStream);
+        });
+
+        localStreamRef.current = updatedStream;
+        setLocalStream(updatedStream);
+      } catch (err) {
+        console.warn("[useWebRTC] Failed to switch camera:", err.message);
+        toast.error("Could not switch camera.");
+      }
+    },
+    [setSelectedCameraId]
+  );
+
+  const switchMic = useCallback(
+    async (deviceId) => {
+      setSelectedMicId(deviceId);
+      if (!localStreamRef.current) return; // persisted for next time media starts
+      try {
+        const freshStream = await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: { exact: deviceId }, echoCancellation: true, noiseSuppression: true },
+        });
+        const newTrack = freshStream.getAudioTracks()[0];
+        if (!newTrack) return;
+        newTrack.enabled = !isMutedRef.current;
+
+        const stream = localStreamRef.current;
+        const updatedStream = new MediaStream(stream.getTracks());
+        updatedStream.getAudioTracks().forEach((t) => {
+          t.stop();
+          updatedStream.removeTrack(t);
+        });
+        updatedStream.addTrack(newTrack);
+
+        peerConnections.current.forEach((pc) => {
+          const sender = pc.getSenders().find((s) => s.kind === "audio" || (s.track && s.track.kind === "audio"));
+          if (sender) sender.replaceTrack(newTrack).catch(() => {});
+          else pc.addTrack(newTrack, updatedStream);
+        });
+
+        localStreamRef.current = updatedStream;
+        setLocalStream(updatedStream);
+      } catch (err) {
+        console.warn("[useWebRTC] Failed to switch microphone:", err.message);
+        toast.error("Could not switch microphone.");
+      }
+    },
+    [setSelectedMicId]
+  );
+
+  // ---------- Active-speaker detection ----------
+  // Analyses the local mic's real audio level (Web Audio API) rather than just
+  // "track exists" — so the glow reflects who's actually talking, not just who
+  // has a mic. Broadcast over the existing webrtc:media-state channel (same
+  // pattern as isMuted/isCameraOn) instead of a new socket event.
+  useEffect(() => {
+    const audioTrack = localStream?.getAudioTracks?.()[0];
+    if (!audioTrack) {
+      // No mic track (camera-only, or muted-at-hardware-level) — make sure we
+      // don't leave a stale "speaking" state broadcast from a previous stream.
+      if (isSpeakingRef.current) {
+        isSpeakingRef.current = false;
+        setIsLocalSpeaking(false);
+        emitMediaState(isMutedRef.current, isCameraOnRef.current);
+      }
+      return;
+    }
+
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return; // unsupported environment — active-speaker glow just never lights up
+
+    const audioCtx = new AudioCtx();
+    const source = audioCtx.createMediaStreamSource(new MediaStream([audioTrack]));
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    source.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    const SPEAKING_THRESHOLD = 14; // 0-255 average energy — tuned to ignore room-tone/fan noise
+    const ON_DEBOUNCE_MS = 150; // must be loud for this long before flipping "speaking" on
+    const OFF_DEBOUNCE_MS = 400; // must be quiet for this long before flipping it back off
+    let aboveSince = null;
+    let belowSince = null;
+    let rafId = null;
+
+    const tick = () => {
+      analyser.getByteFrequencyData(data);
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) sum += data[i];
+      const avg = sum / data.length;
+      const now = performance.now();
+      const isLoud = avg > SPEAKING_THRESHOLD && audioTrack.enabled;
+
+      if (isLoud) {
+        belowSince = null;
+        if (aboveSince === null) aboveSince = now;
+        if (!isSpeakingRef.current && now - aboveSince >= ON_DEBOUNCE_MS) {
+          isSpeakingRef.current = true;
+          setIsLocalSpeaking(true);
+          emitMediaState(isMutedRef.current, isCameraOnRef.current);
+        }
+      } else {
+        aboveSince = null;
+        if (belowSince === null) belowSince = now;
+        if (isSpeakingRef.current && now - belowSince >= OFF_DEBOUNCE_MS) {
+          isSpeakingRef.current = false;
+          setIsLocalSpeaking(false);
+          emitMediaState(isMutedRef.current, isCameraOnRef.current);
+        }
+      }
+
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    speakingAnalyserRef.current = { audioCtx, analyser };
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      source.disconnect();
+      analyser.disconnect();
+      audioCtx.close().catch(() => {});
+      speakingAnalyserRef.current = null;
+      if (isSpeakingRef.current) {
+        isSpeakingRef.current = false;
+        setIsLocalSpeaking(false);
+      }
+    };
+    // Re-runs whenever the local stream's identity changes (new getUserMedia call) —
+    // emitMediaState is intentionally excluded from deps since it's stable per socket/roomId.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localStream]);
+
   // ---------- Peer connection lifecycle ----------
 
   const closePeer = useCallback((targetSocketId) => {
@@ -168,6 +409,9 @@ export function useWebRTC({ socket, roomId }) {
       pc.close();
       peerConnections.current.delete(targetSocketId);
     }
+    const timer = disconnectTimers.current.get(targetSocketId);
+    if (timer) clearTimeout(timer);
+    disconnectTimers.current.delete(targetSocketId);
     candidateQueues.current.delete(targetSocketId);
     isNegotiating.current.delete(targetSocketId);
     setRemoteStreams((prev) => {
@@ -209,9 +453,44 @@ export function useWebRTC({ socket, roomId }) {
         setRemoteStreams((prev) => new Map(prev).set(targetSocketId, e.streams[0]));
       };
 
+      // "disconnected" is a transient state (brief WiFi blip, NAT rebinding, or
+      // just the renegotiation window when a peer toggles mic/camera) that
+      // usually self-recovers to "connected" within a few seconds — it is NOT
+      // equivalent to "failed"/"closed". Tearing the connection down immediately
+      // on "disconnected" was causing peers to silently and permanently drop
+      // each other on any transient blip, even though the room/signaling
+      // connection stayed alive on both sides. Give it a grace period and try
+      // an ICE restart before giving up.
       pc.onconnectionstatechange = () => {
-        if (["failed", "closed", "disconnected"].includes(pc.connectionState)) {
+        const state = pc.connectionState;
+
+        if (state === "connected") {
+          const timer = disconnectTimers.current.get(targetSocketId);
+          if (timer) {
+            clearTimeout(timer);
+            disconnectTimers.current.delete(targetSocketId);
+          }
+          return;
+        }
+
+        if (state === "failed" || state === "closed") {
           closePeer(targetSocketId);
+          return;
+        }
+
+        if (state === "disconnected" && !disconnectTimers.current.has(targetSocketId)) {
+          const timer = setTimeout(() => {
+            disconnectTimers.current.delete(targetSocketId);
+            if (pc.connectionState !== "disconnected") return; // already recovered or torn down
+            console.warn(`[useWebRTC] Peer ${targetSocketId} still disconnected after grace period, attempting ICE restart`);
+            try {
+              pc.restartIce();
+            } catch (err) {
+              console.warn("[useWebRTC] ICE restart failed, closing peer:", err.message);
+              closePeer(targetSocketId);
+            }
+          }, 6000);
+          disconnectTimers.current.set(targetSocketId, timer);
         }
       };
 
@@ -325,9 +604,9 @@ export function useWebRTC({ socket, roomId }) {
       closePeer(leftSocketId);
     };
 
-    const handlePeerMediaState = ({ socketId, isMuted: peerMuted, isCameraOn: peerCameraOn }) => {
+    const handlePeerMediaState = ({ socketId, isMuted: peerMuted, isCameraOn: peerCameraOn, isSpeaking: peerSpeaking }) => {
       setPeerMediaStates((prev) =>
-        new Map(prev).set(socketId, { isMuted: peerMuted, isCameraOn: peerCameraOn })
+        new Map(prev).set(socketId, { isMuted: peerMuted, isCameraOn: peerCameraOn, isSpeaking: Boolean(peerSpeaking) })
       );
     };
 
@@ -366,12 +645,23 @@ export function useWebRTC({ socket, roomId }) {
   return {
     localStream,
     remoteStreams, // Map<socketId, MediaStream>
-    peerMediaStates, // Map<socketId, { isMuted, isCameraOn }>
+    peerMediaStates, // Map<socketId, { isMuted, isCameraOn, isSpeaking }>
     isMuted,
     isCameraOn,
+    isLocalSpeaking,
     startLocalMedia,
     toggleMic,
     toggleCamera,
+    // Device picker (Meet/Zoom-style)
+    audioInputs,
+    videoInputs,
+    audioOutputs,
+    selectedMicId,
+    selectedCameraId,
+    selectedSpeakerId,
+    switchMic,
+    switchCamera,
+    setSelectedSpeakerId,
   };
 }
 

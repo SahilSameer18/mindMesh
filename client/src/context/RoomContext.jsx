@@ -238,8 +238,14 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
         user: data?.user,
         startedAt: data?.startedAt,
       });
-      // Following is strictly an opt-in viewer action via WorkspaceHeader "Follow [Name]" button.
-      // Do NOT auto-set isFollowing to true to avoid yanking viewer viewports without consent.
+      // Auto-follow: everyone except the presenter themselves snaps into
+      // following the moment Follow Me starts, matching a live-meeting
+      // spotlight rather than requiring each viewer to opt in manually.
+      // Manually panning/zooming (InfiniteCanvas's pointer/wheel handlers)
+      // still calls setFollowing(false) as the escape hatch.
+      if (presenterSocketId && presenterSocketId !== socket.id) {
+        setIsFollowing(true);
+      }
     };
 
     const handlePresenterStopped = () => {
@@ -255,6 +261,11 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
           socketId: presenterSocketId,
           presenterId: presenterSocketId,
         });
+        // Joining mid-presentation should land already following, same as
+        // everyone who was already in the room when Follow Me started.
+        if (presenterSocketId && presenterSocketId !== socket.id) {
+          setIsFollowing(true);
+        }
       }
       if (mode) setRoomMode(mode);
       if (initialContext) setSystemContext(initialContext);

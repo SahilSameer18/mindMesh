@@ -23,11 +23,12 @@ export async function resolveInviteLink(token) {
   return invite;
 }
 
-export function issueGuestSession(res, roomId, name) {
+export function issueGuestSession(res, roomId, name, role = "member") {
   const guestToken = generateGuestToken({
     roomId,
     name,
     isGuest: true,
+    role,
   });
 
   const isProd = config.nodeEnv === "production";

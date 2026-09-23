@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useWebRTC } from "../../hooks/useWebRTC.js";
 import { useRoom } from "../../hooks/useRoom.js";
 import { getUserInitials } from "../../utils/colors.js";
-import { Mic, MicOff, Video, VideoOff, Users, ChevronDown, GripHorizontal, GripVertical } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, Users, ChevronDown, GripHorizontal, GripVertical, Settings } from "lucide-react";
 
 /**
  * Functional P2P Video Conference Bar.
@@ -10,7 +10,7 @@ import { Mic, MicOff, Video, VideoOff, Users, ChevronDown, GripHorizontal, GripV
  * ambient avatar fallbacks, adaptive 1-to-4 layout, and a non-overlapping draggable dock.
  */
 
-function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompact = false }) {
+function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompact = false, isSpeaking = false, outputDeviceId = "" }) {
   const videoRef = useRef(null);
 
   const showVideo = Boolean(isCameraOn && stream);
@@ -22,10 +22,22 @@ function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompac
     }
   }, [stream, showVideo]);
 
+  // Route remote audio to the chosen output device (speaker picker). Local tile
+  // is always muted (it's your own mic monitored back at you), so this is a no-op there.
+  useEffect(() => {
+    if (!isLocal && outputDeviceId && videoRef.current && typeof videoRef.current.setSinkId === "function") {
+      videoRef.current.setSinkId(outputDeviceId).catch(() => {});
+    }
+  }, [isLocal, outputDeviceId, showVideo]);
+
   return (
     <div
-      className={`relative rounded-xl overflow-hidden bg-[#0B0906] border border-[#F3ECDD]/10 flex items-center justify-center shadow-subtle shrink-0 select-none ${
-        isCompact ? "w-24 h-16" : "w-28 h-20"
+      className={`relative rounded-xl overflow-hidden bg-[#0B0906] flex items-center justify-center shadow-subtle shrink-0 select-none transition-[border-color,box-shadow] duration-150 ${
+        isCompact ? "w-32 h-24" : "w-40 h-28"
+      } ${
+        isSpeaking && !isMuted
+          ? "border-2 border-emerald-400 shadow-[0_0_0_2px_rgba(52,211,153,0.35)]"
+          : "border border-[#F3ECDD]/10"
       }`}
     >
       {showVideo ? (
@@ -66,6 +78,48 @@ function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompac
   );
 }
 
+function DeviceSelect({ label, value, onChange, devices, kindLabel }) {
+  return (
+    <label className="flex flex-col gap-0.5 text-[10px] text-[#8A8478]">
+      <span className="font-medium">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-md bg-[#1C1812] border border-[#F3ECDD]/10 text-[#F3ECDD] text-[11px] px-1.5 py-1 cursor-pointer"
+      >
+        <option value="">System default {kindLabel}</option>
+        {devices.map((d, i) => (
+          <option key={d.deviceId || i} value={d.deviceId}>
+            {d.label || `${kindLabel} ${i + 1}`}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function DeviceSettingsPanel({
+  audioInputs,
+  videoInputs,
+  audioOutputs,
+  selectedMicId,
+  selectedCameraId,
+  selectedSpeakerId,
+  onMicChange,
+  onCameraChange,
+  onSpeakerChange,
+}) {
+  return (
+    <div className="absolute top-full right-0 mt-1.5 w-48 p-2 rounded-xl bg-[#14110C] border border-[#F3ECDD]/10 shadow-elevated flex flex-col gap-2 z-50 cursor-default">
+      <DeviceSelect label="Microphone" kindLabel="Mic" value={selectedMicId} onChange={onMicChange} devices={audioInputs} />
+      <DeviceSelect label="Camera" kindLabel="Camera" value={selectedCameraId} onChange={onCameraChange} devices={videoInputs} />
+      {audioOutputs.length > 0 && (
+        <DeviceSelect label="Speaker" kindLabel="Speaker" value={selectedSpeakerId} onChange={onSpeakerChange} devices={audioOutputs} />
+      )}
+    </div>
+  );
+}
+
 export default function VideoConferenceBar({
   roomId: propRoomId,
   currentUser: propCurrentUser,
@@ -87,6 +141,7 @@ export default function VideoConferenceBar({
     return false;
   });
   const [position, setPosition] = useState(null); // null = use default non-overlapping CSS position
+  const [showSettings, setShowSettings] = useState(false);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ pointerX: 0, pointerY: 0, startX: 0, startY: 0 });
 
@@ -96,9 +151,19 @@ export default function VideoConferenceBar({
     peerMediaStates,
     isMuted,
     isCameraOn,
+    isLocalSpeaking,
     startLocalMedia,
     toggleMic,
     toggleCamera,
+    audioInputs,
+    videoInputs,
+    audioOutputs,
+    selectedMicId,
+    selectedCameraId,
+    selectedSpeakerId,
+    switchMic,
+    switchCamera,
+    setSelectedSpeakerId,
   } = useWebRTC({
     socket,
     roomId,
@@ -111,7 +176,7 @@ export default function VideoConferenceBar({
 
   // Pointer drag handling for floating the dock anywhere on screen
   const handlePointerDown = (e) => {
-    if (e.target.closest("button") || e.target.closest("video") || e.target.closest("input")) return;
+    if (e.target.closest("button") || e.target.closest("video") || e.target.closest("input") || e.target.closest("select")) return;
 
     const container = e.currentTarget;
     const rect = container.getBoundingClientRect();
@@ -233,7 +298,7 @@ export default function VideoConferenceBar({
       className={`${positionClass} flex flex-col gap-2 p-2 rounded-2xl bg-[#14110C]/95 border border-[#F3ECDD]/10 text-[#F3ECDD] shadow-elevated backdrop-blur-xl transition-shadow duration-200 animate-in fade-in zoom-in-95 select-none pointer-events-auto cursor-grab active:cursor-grabbing`}
     >
       {/* Dock Header with Drag Grip */}
-      <div className="flex items-center justify-between px-1 pb-1 border-b border-[#F3ECDD]/10 text-xs">
+      <div className="relative flex items-center justify-between px-1 pb-1 border-b border-[#F3ECDD]/10 text-xs">
         <div className="flex items-center gap-1.5 min-w-0">
           <GripHorizontal className="w-3.5 h-3.5 text-[#8A8478] shrink-0" />
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
@@ -241,15 +306,42 @@ export default function VideoConferenceBar({
             {totalParticipants}
           </span>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsCollapsed(true)}
-          className="p-1 rounded-lg text-[#8A8478] hover:text-[#F3ECDD] hover:bg-[#1C1812] transition-colors cursor-pointer shrink-0"
-          title="Collapse to pill"
-          aria-label="Collapse to pill"
-        >
-          <ChevronDown className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-0.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowSettings((v) => !v)}
+            className={`p-1 rounded-lg transition-colors cursor-pointer ${
+              showSettings ? "text-accent bg-[#1C1812]" : "text-[#8A8478] hover:text-[#F3ECDD] hover:bg-[#1C1812]"
+            }`}
+            title="Camera / microphone / speaker settings"
+            aria-label="Device settings"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(true)}
+            className="p-1 rounded-lg text-[#8A8478] hover:text-[#F3ECDD] hover:bg-[#1C1812] transition-colors cursor-pointer"
+            title="Collapse to pill"
+            aria-label="Collapse to pill"
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {showSettings && (
+          <DeviceSettingsPanel
+            audioInputs={audioInputs}
+            videoInputs={videoInputs}
+            audioOutputs={audioOutputs}
+            selectedMicId={selectedMicId}
+            selectedCameraId={selectedCameraId}
+            selectedSpeakerId={selectedSpeakerId}
+            onMicChange={switchMic}
+            onCameraChange={switchCamera}
+            onSpeakerChange={setSelectedSpeakerId}
+          />
+        )}
       </div>
 
       {/* Video Tiles: stacked vertically to match the left-rail dock orientation.
@@ -257,7 +349,11 @@ export default function VideoConferenceBar({
           (its own height + bottom offset + a safety gap) so a crowded call's tile
           list can never grow into it, at any viewport height — a flat vh percentage
           doesn't hold that guarantee on shorter screens. */}
-      <div className="flex flex-col gap-1.5 max-h-[calc(100vh-27rem)] overflow-y-auto">
+      <div
+        className={`gap-1.5 max-h-[calc(100vh-27rem)] overflow-y-auto ${
+          isMultiPeer ? "grid grid-cols-2" : "flex flex-col"
+        }`}
+      >
         {/* Local User Tile */}
         <VideoTile
           stream={localStream}
@@ -267,6 +363,7 @@ export default function VideoConferenceBar({
           isLocal
           color={currentUser?.color}
           isCompact={isMultiPeer}
+          isSpeaking={isLocalSpeaking}
         />
 
         {/* Remote Peer Tiles */}
@@ -284,6 +381,8 @@ export default function VideoConferenceBar({
               isCameraOn={mediaState?.isCameraOn ?? false}
               color={peerColor}
               isCompact={isMultiPeer}
+              isSpeaking={mediaState?.isSpeaking ?? false}
+              outputDeviceId={selectedSpeakerId}
             />
           );
         })}

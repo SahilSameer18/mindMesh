@@ -45,13 +45,14 @@ export function registerWebRTCSocketHandlers(io, socket) {
   // Broadcast mic/camera toggle state to the rest of the room (not P2P —
   // this one goes through the server since everyone needs to see it,
   // not just one peer). Room comes from the socket's own join, never the payload.
-  socket.on("webrtc:media-state", ({ isMuted, isCameraOn }) => {
+  socket.on("webrtc:media-state", ({ isMuted, isCameraOn, isSpeaking }) => {
     const roomId = socket.data?.roomId;
     if (!roomId) return;
     socket.to(roomId).emit("webrtc:peer-media-state", {
       socketId: socket.id,
       isMuted: !!isMuted,
       isCameraOn: !!isCameraOn,
+      isSpeaking: !!isSpeaking,
     });
   });
 

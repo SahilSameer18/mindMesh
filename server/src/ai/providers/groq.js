@@ -82,6 +82,7 @@ export async function extractMeetingElements({ transcript, existingNodes = [], r
       return {
         summary: parsed.summary || "Dialogue processed by Groq",
         actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+        proposedTopic: parsed.proposedTopic || null,
         provider: "groq",
         model: usedModel,
         key: keyMask,
