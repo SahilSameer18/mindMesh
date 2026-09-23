@@ -5,6 +5,8 @@ import {
   applyAIActions,
 } from "../ai/applyAIActions.js";
 import { extractAgendaTopics } from "../ai/agenda.js";
+import { getCanvasDocument } from "../canvas/canvasDocument.js";
+import { findSimilarPillar } from "../canvas/canvasDeduplication.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 
 /**
@@ -79,10 +81,22 @@ export async function generateAgenda(req, res) {
       );
     }
 
-    const { topics = [] } = await extractAgendaTopics(agendaText.trim());
+    const { topics: rawTopics = [] } = await extractAgendaTopics(agendaText.trim());
 
-    if (!Array.isArray(topics) || topics.length === 0) {
+    if (!Array.isArray(rawTopics) || rawTopics.length === 0) {
       return sendError(res, "Could not extract topics from the provided agenda", ["No topics identified"], 422);
+    }
+
+    // Skip topics that already have a matching pillar on canvas (exact key or close
+    // wording) — otherwise re-pasting the same/updated agenda duplicates every pillar.
+    const doc = await getCanvasDocument(roomId);
+    const existingPillars = (doc.getState().nodes || []).filter(
+      (n) => n.metadata?.isAgendaTopic || (n.type === "goal" && typeof n.y === "number" && n.y <= -100)
+    );
+    const topics = rawTopics.filter((topic) => !findSimilarPillar(existingPillars, topic.title, topic.semanticKey));
+
+    if (topics.length === 0) {
+      return sendSuccess(res, "All proposed topics already exist on the canvas", { topics: [], actions: [] });
     }
 
     const total = topics.length;

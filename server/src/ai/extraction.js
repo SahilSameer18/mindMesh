@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { withFallback } from "./providers/index.js";
 import { getCanvasDocument } from "../canvas/canvasDocument.js";
 import { applyAIActions } from "./applyAIActions.js";
-import { deduplicateAndLinkActions } from "../canvas/canvasDeduplication.js";
+import { deduplicateAndLinkActions, findSimilarPillar } from "../canvas/canvasDeduplication.js";
 import { validateAIAction, slugifyText } from "./validation.js";
 import { getOrCreateRoom } from "../services/room.service.js";
 
@@ -33,9 +33,10 @@ function buildProposedTopicAction(proposedTopic, existingNodes) {
   if (!semanticKey) return null;
 
   const existingPillars = existingNodes.filter(isAgendaPillar);
-  // Already exists (model re-proposed a topic that's already anchored) — skip, the
-  // entity's matchedTopicKey will just match the existing pillar normally.
-  if (existingPillars.some((p) => (p.semanticKey || p.id)?.toLowerCase() === semanticKey.toLowerCase())) {
+  // Already exists, or close enough in wording (e.g. "Improve UI/UX" vs "Improve
+  // Suffer AI UI/UX") — skip, the entity's matchedTopicKey will still match the
+  // existing pillar normally via findMatchingAgendaPillar's own similarity fallback.
+  if (findSimilarPillar(existingPillars, title, semanticKey)) {
     return null;
   }
 

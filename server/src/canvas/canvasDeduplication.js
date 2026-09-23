@@ -14,7 +14,7 @@ function tokenize(str) {
       .toLowerCase()
       .replace(/[^\w\s]/g, " ")
       .split(/\s+/)
-      .filter((w) => w.length > 2)
+      .filter((w) => w.length > 1)
   );
 }
 
@@ -103,6 +103,41 @@ export function findMatchingAgendaPillar(action, resolvedNodes = []) {
     const score = tokenSimilarity(targetTokens, pillarTokens);
     // Threshold (> 0.20 on meaningful words) guarantees real thematic connection while blocking general fluff
     if (score > highestScore && score >= 0.20) {
+      highestScore = score;
+      bestPillar = pillar;
+    }
+  }
+
+  return bestPillar;
+}
+
+/**
+ * Find an existing pillar that a CANDIDATE new pillar (not a child entity) would
+ * duplicate. Used before creating a brand-new topic pillar (off-topic detection,
+ * Paste Agenda) to prevent the same topic fragmenting into multiple pillars just
+ * because it was phrased differently each time.
+ */
+export function findSimilarPillar(pillars = [], title = "", semanticKey = "") {
+  if (!pillars || pillars.length === 0) return null;
+
+  const keyNorm = (semanticKey || "").toLowerCase().trim();
+  if (keyNorm) {
+    const exact = pillars.find(
+      (p) => (p.semanticKey && p.semanticKey.toLowerCase() === keyNorm) || (p.id && p.id.toLowerCase() === keyNorm)
+    );
+    if (exact) return exact;
+  }
+
+  const targetTokens = tokenize(`${title} ${semanticKey || ""}`);
+  let bestPillar = null;
+  let highestScore = 0;
+
+  for (const pillar of pillars) {
+    const pillarTokens = tokenize(`${pillar.text} ${pillar.semanticKey || ""}`);
+    const score = tokenSimilarity(targetTokens, pillarTokens);
+    // Same threshold as findMatchingAgendaPillar's child-to-pillar match — already
+    // tuned in this codebase for "same topic" detection.
+    if (score > highestScore && score >= 0.2) {
       highestScore = score;
       bestPillar = pillar;
     }

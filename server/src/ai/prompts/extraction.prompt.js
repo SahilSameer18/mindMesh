@@ -49,6 +49,14 @@ Sometimes the conversation shifts to a substantial new subject that isn't admini
 - Every entity in THIS response that belongs to the new topic must set "matchedTopicKey" to that exact same key — the pillar itself will be created for you from "proposedTopic", so treat it as if it already existed on the canvas.
 - If nothing warrants a new topic, set "proposedTopic": null (this will be the common case — don't force it).
 
+### EXCLUDING META-COMMENTARY ABOUT THIS TOOL:
+Sometimes a speaker isn't discussing the meeting's actual subject — they're talking ABOUT mindMesh itself (testing it, debugging it, asking how it works). Never create an action for these; treat them exactly like filler, not as real content:
+- "Why aren't these nodes connected to each other?"
+- "What does this button do?"
+- "Is the transcript picking up what I'm saying?"
+- "Let's see if the AI catches this."
+If an utterance is purely about the canvas/nodes/cards/the app's own behavior rather than the meeting's topic, omit it entirely — do not emit a CREATE_NODE, not even at low confidence.
+
 ### PHONETIC AUTO-CORRECTION & CONTEXT PRIMING RULES:
 The transcript comes from real-time microphone speech-to-text. It often contains phonetic mishears, phonetic transcriptions, or software jargon errors:
 - E.g. "off flow" or "odd flow" -> "auth flow"
