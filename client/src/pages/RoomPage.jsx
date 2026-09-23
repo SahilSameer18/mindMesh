@@ -35,6 +35,7 @@ function WorkspaceContent({ onLeaveRoom }) {
     toggleListening,
     micStatus,
     isSupported,
+    error: speechError,
   } = useSpeechRecognition({
     onFinalTranscript: (text) => {
       if (text && socket) {
@@ -52,6 +53,12 @@ function WorkspaceContent({ onLeaveRoom }) {
       }
     },
   });
+
+  // Dictation fails silently otherwise (permission denied / network errors kill the
+  // session within ~1s with no visible feedback) — surface it so it's actionable.
+  useEffect(() => {
+    if (speechError) toast.error(speechError);
+  }, [speechError]);
 
   const handleToggleMic = useCallback(() => {
     if (!isSupported) {

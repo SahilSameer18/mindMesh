@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth.js";
 import { useEscapeKey } from "../../hooks/useEscapeKey.js";
 import { useRouter } from "../../app.routes.jsx";
 import { roomsApi } from "../../api/rooms.api.js";
+import { getUserInitials } from "../../utils/colors.js";
 import {
   CheckCircle2,
   HelpCircle,
@@ -353,7 +354,7 @@ export default function WorkspaceHeader({
             className="w-7 h-7 rounded-full border-2 border-surface flex items-center justify-center text-[10px] font-bold text-white shadow-subtle ring-1 ring-accent/80 cursor-default shrink-0"
             style={{ backgroundColor: currentUser.color || "#A8542E" }}
           >
-            {currentUser.avatar || "ME"}
+            {getUserInitials(currentUser.name)}
           </div>
 
           {peers.slice(0, MAX_VISIBLE_PEERS).map((peer) => (
@@ -363,7 +364,7 @@ export default function WorkspaceHeader({
               className="w-7 h-7 rounded-full border-2 border-surface flex items-center justify-center text-[10px] font-bold text-white shadow-subtle ring-1 ring-emerald-500 animate-in fade-in zoom-in-75 duration-200 shrink-0"
               style={{ backgroundColor: peer.user?.color || "#059669" }}
             >
-              {peer.user?.avatar || "P"}
+              {getUserInitials(peer.user?.name)}
             </div>
           ))}
 
