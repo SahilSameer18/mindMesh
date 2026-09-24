@@ -114,7 +114,7 @@ export default function LoginPage() {
                       if (localError) setLocalError("");
                       if (authError && setAuthError) setAuthError(null);
                     }}
-                    placeholder="elena@mindmesh.ai"
+                    placeholder="alex@company.com"
                     autoFocus
                     required
                     disabled={isSubmitting}

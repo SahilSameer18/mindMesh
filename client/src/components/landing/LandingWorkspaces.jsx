@@ -5,7 +5,7 @@ import {
   Brain,
   Shield,
   CheckCircle2,
-  Play,
+  LogIn,
   UserPlus,
   LayoutDashboard,
   ArrowRight,
@@ -17,9 +17,8 @@ export default function LandingWorkspaces({
   rooms = [],
   isLoading = false,
   onNavigateToRoom,
-  onLaunchDemo,
 }) {
-  const { navigateToDashboard, navigateToRegister } = useRouter();
+  const { navigateToDashboard, navigateToRegister, navigateToLogin } = useRouter();
 
   // Show only 4 rooms as a preview — full list is on /dashboard
   const previewRooms = rooms.slice(0, 4);
@@ -199,11 +198,11 @@ export default function LandingWorkspaces({
 
               <button
                 type="button"
-                onClick={onLaunchDemo}
+                onClick={() => navigateToLogin()}
                 className="text-center text-[11px] text-text-muted hover:text-accent transition-colors pt-1 cursor-pointer flex items-center justify-center gap-1"
               >
-                <Play className="w-3 h-3 text-accent fill-accent" />
-                <span>Or explore interactive demo room</span>
+                <LogIn className="w-3 h-3 text-accent" />
+                <span>Already have an account? Sign in</span>
               </button>
             </div>
           </div>

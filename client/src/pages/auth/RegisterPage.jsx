@@ -121,7 +121,7 @@ export default function RegisterPage() {
                       if (localError) setLocalError("");
                       if (authError && setAuthError) setAuthError(null);
                     }}
-                    placeholder="Elena Vance"
+                    placeholder="Alex Morgan"
                     autoFocus
                     required
                     disabled={isSubmitting}
@@ -147,7 +147,7 @@ export default function RegisterPage() {
                       if (localError) setLocalError("");
                       if (authError && setAuthError) setAuthError(null);
                     }}
-                    placeholder="elena@mindmesh.ai"
+                    placeholder="alex@company.com"
                     required
                     disabled={isSubmitting}
                     className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface border border-border-subtle text-text-main placeholder:text-text-faint focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 text-sm transition-all"

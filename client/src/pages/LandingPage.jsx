@@ -125,15 +125,6 @@ export default function LandingPage() {
     navigateToRoom(finalRoomId);
   };
 
-  // Launch Demo Room Handler
-  const handleLaunchDemo = () => {
-    if (!userName.trim() && typeof localStorage !== "undefined") {
-      localStorage.setItem("mindmesh_username", user?.name || "Explorer");
-    }
-    toast.info("Entering demo room...");
-    navigateToRoom("demo-room");
-  };
-
   // Workspace Deletion Handler
 
   const handleExecuteDeleteRoom = async () => {
@@ -166,7 +157,6 @@ export default function LandingPage() {
 
       {/* 1. Navbar — auth state is self-managed via useAuth() */}
       <LandingNavbar
-        onLaunchDemo={handleLaunchDemo}
         onLaunchNewWorkspace={() => setIsLaunchModalOpen(true)}
       />
 
@@ -175,7 +165,6 @@ export default function LandingPage() {
         {/* 2. Category-Defining Hero */}
         <LandingHero
           onLaunchNewWorkspace={() => setIsLaunchModalOpen(true)}
-          onLaunchDemo={handleLaunchDemo}
         />
 
         {/* 3. Workflow Bridge */}
@@ -187,7 +176,6 @@ export default function LandingPage() {
           rooms={recentRooms}
           isLoading={isLoadingRooms}
           onNavigateToRoom={navigateToRoom}
-          onLaunchDemo={handleLaunchDemo}
         />
 
         {/* 5. Modern Comparison */}
@@ -199,7 +187,6 @@ export default function LandingPage() {
 
       {/* 7. Footer */}
       <LandingFooter
-        onLaunchDemo={handleLaunchDemo}
         onLaunchNewWorkspace={() => setIsLaunchModalOpen(true)}
       />
 

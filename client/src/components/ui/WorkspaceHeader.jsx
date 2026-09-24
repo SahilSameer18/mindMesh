@@ -17,6 +17,7 @@ import {
   PhoneOff,
   Sparkles,
   UserPlus,
+  LogIn,
 } from "lucide-react";
 import BrandLogo from "./BrandLogo.jsx";
 import UserProfileMenu from "./menus/UserProfileMenu.jsx";
@@ -390,9 +391,10 @@ export default function WorkspaceHeader({
             <button
               type="button"
               onClick={onOpenAuth || (() => navigateToLogin())}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-text-main bg-surface-subtle hover:bg-surface-hover border border-border-subtle transition-colors shrink-0 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-text-main hover:text-accent bg-surface/80 hover:bg-surface border border-border-subtle hover:border-border-strong shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer"
               title="Sign in or register an account"
             >
+              <LogIn className="w-3.5 h-3.5 text-text-muted" />
               <span className="hidden sm:inline">Sign In</span>
               <span className="sm:hidden">Login</span>
             </button>

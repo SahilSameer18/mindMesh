@@ -1,9 +1,13 @@
-import { ArrowRight, Play, Mic, Target, CheckSquare, AlertTriangle } from "lucide-react";
+import { ArrowRight, LogIn, LayoutDashboard, Mic, Target, CheckSquare, AlertTriangle } from "lucide-react";
+import { useRouter } from "../../app.routes.jsx";
+import { useAuth } from "../../hooks/useAuth.js";
 
 export default function LandingHero({
   onLaunchNewWorkspace,
-  onLaunchDemo,
 }) {
+  const { navigateToLogin, navigateToDashboard } = useRouter();
+  const { user } = useAuth();
+
   return (
     <section className="w-full max-w-6xl mx-auto pt-2 sm:pt-4 select-none">
       <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
@@ -25,24 +29,35 @@ export default function LandingHero({
             living canvas as you speak — no notetaker, no recap meeting, no manual cleanup.
           </p>
 
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-1">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               type="button"
               onClick={onLaunchNewWorkspace}
-              className="px-6 py-3 rounded-lg bg-accent hover:bg-accent-hover text-on-accent font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer group"
+              className="px-6 py-3 rounded-xl bg-accent hover:bg-accent-hover text-on-accent font-semibold text-sm shadow-md hover:shadow-lg hover:shadow-accent/20 flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer group"
             >
               <span>Start Free Workspace</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
 
-            <button
-              type="button"
-              onClick={onLaunchDemo}
-              className="flex items-center gap-2 text-sm font-semibold text-text-main hover:text-accent transition-colors cursor-pointer group"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span className="border-b border-text-main/30 group-hover:border-accent">Watch it work</span>
-            </button>
+            {user ? (
+              <button
+                type="button"
+                onClick={() => navigateToDashboard()}
+                className="px-5 py-3 rounded-xl bg-surface/80 hover:bg-surface text-text-main hover:text-accent font-semibold text-sm border border-border-subtle hover:border-accent/40 shadow-xs hover:shadow-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer group backdrop-blur-xs"
+              >
+                <LayoutDashboard className="w-4 h-4 text-accent" />
+                <span>Open Dashboard</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigateToLogin()}
+                className="px-5 py-3 rounded-xl bg-surface/80 hover:bg-surface text-text-main hover:text-accent font-semibold text-sm border border-border-subtle hover:border-accent/40 shadow-xs hover:shadow-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer group backdrop-blur-xs"
+              >
+                <LogIn className="w-4 h-4 text-text-muted group-hover:text-accent transition-colors" />
+                <span>Sign In</span>
+              </button>
+            )}
           </div>
         </div>
 

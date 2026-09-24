@@ -1,4 +1,4 @@
-import { ArrowRight, LogOut, LayoutDashboard, Menu, X, Moon, Sun } from "lucide-react";
+import { ArrowRight, LogIn, LogOut, LayoutDashboard, Menu, X, Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import BrandLogo from "../ui/BrandLogo.jsx";
@@ -123,11 +123,12 @@ export default function LandingNavbar() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="p-1.5 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-all duration-200 cursor-pointer active:scale-90"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-rose-600 bg-surface/70 hover:bg-rose-500/10 border border-border-subtle hover:border-rose-500/30 transition-all duration-200 cursor-pointer active:scale-95 group shadow-2xs"
                   title="Log Out"
                   aria-label="Log out"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                  <span className="hidden md:inline">Log out</span>
                 </button>
               </div>
             </div>
@@ -137,9 +138,10 @@ export default function LandingNavbar() {
               <button
                 type="button"
                 onClick={() => navigateToLogin()}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-text-main bg-surface border border-border-subtle hover:border-border-strong hover:bg-surface-subtle transition-all duration-200 active:scale-95 cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-text-main hover:text-accent bg-surface/80 hover:bg-surface border border-border-subtle hover:border-border-strong hover:shadow-subtle transition-all duration-200 active:scale-95 cursor-pointer group"
               >
-                Sign In
+                <LogIn className="w-3.5 h-3.5 text-text-muted group-hover:text-accent transition-colors" />
+                <span>Sign In</span>
               </button>
 
               <button

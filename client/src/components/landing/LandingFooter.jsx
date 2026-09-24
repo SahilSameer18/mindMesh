@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import BrandLogo from "../ui/BrandLogo.jsx";
 import { useRouter } from "../../app.routes.jsx";
 
-export default function LandingFooter({ onLaunchDemo, onLaunchNewWorkspace }) {
+export default function LandingFooter({ onLaunchNewWorkspace }) {
   const { navigateToLogin, navigateToRegister } = useRouter();
 
   return (
@@ -64,15 +64,6 @@ export default function LandingFooter({ onLaunchDemo, onLaunchNewWorkspace }) {
                 <a href="#faq" className="hover:text-accent transition-colors">
                   FAQ
                 </a>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={onLaunchDemo}
-                  className="hover:text-accent transition-colors cursor-pointer text-left"
-                >
-                  Interactive Demo
-                </button>
               </li>
             </ul>
           </div>

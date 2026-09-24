@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit2, User, PhoneOff, Moon, Sun } from "lucide-react";
+import { Edit2, LogOut, PhoneOff, Moon, Sun } from "lucide-react";
 import { useTheme } from "../../../hooks/useTheme.js";
 
 /**
@@ -92,14 +92,14 @@ export function UserProfileMenu({
         <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
       </button>
 
-      {/* Log Out & Clear Identity */}
+      {/* Log Out */}
       <button
         type="button"
         onClick={onLogout}
-        className="w-full text-left px-2 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-colors font-medium flex items-center gap-1.5 cursor-pointer"
+        className="w-full text-left px-2 py-1.5 rounded-lg text-rose-600 hover:bg-rose-500/10 transition-colors font-medium flex items-center gap-2 cursor-pointer group"
       >
-        <User className="w-3 h-3" />
-        <span>Log Out / Reset Name</span>
+        <LogOut className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+        <span>Log Out</span>
       </button>
 
       {/* Leave Meeting from Menu */}

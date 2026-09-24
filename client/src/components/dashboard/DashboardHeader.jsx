@@ -73,11 +73,12 @@ export default function DashboardHeader() {
           <button
             type="button"
             onClick={handleLogout}
-            className="p-1.5 rounded-lg text-text-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-all cursor-pointer"
-            title="Log Out"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-rose-600 bg-surface/70 hover:bg-rose-500/10 border border-border-subtle hover:border-rose-500/30 transition-all duration-200 cursor-pointer active:scale-95 group shadow-2xs"
+            title="Log out of mindMesh"
             aria-label="Log out"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+            <span className="hidden sm:inline">Log out</span>
           </button>
           </div>
         )}
@@ -85,3 +86,6 @@ export default function DashboardHeader() {
     </header>
   );
 }
+
+
+
