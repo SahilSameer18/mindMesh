@@ -12,6 +12,10 @@ function tokenize(str) {
   return new Set(
     str
       .toLowerCase()
+      .replace(/_/g, " ") // snake_case keys (e.g. "database_indexing") must split like their
+      // Title Case card text ("Database Indexing") does, or fuzzy edge-matching scores them
+      // as zero overlap and silently drops the connection — \w below treats _ as a normal
+      // word character, so this has to happen before that regex runs, not instead of it.
       .replace(/[^\w\s]/g, " ")
       .split(/\s+/)
       .filter((w) => w.length > 1)
@@ -197,6 +201,22 @@ function findAvailableCanvasSpot(existingNodes = []) {
  * - Drops redundant duplicate edges
  */
 export function deduplicateAndLinkActions(actions = [], existingNodes = [], existingEdges = []) {
+  // Process every CREATE_NODE/UPDATE_NODE/DELETE_NODE before any CREATE_EDGE,
+  // regardless of what order the model emitted them in. CREATE_EDGE resolves
+  // its endpoints via findMatchingNode(resolvedNodes, ...) below, which only
+  // knows about nodes already processed earlier in this same loop — so a card
+  // and its connecting edge mentioned in the same utterance would silently
+  // fail to link (dropped with just a console.warn, never surfaced to the
+  // user) whenever the model happened to list the edge before the nodes it
+  // references. This is why connections looked inconsistent: same kind of
+  // speech, but the edge only survived when the model's own JSON ordering
+  // happened to put the node first. Reordering here makes linking deterministic
+  // instead of depending on JSON key order the model doesn't actually guarantee.
+  const orderedActions = [
+    ...actions.filter((a) => a.type !== "CREATE_EDGE"),
+    ...actions.filter((a) => a.type === "CREATE_EDGE"),
+  ];
+
   // Deep-clone, not just the array shell — existingNodes are the SAME object
   // references backing the live CanvasDocument singleton (getState() returns
   // Array.from(this.nodes.values()), not clones). Without this, writes below
@@ -208,7 +228,7 @@ export function deduplicateAndLinkActions(actions = [], existingNodes = [], exis
     existingEdges.map((e) => `${e.fromId}->${e.toId}:${e.type || ""}`)
   );
 
-  for (const action of actions) {
+  for (const action of orderedActions) {
     if (action.type === "CREATE_NODE") {
       const { text, semanticKey, type, metadata } = action.payload;
       const matched = findMatchingNode(resolvedNodes, semanticKey, text);
