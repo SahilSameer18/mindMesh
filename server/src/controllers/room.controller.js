@@ -167,22 +167,32 @@ export async function deleteRoom(req, res, next) {
     const { roomId } = req.params;
     const user = req.user || getCurrentUser(req);
 
-    if (!user || user.isGuest) {
-      return sendError(res, "Forbidden", ["Guests cannot delete workspaces"], 403);
+    if (!user) {
+      return sendError(res, "Forbidden", ["Authentication required"], 403);
     }
 
-    // Verify owner role in RoomMember
-    const membership = await prisma.roomMember.findUnique({
-      where: {
-        roomId_userId: {
-          roomId,
-          userId: user.id,
+    // An anonymous room creator gets an owner-scoped guest_session token (see
+    // createRoom/issueGuestSession) instead of a RoomMember row — guests never
+    // get one of those, so they'd always fail the membership lookup below.
+    // Trust the signed token's role claim directly for this path instead.
+    if (user.isGuest) {
+      if (req.roomRole !== "owner") {
+        return sendError(res, "Forbidden", ["Only the workspace owner can delete this room"], 403);
+      }
+    } else {
+      // Verify owner role in RoomMember
+      const membership = await prisma.roomMember.findUnique({
+        where: {
+          roomId_userId: {
+            roomId,
+            userId: user.id,
+          },
         },
-      },
-    });
+      });
 
-    if (!membership || membership.role !== "owner") {
-      return sendError(res, "Forbidden", ["Only the workspace owner can delete this room"], 403);
+      if (!membership || membership.role !== "owner") {
+        return sendError(res, "Forbidden", ["Only the workspace owner can delete this room"], 403);
+      }
     }
 
     await roomService.deleteRoom(roomId);

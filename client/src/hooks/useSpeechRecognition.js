@@ -33,6 +33,13 @@ export function useSpeechRecognition({
   const isMicActiveRef = useRef(false);
   const recognitionRef = useRef(null);
   const restartTimeoutRef = useRef(null);
+  // onend always fires immediately after onerror per the Web Speech API spec.
+  // Without this flag, onend's "not listening anymore" branch unconditionally
+  // resets micStatus to "idle" in the same tick, clobbering the "error" status
+  // onerror just set — so a permission-denied/network failure was invisible to
+  // anything checking micStatus (the toast still worked, since it reads the
+  // separate `error` string, which onend never touches).
+  const hadTerminalErrorRef = useRef(false);
   const callbacksRef = useRef({ onFinalTranscript, onInterimTranscript });
 
   // Keep callback refs updated without re-triggering speech instance recreation
@@ -59,6 +66,7 @@ export function useSpeechRecognition({
 
     recognition.onstart = () => {
       isMicActiveRef.current = true;
+      hadTerminalErrorRef.current = false;
       setIsListening(true);
       setMicStatus("listening");
       setError(null);
@@ -101,6 +109,7 @@ export function useSpeechRecognition({
       }
 
       if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        hadTerminalErrorRef.current = true;
         setError("Microphone access denied. Please check browser permissions.");
         setMicStatus("error");
         isMicActiveRef.current = false;
@@ -110,6 +119,7 @@ export function useSpeechRecognition({
 
       setError(`Speech error: ${event.error}`);
       if (event.error === "network") {
+        hadTerminalErrorRef.current = true;
         setMicStatus("error");
         isMicActiveRef.current = false;
         setIsListening(false);
@@ -136,7 +146,13 @@ export function useSpeechRecognition({
         }, 200);
       } else {
         setIsListening(false);
-        setMicStatus("idle");
+        // Don't clobber a "error" status onerror just set moments ago (onend
+        // always fires right after onerror) — leave it visible until the next
+        // successful onstart clears the flag.
+        if (!hadTerminalErrorRef.current) {
+          setMicStatus("idle");
+        }
+        hadTerminalErrorRef.current = false;
         setInterimTranscript("");
       }
     };

@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { withFallback } from "./providers/index.js";
 import { getCanvasDocument } from "../canvas/canvasDocument.js";
 import { applyAIActions } from "./applyAIActions.js";
@@ -48,7 +47,12 @@ function buildProposedTopicAction(proposedTopic, existingNodes) {
     status: "auto",
     reason: `New topic detected mid-conversation: ${title}`,
     payload: {
-      id: `node-topic-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`,
+      // Deterministic (matches validateAIAction's own `node-${semanticKey}`
+      // fallback pattern), not random — the same batch can be reprocessed on
+      // retry with the same sourceId, and computeFingerprint() needs the
+      // resulting payload to be identical each time for idempotency to work;
+      // a random id here defeated that and risked a duplicate pillar on replay.
+      id: `node-${semanticKey}`,
       text: title,
       type: "goal",
       semanticKey,

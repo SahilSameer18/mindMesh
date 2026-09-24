@@ -24,9 +24,18 @@ export async function resolveInviteLink(token) {
 }
 
 export function issueGuestSession(res, roomId, name, role = "member") {
+  // A guest's stable identity used to be derived purely from their typed
+  // display name (`guest-${name}`) — any guest could pick an existing
+  // teammate's name and spoof their attribution, and two guests who happened
+  // to type the same name literally collided into one identity. This random
+  // suffix keeps the human-chosen name for display while giving each session
+  // its own distinct identity, same pattern already used for fully anonymous
+  // connections (createAnonymousGuestUser in auth.middleware.js).
+  const guestId = crypto.randomBytes(4).toString("hex");
   const guestToken = generateGuestToken({
     roomId,
     name,
+    guestId,
     isGuest: true,
     role,
   });

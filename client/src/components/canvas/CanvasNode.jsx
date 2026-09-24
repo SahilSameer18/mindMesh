@@ -52,6 +52,15 @@ function CanvasNodeComponent({
   const dragStartRef = useRef({ mouseX: 0, mouseY: 0, nodeX: 0, nodeY: 0 });
   const dragCleanupRef = useRef(null);
   const inputRef = useRef(null);
+  // handlePointerDown's inner handlePointerMove closes over `zoom` once, at
+  // drag-start — zooming mid-drag (e.g. Ctrl+wheel) would then keep dividing
+  // by the stale value for the rest of that drag, causing the node to drift
+  // from the cursor. Mirror the live prop into a ref so each move event reads
+  // the current zoom instead.
+  const zoomRef = useRef(zoom);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
 
   // Cleanup lingering window drag listeners on unmount
   useEffect(() => {
@@ -119,8 +128,8 @@ function CanvasNodeComponent({
     };
 
     const handlePointerMove = (moveEvent) => {
-      const dx = (moveEvent.clientX - dragStartRef.current.mouseX) / zoom;
-      const dy = (moveEvent.clientY - dragStartRef.current.mouseY) / zoom;
+      const dx = (moveEvent.clientX - dragStartRef.current.mouseX) / zoomRef.current;
+      const dy = (moveEvent.clientY - dragStartRef.current.mouseY) / zoomRef.current;
       const newX = dragStartRef.current.nodeX + dx;
       const newY = dragStartRef.current.nodeY + dy;
       onMove(node.id, newX, newY);
@@ -135,8 +144,8 @@ function CanvasNodeComponent({
 
     const handlePointerUp = (upEvent) => {
       setIsDragging(false);
-      const dx = (upEvent.clientX - dragStartRef.current.mouseX) / zoom;
-      const dy = (upEvent.clientY - dragStartRef.current.mouseY) / zoom;
+      const dx = (upEvent.clientX - dragStartRef.current.mouseX) / zoomRef.current;
+      const dy = (upEvent.clientY - dragStartRef.current.mouseY) / zoomRef.current;
       const finalX = dragStartRef.current.nodeX + dx;
       const finalY = dragStartRef.current.nodeY + dy;
       onCommitMove(node.id, finalX, finalY);

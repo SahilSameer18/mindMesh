@@ -66,6 +66,12 @@ export async function rejectAIAction(req, res) {
  * POST /api/rooms/:roomId/agenda
  * Decomposes meeting agenda into strategic topic pillars, anchors them horizontally at y = -150,
  * and persists them as authoritative goal nodes.
+ *
+ * Known limitation: this isn't coordinated with extractionQueue's single-flight
+ * lock for live dialogue extraction on the same room — both read/write the
+ * canvas document independently. In practice agenda-paste happens once at the
+ * start of a meeting, so the window for a genuine concurrent collision is
+ * narrow; not worth cross-path locking unless this turns out to matter.
  */
 export async function generateAgenda(req, res) {
   try {

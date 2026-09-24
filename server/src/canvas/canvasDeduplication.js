@@ -197,7 +197,12 @@ function findAvailableCanvasSpot(existingNodes = []) {
  * - Drops redundant duplicate edges
  */
 export function deduplicateAndLinkActions(actions = [], existingNodes = [], existingEdges = []) {
-  const resolvedNodes = [...existingNodes];
+  // Deep-clone, not just the array shell — existingNodes are the SAME object
+  // references backing the live CanvasDocument singleton (getState() returns
+  // Array.from(this.nodes.values()), not clones). Without this, writes below
+  // like `matched.metadata = ...` land directly on production canvas state
+  // before confidence-routing even decides whether the action should apply.
+  const resolvedNodes = existingNodes.map((n) => ({ ...n, metadata: n.metadata ? { ...n.metadata } : n.metadata }));
   const finalActions = [];
   const edgeSet = new Set(
     existingEdges.map((e) => `${e.fromId}->${e.toId}:${e.type || ""}`)
@@ -216,7 +221,7 @@ export function deduplicateAndLinkActions(actions = [], existingNodes = [], exis
         const metadataChanged = Object.keys(newMeta).some(
           (k) => newMeta[k] !== undefined && newMeta[k] !== oldMeta[k]
         );
-        const textChanged = text && text.toLowerCase().trim() !== matched.text.toLowerCase().trim();
+        const textChanged = text && text.toLowerCase().trim() !== (matched.text || "").toLowerCase().trim();
 
         if (metadataChanged || textChanged) {
           // Convert to in-place UPDATE_NODE targeting the matched node's ID

@@ -125,7 +125,10 @@ export async function requireRoomAccess(req, res, next) {
     try {
       const guest = verifyGuestToken(guestToken);
       if (!roomId || guest.roomId === roomId) {
-        req.user = { id: `guest-${guest.name}`, name: guest.name, isGuest: true, isDemo: false };
+        // guestId disambiguates same-named/spoofed guests (see guest.service.js);
+        // fall back to name for any pre-existing token issued before this field
+        // existed (guest tokens are short-lived, 8h, so this only matters briefly).
+        req.user = { id: `guest-${guest.guestId || guest.name}`, name: guest.name, isGuest: true, isDemo: false };
         // Signed by us — only the anonymous-room-creator token (see room.controller.js)
         // ever carries role: "owner"; invite-issued guest tokens have no role claim
         // and default to "member" as before.
@@ -174,6 +177,7 @@ export function socketAuthMiddleware(socket, next) {
     }
 
     // 1. Authenticated user access token
+    let sessionExpired = false;
     if (cookies.session) {
       try {
         const decoded = verifyAccessToken(cookies.session);
@@ -181,8 +185,13 @@ export function socketAuthMiddleware(socket, next) {
         socket.user = authenticatedUser;
         socket.data.user = authenticatedUser;
         return next();
-      } catch {
-        // Fall through to guest check
+      } catch (err) {
+        // A merely-expired token (vs. absent/malformed) means this IS a real
+        // logged-in user — falling through to anonymous here would silently
+        // strip their identity/owner permissions for every realtime action
+        // until a hard refresh. Remember this so we can reject explicitly
+        // below instead of masquerading them as a stranger.
+        sessionExpired = err?.name === "TokenExpiredError";
       }
     }
 
@@ -195,7 +204,7 @@ export function socketAuthMiddleware(socket, next) {
           return next(new Error("Guest token is not authorized for this room"));
         }
         const guestUser = {
-          id: `guest-${guest.name}`,
+          id: `guest-${guest.guestId || guest.name}`,
           name: guest.name,
           roomId: guest.roomId,
           isGuest: true,
@@ -207,6 +216,13 @@ export function socketAuthMiddleware(socket, next) {
       } catch {
         return next(new Error("Invalid or expired guest session"));
       }
+    }
+
+    // A real user's access token merely expired (no rescuing guest_session
+    // present) — tell the client explicitly so it can refresh over HTTP and
+    // reconnect, instead of silently downgrading them to an anonymous guest.
+    if (sessionExpired) {
+      return next(new Error("TOKEN_EXPIRED"));
     }
 
     // Fallback for a fully anonymous connection: give it a distinct identity

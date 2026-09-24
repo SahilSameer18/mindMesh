@@ -1,21 +1,6 @@
 import { memo } from "react";
-import { EDGE_CONFIGS, EDGE_TYPES } from "../../utils/canvasConstants.js";
+import { EDGE_CONFIGS, EDGE_TYPES, getNodeDimensions } from "../../utils/canvasConstants.js";
 import { X } from "lucide-react";
-
-const NODE_WIDTH = 256;
-const DEFAULT_NODE_HEIGHT = 96;
-
-function getNodeDimensions(node) {
-  if (!node) return { width: NODE_WIDTH, height: DEFAULT_NODE_HEIGHT };
-  const width = node.width || NODE_WIDTH;
-  let height = node.height || DEFAULT_NODE_HEIGHT;
-  if (node.type === "image") {
-    height = 230;
-  } else if (node.text && node.text.length > 90) {
-    height = 130;
-  }
-  return { width, height };
-}
 
 function CanvasEdgeComponent({
   edge,

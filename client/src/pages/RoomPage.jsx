@@ -62,7 +62,7 @@ function WorkspaceContent({ onLeaveRoom }) {
 
   const handleToggleMic = useCallback(() => {
     if (!isSupported) {
-      toast.info("Live voice dictation requires Chrome, Edge, or Brave (Web Speech API).");
+      toast.info("Your browser doesn't support live voice dictation (Web Speech API). Try Chrome or Edge.");
       return;
     }
     toggleListening();

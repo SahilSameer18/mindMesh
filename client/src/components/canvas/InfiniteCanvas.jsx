@@ -20,7 +20,7 @@ import { MultiplayerCursors } from "./MultiplayerCursors.jsx";
 import { Minimap } from "./Minimap.jsx";
 import { PresenterFollowBanner } from "../presence/PresenterFollowBanner.jsx";
 import { useRoom } from "../../hooks/useRoom.js";
-import { NODE_TYPES, EDGE_TYPES } from "../../utils/canvasConstants.js";
+import { NODE_TYPES, EDGE_TYPES, getNodeDimensions } from "../../utils/canvasConstants.js";
 import { findAvailableSpot } from "../../utils/layout.js";
 
 export default function InfiniteCanvas({ canvas }) {
@@ -72,6 +72,7 @@ export default function InfiniteCanvas({ canvas }) {
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [mouseCanvasPos, setMouseCanvasPos] = useState({ x: 0, y: 0 });
   const [isTidying, setIsTidying] = useState(false);
+  const tidySafetyTimerRef = useRef(null);
   const [tidyFeedback, setTidyFeedback] = useState(null); // null | "success" | "empty" | "error"
   const [showZonesPanel, setShowZonesPanel] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
@@ -393,6 +394,10 @@ export default function InfiniteCanvas({ canvas }) {
 
     setIsTidying(true);
     socket.emit("canvas:command", { prompt: "/layout hierarchical" }, (res) => {
+      if (tidySafetyTimerRef.current) {
+        clearTimeout(tidySafetyTimerRef.current);
+        tidySafetyTimerRef.current = null;
+      }
       setIsTidying(false);
       if (res && res.success !== false) {
         setTidyFeedback("success");
@@ -419,9 +424,15 @@ export default function InfiniteCanvas({ canvas }) {
       setTimeout(() => setTidyFeedback(null), 2000);
     });
 
-    setTimeout(() => {
+    // Safety net only — a real AI layout call can easily take longer than a
+    // routine ack, so this must not fire on the normal path (it used to,
+    // unconditionally, re-enabling the button mid-request and letting a
+    // second click fire a concurrent overlapping layout command). Only
+    // guards against a genuinely lost/dropped ack.
+    tidySafetyTimerRef.current = setTimeout(() => {
+      tidySafetyTimerRef.current = null;
       setIsTidying(false);
-    }, 1500);
+    }, 20000);
   };
 
   // Connecting line preview
@@ -510,18 +521,22 @@ export default function InfiniteCanvas({ canvas }) {
           ))}
 
           {/* Active drag connection preview line */}
-          {connectingSourceNode && (
+          {connectingSourceNode && (() => {
+            const sourceDim = getNodeDimensions(connectingSourceNode);
+            const sourceCenterY = connectingSourceNode.y + sourceDim.height / 2;
+            return (
             <path
-              d={`M ${connectingSourceNode.x + 256} ${connectingSourceNode.y + 48} C ${
-                connectingSourceNode.x + 350
-              } ${connectingSourceNode.y + 48}, ${mouseCanvasPos.x - 50} ${mouseCanvasPos.y}, ${mouseCanvasPos.x} ${mouseCanvasPos.y}`}
+              d={`M ${connectingSourceNode.x + sourceDim.width} ${sourceCenterY} C ${
+                connectingSourceNode.x + sourceDim.width + 94
+              } ${sourceCenterY}, ${mouseCanvasPos.x - 50} ${mouseCanvasPos.y}, ${mouseCanvasPos.x} ${mouseCanvasPos.y}`}
               fill="none"
               stroke="#38bdf8"
               strokeWidth={2}
               strokeDasharray="6 4"
               strokeLinecap="round"
             />
-          )}
+            );
+          })()}
         </g>
       </svg>
 

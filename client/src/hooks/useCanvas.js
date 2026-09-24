@@ -188,6 +188,8 @@ export function useCanvas() {
     socket.on("zone:created", handleZoneCreated);
     socket.on("zone:deleted", handleZoneDeleted);
 
+    const throttleTimers = moveThrottleTimers.current;
+
     return () => {
       socket.off("canvas:init", handleCanvasInit);
       socket.off("canvas:action", handleRemoteAction);
@@ -196,6 +198,11 @@ export function useCanvas() {
       socket.off("zone:created", handleZoneCreated);
       socket.off("zone:deleted", handleZoneDeleted);
       if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+      // Per-node MOVE_NODE throttle timers (moveNode, below) weren't cleared
+      // here before — a drag interrupted by unmount/navigation left its timer
+      // pending, which then fired a stale socket.emit after the fact.
+      for (const timer of throttleTimers.values()) clearTimeout(timer);
+      throttleTimers.clear();
     };
   }, [socket]);
 

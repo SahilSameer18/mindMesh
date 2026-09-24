@@ -1,10 +1,11 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { DEFAULT_ROOM_ID } from "../utils/canvasConstants.js";
 import { RoomContext } from "./roomContextInstance.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { getUserColor, getUserInitials } from "../utils/colors.js";
 import { roomsApi } from "../api/rooms.api.js";
 import { createSocketClient } from "../api/socket.js";
+import apiClient from "../api/apiClient.js";
 
 export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const { user: authUser } = useAuth();
@@ -129,6 +130,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
   const [activePresenter, setActivePresenter] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [presenterContestError, setPresenterContestError] = useState(null);
+  const presenterContestErrorTimerRef = useRef(null);
   const [roomMode, setRoomMode] = useState("operational");
   const [systemContext, setSystemContext] = useState(null);
 
@@ -182,6 +184,21 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       hasJoined = false;
       console.warn("[Socket] Connection error:", err.message);
       setIsConnected(false);
+
+      // Server rejected the handshake because our access-token cookie merely
+      // expired (see auth.middleware.js) — socket.io's own reconnection loop
+      // would just keep retrying with the same stale cookie every time. Force
+      // an HTTP refresh (apiClient's interceptor handles it transparently on
+      // any 401, including /me) then reconnect immediately with the fresh one.
+      if (err.message === "TOKEN_EXPIRED") {
+        apiClient
+          .get("/api/auth/me")
+          .then(() => socket.connect())
+          .catch(() => {
+            // Refresh token itself is gone/invalid — nothing more to do here,
+            // the axios interceptor already dispatched mindmesh:session-expired.
+          });
+      }
     };
 
     const handlePeerJoined = ({ user, socketId }) => {
@@ -272,16 +289,35 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       }
       if (mode) setRoomMode(mode);
       if (initialContext) setSystemContext(initialContext);
-      // Backfill peers already in the room — without this, a joiner never learns
-      // who's already here (video call / peer avatars would otherwise stay empty
-      // until someone new joins after them).
-      if (Array.isArray(existingPeers) && existingPeers.length > 0) {
-        setPeers((prev) => {
-          const next = new Map(prev);
-          for (const peer of existingPeers) {
-            if (peer?.socketId) next.set(peer.socketId, { user: peer.user, socketId: peer.socketId });
+      // canvas:init fires on every join AND every reconnect, and its peer list
+      // is server-authoritative — replace (not merge) so peers who left while
+      // we were disconnected don't linger forever as ghost tiles/cursors (the
+      // old merge-only logic never had a path to prune anyone). An empty array
+      // is a real, meaningful state (room is now empty besides us), not "no
+      // data yet" — so this always replaces, never skips on length 0.
+      if (Array.isArray(existingPeers)) {
+        const freshSocketIds = new Set();
+        const next = new Map();
+        for (const peer of existingPeers) {
+          if (peer?.socketId) {
+            next.set(peer.socketId, { user: peer.user, socketId: peer.socketId });
+            freshSocketIds.add(peer.socketId);
           }
-          return next;
+        }
+        setPeers(next);
+        setPeerCursors((prev) => {
+          const pruned = new Map();
+          for (const [socketId, cursor] of prev) {
+            if (freshSocketIds.has(socketId)) pruned.set(socketId, cursor);
+          }
+          return pruned;
+        });
+        setPeerViewports((prev) => {
+          const pruned = new Map();
+          for (const [socketId, viewport] of prev) {
+            if (freshSocketIds.has(socketId)) pruned.set(socketId, viewport);
+          }
+          return pruned;
         });
       }
     };
@@ -351,7 +387,11 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
         if (typeof callback === "function") callback(res);
       } else if (res?.code === "PRESENTER_BUSY") {
         setPresenterContestError(res.message || "Another participant is currently presenting");
-        setTimeout(() => setPresenterContestError(null), 3500);
+        // Clear any still-pending timer from a previous attempt first, so a
+        // rapid second PRESENTER_BUSY doesn't get its message wiped early by
+        // the first attempt's timeout firing on its own unrelated schedule.
+        if (presenterContestErrorTimerRef.current) clearTimeout(presenterContestErrorTimerRef.current);
+        presenterContestErrorTimerRef.current = setTimeout(() => setPresenterContestError(null), 3500);
         if (typeof callback === "function") callback(res);
       }
     });

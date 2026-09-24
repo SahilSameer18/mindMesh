@@ -17,7 +17,7 @@ client/src/
 │   ├── auth/             # Custom bcrypt/JWT login & signup modal
 │   ├── canvas/           # InfiniteCanvas, CanvasNode (8 types), CanvasEdge, Minimap, Cursors
 │   ├── command/          # ActiveCommandBar (Cmd+K / Ask your workspace)
-│   ├── meeting/          # VideoConferenceBar, SpeechIntelligenceController, CommitCallModal
+│   ├── meeting/          # VideoConferenceBar, CommitCallModal
 │   ├── presence/         # PresenterFollowBanner, peer avatar indicators
 │   └── ui/               # WorkspaceHeader, SkeletonLoader, ModeSwitcher
 ├── context/

@@ -31,7 +31,18 @@ export async function persistCanvasAction(roomId, action) {
 
   try {
     switch (type) {
-      case "CREATE_NODE":
+      case "CREATE_NODE": {
+        // upsert's `where` must be a bare unique-field lookup (Prisma doesn't allow
+        // extra filter fields there), so cross-room ownership has to be checked
+        // explicitly before deciding create vs. update — otherwise a client that
+        // knows another room's node id could overwrite that room's content here.
+        const existingOwner = await prisma.canvasNode.findUnique({
+          where: { id: payload.id },
+          select: { roomId: true },
+        });
+        if (existingOwner && existingOwner.roomId !== roomId) {
+          throw new Error(`Refused CREATE_NODE: id ${payload.id} belongs to a different room`);
+        }
         return await prisma.canvasNode.upsert({
           where: { id: payload.id },
           update: {
@@ -57,10 +68,15 @@ export async function persistCanvasAction(roomId, action) {
             sourceId: payload.sourceId || null,
           },
         });
+      }
 
-      case "UPDATE_NODE":
-        return await prisma.canvasNode.update({
-          where: { id: payload.id },
+      case "UPDATE_NODE": {
+        // update()'s `where` only accepts unique fields (just `id` here — no
+        // compound @@unique([id, roomId]) in the schema), so scoping by room
+        // has to go through updateMany's full-filter `where` instead; a count
+        // of 0 means the id exists but belongs to a different room.
+        const result = await prisma.canvasNode.updateMany({
+          where: { id: payload.id, roomId },
           data: {
             text: payload.text,
             type: payload.type,
@@ -72,12 +88,22 @@ export async function persistCanvasAction(roomId, action) {
             ...(payload.sourceId ? { sourceId: payload.sourceId } : {}),
           },
         });
+        if (result.count === 0) {
+          throw new Error(`Refused UPDATE_NODE: id ${payload.id} not found in room ${roomId}`);
+        }
+        return result;
+      }
 
-      case "MOVE_NODE":
-        return await prisma.canvasNode.update({
-          where: { id: payload.id },
+      case "MOVE_NODE": {
+        const result = await prisma.canvasNode.updateMany({
+          where: { id: payload.id, roomId },
           data: { x: payload.x, y: payload.y },
         });
+        if (result.count === 0) {
+          throw new Error(`Refused MOVE_NODE: id ${payload.id} not found in room ${roomId}`);
+        }
+        return result;
+      }
 
       case "DELETE_NODE":
         // Delete connected edges first to respect referential integrity
@@ -91,7 +117,14 @@ export async function persistCanvasAction(roomId, action) {
           where: { id: payload.id, roomId },
         });
 
-      case "CREATE_EDGE":
+      case "CREATE_EDGE": {
+        const existingOwner = await prisma.canvasEdge.findUnique({
+          where: { id: payload.id },
+          select: { roomId: true },
+        });
+        if (existingOwner && existingOwner.roomId !== roomId) {
+          throw new Error(`Refused CREATE_EDGE: id ${payload.id} belongs to a different room`);
+        }
         return await prisma.canvasEdge.upsert({
           where: { id: payload.id },
           update: {
@@ -109,6 +142,7 @@ export async function persistCanvasAction(roomId, action) {
             type: payload.type || "related_to",
           },
         });
+      }
 
       case "DELETE_EDGE":
         return await prisma.canvasEdge.deleteMany({

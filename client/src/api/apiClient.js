@@ -45,15 +45,19 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const url = originalRequest?.url || "";
 
-    // If 401 and not already retrying, and not an auth attempt
+    // If 401 and not already retrying, and not an auth attempt.
+    // /api/auth/me is deliberately NOT excluded here — it's the only call that
+    // validates a session (fired once on app mount), and access tokens expire
+    // in 15 minutes while the refresh token lasts 7 days. Excluding it meant
+    // anyone who left a tab open past 15 minutes got logged out even though
+    // their refresh token was still perfectly valid.
     if (
       status === 401 &&
       originalRequest &&
       !originalRequest._retry &&
       !url.includes("/api/auth/refresh") &&
       !url.includes("/api/auth/login") &&
-      !url.includes("/api/auth/signup") &&
-      !url.includes("/api/auth/me")
+      !url.includes("/api/auth/signup")
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

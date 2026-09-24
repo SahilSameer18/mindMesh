@@ -1,5 +1,23 @@
 export const DEFAULT_ROOM_ID = "demo-room";
 
+const NODE_WIDTH = 256;
+const DEFAULT_NODE_HEIGHT = 96;
+
+// Shared by CanvasEdge (real edge anchors) and InfiniteCanvas (drag-connection
+// preview line) so both agree on where a card's actual visual bounds are —
+// image/long-text cards render taller than the 96px default.
+export function getNodeDimensions(node) {
+  if (!node) return { width: NODE_WIDTH, height: DEFAULT_NODE_HEIGHT };
+  const width = node.width || NODE_WIDTH;
+  let height = node.height || DEFAULT_NODE_HEIGHT;
+  if (node.type === "image") {
+    height = 230;
+  } else if (node.text && node.text.length > 90) {
+    height = 130;
+  }
+  return { width, height };
+}
+
 export const ACTION_TYPES = {
   CREATE_NODE: "CREATE_NODE",
   UPDATE_NODE: "UPDATE_NODE",
