@@ -22,12 +22,6 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, navigateToDashboard]);
 
-  // Clear errors on change
-  useEffect(() => {
-    setLocalError("");
-    if (setAuthError) setAuthError(null);
-  }, [email, password, setAuthError]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim() || !password) {
@@ -115,7 +109,11 @@ export default function LoginPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (localError) setLocalError("");
+                      if (authError && setAuthError) setAuthError(null);
+                    }}
                     placeholder="elena@mindmesh.ai"
                     autoFocus
                     required
@@ -139,7 +137,11 @@ export default function LoginPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (localError) setLocalError("");
+                      if (authError && setAuthError) setAuthError(null);
+                    }}
                     placeholder="••••••••••••"
                     required
                     disabled={isSubmitting}

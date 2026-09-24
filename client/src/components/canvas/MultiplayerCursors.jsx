@@ -11,16 +11,21 @@ function CursorItem({ cursor }) {
   const name = user?.name || "Collaborator";
   const role = user?.role;
 
+  const [lastSeen, setLastSeen] = useState(timestamp || 0);
   const [isIdle, setIsIdle] = useState(false);
 
-  useEffect(() => {
+  if (timestamp && timestamp !== lastSeen) {
+    setLastSeen(timestamp);
     setIsIdle(false);
+  }
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       setIsIdle(true);
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [x, y, timestamp]);
+  }, [timestamp]);
 
   return (
     <div

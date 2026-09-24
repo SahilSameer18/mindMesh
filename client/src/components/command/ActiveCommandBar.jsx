@@ -16,6 +16,7 @@ import {
   ListOrdered,
 } from "lucide-react";
 import { useRoom } from "../../hooks/useRoom.js";
+import { toast } from "sonner";
 import PasteAgendaModal from "../meeting/PasteAgendaModal.jsx";
 
 const PROMPT_PILLS = [
@@ -102,6 +103,9 @@ export default function ActiveCommandBar({ canvas }) {
               ack.result.highlightedEdgeIds || []
             );
           }
+        } else {
+          const errMsg = ack?.error || ack?.message || "Workspace command could not be completed. Please try again.";
+          toast.error(errMsg);
         }
       }
     );

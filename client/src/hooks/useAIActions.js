@@ -17,7 +17,6 @@ export function useAIActions() {
   const fetchActions = useCallback(async () => {
     if (!roomId) return;
     try {
-      setIsLoading(true);
       const json = await aiApi.getAIActions(roomId, { limit: 50 });
       if (json?.success && Array.isArray(json.data)) {
         setActions(json.data);
@@ -30,8 +29,25 @@ export function useAIActions() {
   }, [roomId]);
 
   useEffect(() => {
-    fetchActions();
-  }, [fetchActions]);
+    let active = true;
+    aiApi
+      .getAIActions(roomId, { limit: 50 })
+      .then((json) => {
+        if (active && json?.success && Array.isArray(json.data)) {
+          setActions(json.data);
+        }
+      })
+      .catch((err) => {
+        console.warn("[useAIActions] Failed to hydrate AI actions:", err.message);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [roomId]);
 
   // 2. Real-time WebSocket Listeners with in-place update preservation
   useEffect(() => {

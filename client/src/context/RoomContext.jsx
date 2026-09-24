@@ -158,6 +158,7 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
       // Re-join canvas room on every connect/reconnect
       socket.emit("canvas:join", { roomId, user: currentUser }, (ack) => {
         if (!ack?.success) {
+          hasJoined = false;
           console.warn("[Socket] Join acknowledgment error:", ack?.error);
           if (ack?.code === "ROOM_FULL" && typeof window !== "undefined") {
             window.dispatchEvent(new CustomEvent("mindmesh:room-full", { detail: ack.error }));
@@ -171,12 +172,14 @@ export function RoomProvider({ roomId = DEFAULT_ROOM_ID, children }) {
     };
 
     const handleDisconnect = () => {
+      hasJoined = false;
       setIsConnected(false);
       setActivePresenter(null);
       setIsFollowing(false);
     };
 
     const handleConnectError = (err) => {
+      hasJoined = false;
       console.warn("[Socket] Connection error:", err.message);
       setIsConnected(false);
     };

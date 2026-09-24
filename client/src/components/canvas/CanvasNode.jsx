@@ -50,7 +50,18 @@ function CanvasNodeComponent({
   const [editText, setEditText] = useState(node.text || "");
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ mouseX: 0, mouseY: 0, nodeX: 0, nodeY: 0 });
+  const dragCleanupRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Cleanup lingering window drag listeners on unmount
+  useEffect(() => {
+    return () => {
+      if (dragCleanupRef.current) {
+        dragCleanupRef.current();
+        dragCleanupRef.current = null;
+      }
+    };
+  }, []);
 
   // Client-side image lifecycle state (Option B: Zero-infrastructure error recovery)
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -115,6 +126,13 @@ function CanvasNodeComponent({
       onMove(node.id, newX, newY);
     };
 
+    const cleanupListeners = () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerCancel);
+      dragCleanupRef.current = null;
+    };
+
     const handlePointerUp = (upEvent) => {
       setIsDragging(false);
       const dx = (upEvent.clientX - dragStartRef.current.mouseX) / zoom;
@@ -122,13 +140,18 @@ function CanvasNodeComponent({
       const finalX = dragStartRef.current.nodeX + dx;
       const finalY = dragStartRef.current.nodeY + dy;
       onCommitMove(node.id, finalX, finalY);
-
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
+      cleanupListeners();
     };
 
+    const handlePointerCancel = () => {
+      setIsDragging(false);
+      cleanupListeners();
+    };
+
+    dragCleanupRef.current = cleanupListeners;
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerCancel);
   };
 
   const handleFinishEditing = () => {

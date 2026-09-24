@@ -23,12 +23,6 @@ export default function RegisterPage() {
     }
   }, [isAuthenticated, navigateToDashboard]);
 
-  // Clear errors on change
-  useEffect(() => {
-    setLocalError("");
-    if (setAuthError) setAuthError(null);
-  }, [name, email, password, setAuthError]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !password) {
@@ -122,7 +116,11 @@ export default function RegisterPage() {
                   <input
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      if (localError) setLocalError("");
+                      if (authError && setAuthError) setAuthError(null);
+                    }}
                     placeholder="Elena Vance"
                     autoFocus
                     required
@@ -144,7 +142,11 @@ export default function RegisterPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (localError) setLocalError("");
+                      if (authError && setAuthError) setAuthError(null);
+                    }}
                     placeholder="elena@mindmesh.ai"
                     required
                     disabled={isSubmitting}
@@ -182,7 +184,11 @@ export default function RegisterPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (localError) setLocalError("");
+                      if (authError && setAuthError) setAuthError(null);
+                    }}
                     placeholder="••••••••••••"
                     required
                     disabled={isSubmitting}

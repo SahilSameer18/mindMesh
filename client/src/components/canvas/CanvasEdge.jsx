@@ -3,7 +3,19 @@ import { EDGE_CONFIGS, EDGE_TYPES } from "../../utils/canvasConstants.js";
 import { X } from "lucide-react";
 
 const NODE_WIDTH = 256;
-const NODE_HEIGHT = 96;
+const DEFAULT_NODE_HEIGHT = 96;
+
+function getNodeDimensions(node) {
+  if (!node) return { width: NODE_WIDTH, height: DEFAULT_NODE_HEIGHT };
+  const width = node.width || NODE_WIDTH;
+  let height = node.height || DEFAULT_NODE_HEIGHT;
+  if (node.type === "image") {
+    height = 230;
+  } else if (node.text && node.text.length > 90) {
+    height = 130;
+  }
+  return { width, height };
+}
 
 function CanvasEdgeComponent({
   edge,
@@ -16,17 +28,20 @@ function CanvasEdgeComponent({
 }) {
   if (!fromNode || !toNode) return null;
 
+  const fromDim = getNodeDimensions(fromNode);
+  const toDim = getNodeDimensions(toNode);
+
   // Determine closest connection points
-  const fromCenterX = fromNode.x + NODE_WIDTH / 2;
-  const fromCenterY = fromNode.y + NODE_HEIGHT / 2;
-  const toCenterX = toNode.x + NODE_WIDTH / 2;
-  const toCenterY = toNode.y + NODE_HEIGHT / 2;
+  const fromCenterX = fromNode.x + fromDim.width / 2;
+  const fromCenterY = fromNode.y + fromDim.height / 2;
+  const toCenterX = toNode.x + toDim.width / 2;
+  const toCenterY = toNode.y + toDim.height / 2;
 
   let x1, y1, x2, y2;
 
   if (toCenterX > fromCenterX) {
     // Left-to-right connection
-    x1 = fromNode.x + NODE_WIDTH;
+    x1 = fromNode.x + fromDim.width;
     y1 = fromCenterY;
     x2 = toNode.x;
     y2 = toCenterY;
@@ -34,7 +49,7 @@ function CanvasEdgeComponent({
     // Right-to-left connection
     x1 = fromNode.x;
     y1 = fromCenterY;
-    x2 = toNode.x + NODE_WIDTH;
+    x2 = toNode.x + toDim.width;
     y2 = toCenterY;
   }
 

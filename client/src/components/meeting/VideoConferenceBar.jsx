@@ -17,10 +17,12 @@ function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompac
   const displayName = isLocal ? "You" : name || "Collaborator";
 
   useEffect(() => {
-    if (videoRef.current && stream && showVideo) {
-      videoRef.current.srcObject = stream;
+    if (videoRef.current && stream) {
+      if (videoRef.current.srcObject !== stream) {
+        videoRef.current.srcObject = stream;
+      }
     }
-  }, [stream, showVideo]);
+  }, [stream]);
 
   // Route remote audio to the chosen output device (speaker picker). Local tile
   // is always muted (it's your own mic monitored back at you), so this is a no-op there.
@@ -28,7 +30,7 @@ function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompac
     if (!isLocal && outputDeviceId && videoRef.current && typeof videoRef.current.setSinkId === "function") {
       videoRef.current.setSinkId(outputDeviceId).catch(() => {});
     }
-  }, [isLocal, outputDeviceId, showVideo]);
+  }, [isLocal, outputDeviceId]);
 
   return (
     <div
@@ -40,15 +42,16 @@ function VideoTile({ stream, name, isMuted, isCameraOn, isLocal, color, isCompac
           : "border border-[#F3ECDD]/10"
       }`}
     >
-      {showVideo ? (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted={isLocal}
-          className={`w-full h-full object-cover ${isLocal ? "scale-x-[-1]" : ""}`}
-        />
-      ) : (
+      {/* Video element is permanently kept in the DOM so incoming audio tracks never cut out when camera is toggled */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={isLocal}
+        className={`w-full h-full object-cover ${isLocal ? "scale-x-[-1]" : ""} ${showVideo ? "block" : "hidden"}`}
+      />
+
+      {!showVideo && (
         <div className="flex flex-col items-center justify-center text-white">
           <div
             className={`rounded-full flex items-center justify-center font-bold shadow-subtle border border-white/20 ${

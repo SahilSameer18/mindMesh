@@ -12,95 +12,9 @@ import {
   ChevronUp,
   X,
   Radio,
-  Clock,
-  Filter,
   Zap,
 } from "lucide-react";
-
-export const BENCHMARK_SCENARIOS = [
-  {
-    id: "canonical-debate",
-    title: "1. Canonical Onboarding Debate",
-    description: "Elena and Marcus establish goal, task, dependency, and blocking relation.",
-    chunks: [
-      {
-        speaker: "Elena Vance",
-        role: "Product Lead",
-        color: "#8b5cf6",
-        text: "We need to improve onboarding.",
-      },
-      {
-        speaker: "Marcus Sterling",
-        role: "Tech Lead",
-        color: "#06b6d4",
-        text: "Mike will redesign the dashboard, but analytics needs to be ready first.",
-      },
-    ],
-  },
-  {
-    id: "live-reassignment",
-    title: "2. Live Reassignment & Correction",
-    description: "In-place card correction: Mike is reassigned to Sam without creating duplicate nodes.",
-    chunks: [
-      {
-        speaker: "Elena Vance",
-        role: "Product Lead",
-        color: "#8b5cf6",
-        text: "Actually, Mike is busy with auth. Sam will take the dashboard instead.",
-      },
-      {
-        speaker: "Marcus Sterling",
-        role: "Tech Lead",
-        color: "#06b6d4",
-        text: "Sounds good, let's make sure Sam syncs with analytics.",
-      },
-    ],
-  },
-  {
-    id: "architecture-risk",
-    title: "3. Architecture & Risk Mitigation",
-    description: "Extracts database migration task, latency risk card, and Redis caching mitigation.",
-    chunks: [
-      {
-        speaker: "Elena Vance",
-        role: "Product Lead",
-        color: "#8b5cf6",
-        text: "We are migrating the database to Postgres, but latency might spike during high loads.",
-      },
-      {
-        speaker: "Marcus Sterling",
-        role: "Tech Lead",
-        color: "#06b6d4",
-        text: "Let's add Redis caching to mitigate the database latency risk.",
-      },
-      {
-        speaker: "Elena Vance",
-        role: "Product Lead",
-        color: "#8b5cf6",
-        text: "Agreed. Redis cache should unblock database migration.",
-      },
-    ],
-  },
-  {
-    id: "fluff-filter",
-    title: "4. Fluff Filter & Short Decision",
-    description: "Proves pure conversational filler is dropped, but short hand-offs ('Sam takes it') are saved.",
-    chunks: [
-      {
-        speaker: "Elena Vance",
-        role: "Product Lead",
-        color: "#8b5cf6",
-        text: "Yeah, uh-huh, okay cool.", // Filtered
-      },
-      {
-        speaker: "Marcus Sterling",
-        role: "Tech Lead",
-        color: "#06b6d4",
-        text: "Sam takes it.", // Preserved decision
-      },
-    ],
-  },
-];
+import { BENCHMARK_SCENARIOS } from "../../utils/benchmarkScenarios.js";
 
 export default function SpeechIntelligenceController({ isOpen, onClose, speechRecognition }) {
   const { socket, roomId, currentUser } = useRoom();
@@ -113,7 +27,6 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
 
   // Live Captions & Ticker State
   const [latestCaption, setLatestCaption] = useState(null);
-  const [recentChunks, setRecentChunks] = useState([]);
   const [lastExtractionNotice, setLastExtractionNotice] = useState(null);
 
   const playTimerRef = useRef(null);
@@ -149,7 +62,6 @@ export default function SpeechIntelligenceController({ isOpen, onClose, speechRe
 
     const handleTranscriptChunk = (data) => {
       setLatestCaption(data);
-      setRecentChunks((prev) => [data, ...prev.slice(0, 7)]);
     };
 
     const handleTranscriptProcessed = (data) => {

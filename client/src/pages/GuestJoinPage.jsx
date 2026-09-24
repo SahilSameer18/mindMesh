@@ -14,15 +14,19 @@ export default function GuestJoinPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [inviteData, setInviteData] = useState(null);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(() => authUser?.name || "");
+  const [prevAuthName, setPrevAuthName] = useState(() => authUser?.name || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  if (authUser?.name && authUser.name !== prevAuthName) {
+    setPrevAuthName(authUser.name);
+    if (!name) setName(authUser.name);
+  }
 
   // Resolve invite link metadata on mount
   useEffect(() => {
     let mounted = true;
-    setIsLoading(true);
-    setErrorMessage("");
 
     apiClient
       .get(`/api/invites/${token}`)
@@ -49,13 +53,6 @@ export default function GuestJoinPage() {
       mounted = false;
     };
   }, [token]);
-
-  // Auto-populate display name if user is already authenticated
-  useEffect(() => {
-    if (authUser?.name && !name) {
-      setName(authUser.name);
-    }
-  }, [authUser]);
 
   const handleJoin = async (e) => {
     e.preventDefault();
